@@ -1,0 +1,16 @@
+{
+  "name": "pokemon-proxy-function",
+  "version": "1.0.0",
+  "description": "Netlify function to proxy Pokemon TCG API requests",
+  "main": "pokemon-proxy.js",
+  "dependencies": {
+    "node-fetch": "^2.6.1"
+  },
+  "scripts": {
+    "start": "netlify-lambda serve",
+    "build": "netlify-lambda build"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT"
+}
