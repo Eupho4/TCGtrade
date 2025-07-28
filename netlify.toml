@@ -6,14 +6,6 @@
   from = "/api/pokemontcg/*" # La ruta que tu frontend usará para el proxy
   to = "/.netlify/functions/pokemon-proxy/:splat" # Redirige a tu función sin servidor
   status = 200 # Asegura que la redirección sea transparente
-# netlify.toml
-[build]
-  functions = "netlify/functions" # Indica a Netlify dónde encontrar tus funciones
 
-[[redirects]]
-  from = "/api/pokemontcg/*" # La ruta que tu frontend usará para el proxy
-  to = "/.netlify/functions/pokemon-proxy/:splat" # Redirige a tu función sin servidor
-  status = 200 # Asegura que la redirección sea transparente
-
-[[plugins]] # <--- AÑADE ESTO
-package = "@netlify/plugin-functions-install-core" # <--- Y ESTO
+[[plugins]]
+package = "@netlify/plugin-functions-install-core"
