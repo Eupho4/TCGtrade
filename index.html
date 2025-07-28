@@ -34,6 +34,17 @@
             transform: translateY(-2px);
             box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
         }
+        .btn-secondary { /* Nuevo estilo para el botón de añadir a colección */
+            background-color: #4a5568; /* Gris oscuro */
+            color: white;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .btn-secondary:hover {
+            background-color: #2d3748; /* Gris más oscuro */
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
         .card-bg {
             background-color: #ffffff; /* Blanco puro para las tarjetas */
             transition: transform 0.3s ease, box-shadow 0.3s ease;
@@ -136,6 +147,22 @@
             cursor: pointer;
             text-decoration: underline;
         }
+        /* Estilo para las cartas faltantes */
+        .missing-card {
+            background-color: #e2e8f0; /* Gris claro */
+            border: 2px dashed #a0aec0; /* Borde punteado */
+            color: #4a5568; /* Texto gris oscuro */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 1rem;
+            height: 100%; /* Para que ocupe el mismo espacio que una carta normal */
+        }
+        .missing-card img {
+            opacity: 0.3; /* Imagen tenue */
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
@@ -144,27 +171,27 @@
     <header class="header-bg shadow-lg py-4 px-6 md:px-10">
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
             <!-- Logo/Nombre del sitio -->
-            <a href="#" class="text-white text-3xl font-bold rounded-md px-3 py-1">
+            <a href="#" class="text-white text-3xl font-bold rounded-md px-3 py-1 flex items-center h-12" id="homeLink">
                 TCGtrade
             </a>
 
             <!-- Barra de búsqueda -->
-            <div class="w-full md:w-1/2 lg:w-1/3 mt-4 md:mt-0 relative">
+            <div class="w-full md:w-1/2 lg:w-1/3 mt-4 md:mt-0 relative flex items-center h-12">
                 <input type="text" id="searchInput" placeholder="Buscar cartas, sets, usuarios..."
-                       class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-800">
+                       class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-800 h-full">
                 <div id="loadingSpinner" class="loader absolute right-3 top-1/2 -translate-y-1/2"></div>
             </div>
 
             <!-- Navegación y acciones de usuario -->
             <nav class="mt-4 md:mt-0">
-                <ul class="flex space-x-6 text-white text-lg" id="authNavLinks">
-                    <li><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center"><span class="icon">🔍</span> Explorar</a></li>
-                    <li><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center"><span class="icon">📦</span> Mis Cartas</a></li>
-                    <li><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center"><span class="icon">🤝</span> Intercambios</a></li>
-                    <li id="loginNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center" id="loginLink"><span class="icon">🚪</span> Iniciar Sesión</a></li>
-                    <li id="registerNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center" id="registerLink"><span class="icon">📝</span> Registrarse</a></li>
-                    <li id="profileNavLink" class="hidden"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center text-base"><span class="icon">👤</span> Mi Perfil (<span id="userEmailDisplay"></span>)</a></li>
-                    <li id="logoutNavLink" class="hidden"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center" id="logoutLink"><span class="icon">👋</span> Cerrar Sesión</a></li>
+                <ul class="flex space-x-4 text-white" id="authNavLinks"> <!-- Changed space-x-6 to space-x-4, removed text-lg here -->
+                    <li><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-base whitespace-nowrap"><span class="icon">🔍</span> Explorar</a></li>
+                    <li id="myCardsNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-base whitespace-nowrap" id="myCardsLink"><span class="icon">📦</span> Mis Cartas</a></li>
+                    <li><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-base whitespace-nowrap"><span class="icon">🤝</span> Intercambios</a></li>
+                    <li id="loginNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-base whitespace-nowrap" id="loginLink"><span class="icon">🚪</span> Iniciar Sesión</a></li>
+                    <li id="registerNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-base whitespace-nowrap" id="registerLink"><span class="icon">📝</span> Registrarse</a></li>
+                    <li id="profileNavLink" class="hidden"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center text-base h-12 whitespace-nowrap"><span class="icon">👤</span> Mi Perfil</a></li>
+                    <li id="logoutNavLink" class="hidden"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-base whitespace-nowrap" id="logoutLink"><span class="icon">👋</span> Cerrar Sesión</a></li>
                 </ul>
             </nav>
         </div>
@@ -173,7 +200,7 @@
     <!-- Contenido Principal -->
     <main class="flex-grow container mx-auto p-6 md:p-10">
         <!-- Sección Hero mejorada -->
-        <section class="hero-section">
+        <section class="hero-section" id="heroSection">
             <h1>Tu Centro de Intercambio de Pokémon TCG</h1>
             <p class="text-xl">Conecta con coleccionistas de todo el mundo, encuentra las cartas que te faltan y completa tu colección de forma segura y sencilla.</p>
             <button class="btn-primary text-xl px-8 py-4 rounded-full font-semibold">
@@ -190,65 +217,60 @@
                 <!-- Las tarjetas de resultados se insertarán aquí por JavaScript -->
             </div>
             <p id="noResultsMessage" class="text-center text-gray-600 mt-8 hidden">No se encontraron resultados para tu búsqueda.</p>
-            <p id="errorMessage" class="text-center text-red-500 mt-8 hidden">Ha ocurrido un error al cargar las cartas. Por favor, inténtalo de nuevo más tarde.</p>
+            <p id="errorMessage" class="text-center text-red-500 mt-8 hidden">Ha ocurrido un error al cargar las cartas. Esto se debe a una restricción de seguridad (CORS) de la API de Pokémon TCG cuando se accede desde un entorno de desarrollo local como `http://localhost:8000/`. La funcionalidad de búsqueda debería operar correctamente una vez que la aplicación esté desplegada en un dominio web real (por ejemplo, `https://tudominio.com`).</p>
         </section>
 
-        <!-- Sección de Cartas Destacadas (se ocultará si hay resultados de búsqueda) -->
-        <section id="featuredCards" class="mb-12">
+        <!-- Sección de Mis Cartas -->
+        <section id="myCardsSection" class="mb-12 hidden">
             <h2 class="text-3xl font-bold mb-6 text-gray-700 flex items-center">
-                <span class="icon">🔥</span> Cartas Destacadas
+                <span class="icon">📦</span> Mi Colección de Cartas
             </h2>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <!-- Tarjeta de ejemplo 1 -->
-                <div class="card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105">
-                    <img src="https://placehold.co/400x550/a0aec0/ffffff?text=Charizard+VMAX" alt="Charizard VMAX" class="w-full h-auto object-cover rounded-t-xl">
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold mb-2 text-gray-900">Charizard VMAX</h3>
-                        <p class="text-gray-600 text-sm mb-3">Set: Oscuridad Incandescente</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-lg font-bold text-orange-600">Disponible</span>
-                            <button class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold">Ver Detalles</button>
-                        </div>
-                    </div>
+            <div class="flex flex-wrap gap-4 mb-6 items-end"> 
+                <div class="flex-1 min-w-[150px] flex flex-col"> 
+                    <label for="seriesFilter" class="block text-gray-700 text-sm font-bold mb-2">Filtrar por Serie:</label>
+                    <select id="seriesFilter" class="shadow border rounded w-full py-2 px-3 h-[42px] text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">Todas las Series</option>
+                        <!-- Opciones de series se cargarán aquí -->
+                    </select>
                 </div>
-                <!-- Tarjeta de ejemplo 2 -->
-                <div class="card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105">
-                    <img src="https://placehold.co/400x550/a0aec0/ffffff?text=Pikachu+V" alt="Pikachu V" class="w-full h-auto object-cover rounded-t-xl">
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold mb-2 text-gray-900">Pikachu V</h3>
-                        <p class="text-gray-600 text-sm mb-3">Set: Voltaje Vívido</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-lg font-bold text-orange-600">Disponible</span>
-                            <button class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold">Ver Detalles</button>
-                        </div>
-                    </div>
+                <div class="flex-1 min-w-[150px] flex flex-col"> 
+                    <label for="setFilter" class="block text-gray-700 text-sm font-bold mb-2">Filtrar por Expansión (Set):</label>
+                    <select id="setFilter" class="shadow border rounded w-full py-2 px-3 h-[42px] text-gray-700 leading-tight focus:outline-none focus:shadow-outline" disabled>
+                        <option value="">Todas las Expansiones</option>
+                        <!-- Opciones de sets se cargarán aquí -->
+                    </select>
                 </div>
-                <!-- Tarjeta de ejemplo 3 -->
-                <div class="card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105">
-                    <img src="https://placehold.co/400x550/a0aec0/ffffff?text=Mewtwo+GX" alt="Mewtwo GX" class="w-full h-auto object-cover rounded-t-xl">
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold mb-2 text-gray-900">Mewtwo GX</h3>
-                        <p class="text-gray-600 text-sm mb-3">Set: Destinos Ocultos</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-lg font-bold text-orange-600">Disponible</span>
-                            <button class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold">Ver Detalles</button>
-                        </div>
-                    </div>
+                <div class="flex-1 min-w-[150px] flex flex-col"> 
+                    <label for="languageFilter" class="block text-gray-700 text-sm font-bold mb-2">Filtrar por Idioma:</label>
+                    <select id="languageFilter" class="shadow border rounded w-full py-2 px-3 h-[42px] text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">Todos los Idiomas</option>
+                        <option value="Español">Español</option>
+                        <option value="Inglés">Inglés</option>
+                        <option value="Japonés">Japonés</option>
+                        <option value="Francés">Francés</option>
+                        <option value="Alemán">Alemán</option>
+                        <option value="Chino">Chino</option> <!-- Añadido Chino -->
+                        <option value="Italiano">Italiano</option> <!-- Añadido Italiano -->
+                        <!-- Más idiomas si es necesario -->
+                    </select>
                 </div>
-                <!-- Tarjeta de ejemplo 4 -->
-                <div class="card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105">
-                    <img src="https://placehold.co/400x550/a0aec0/ffffff?text=Umbreon+VMAX" alt="Umbreon VMAX" class="w-full h-auto object-cover rounded-t-xl">
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold mb-2 text-gray-900">Umbreon VMAX</h3>
-                        <p class="text-gray-600 text-sm mb-3">Set: Evoluciones Celestiales</p>
-                        <div class="flex justify-between items-center">
-                            <span class="text-lg font-bold text-orange-600">Disponible</span>
-                            <button class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold">Ver Detalles</button>
-                        </div>
-                    </div>
+                <div class="flex items-center self-end p-2 rounded-md bg-gray-50 h-[42px]"> 
+                    <input type="checkbox" id="showAllSetCardsToggle" class="mr-2 h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded cursor-pointer" disabled> <!-- Added disabled attribute -->
+                    <label for="showAllSetCardsToggle" class="text-gray-700 text-sm font-bold cursor-pointer">Ver todas las cartas del set (incluidas las faltantes)</label>
                 </div>
+                <button id="applyFiltersBtn" class="btn-primary px-6 py-2 rounded-lg text-sm font-semibold h-[42px]"> 
+                    Aplicar Filtros
+                </button>
             </div>
+            <div id="myCardsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Las cartas del usuario se cargarán aquí -->
+            </div>
+            <p id="noMyCardsMessage" class="text-center text-gray-600 mt-8 hidden">Aún no tienes cartas en tu colección. ¡Busca y añade algunas!</p>
+            <p id="myCardsErrorMessage" class="text-center text-red-500 mt-8 hidden">Error al cargar tu colección. Por favor, inténtalo de nuevo.</p>
         </section>
+
+        <!-- Sección de Cartas Destacadas (OCULTADA) -->
+        <!-- La sección de cartas destacadas ha sido comentada/eliminada según tu solicitud. -->
 
         <!-- Sección de Cómo Funciona -->
         <section id="howItWorks" class="mb-12 text-center">
@@ -350,7 +372,7 @@
         // Importar módulos de Firebase
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, collection, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // =====================================================================================================
         // IMPORTANTE: PEGA AQUÍ TU OBJETO firebaseConfig COMPLETO DE TU CONSOLA DE FIREBASE.
@@ -366,13 +388,12 @@
         // };
         // =====================================================================================================
         const firebaseConfig = {
-  		apiKey: "AIzaSyCkgz6_Zpu0VOW6GgJxOxd9QlVccsBXnog",
-  		authDomain: "tcgtrade-7ba27.firebaseapp.com",
-  		projectId: "tcgtrade-7ba27",
-  		storageBucket: "tcgtrade-7ba27.firebasestorage.app",
-  		messagingSenderId: "207150886257",
-  		appId: "1:207150886257:web:26edebbeb7df7a1d935ad0",
-  		measurementId: "G-K87XEW912C"
+          apiKey: "TU_API_KEY_AQUI", // <--- REEMPLAZA ESTO con tu clave API de Firebase
+          authDomain: "TU_AUTH_DOMAIN_AQUI",
+          projectId: "TU_PROJECT_ID_AQUI",
+          storageBucket: "TU_STORAGE_BUCKET_AQUI",
+          messagingSenderId: "TU_MESSAGING_SENDER_ID_AQUI",
+          appId: "TU_APP_ID_AQUI"
         };
         // =====================================================================================================
 
@@ -390,9 +411,20 @@
         const POKEMON_TCG_API_KEY = 'd008fe15-57fe-4903-b6a0-c5a55be8caf7'; 
 
         // Declaración de variables para elementos del DOM (se asignarán en DOMContentLoaded)
-        let searchInput, searchResultsSection, featuredCardsSection, howItWorksSection, cardsContainer, loadingSpinner, noResultsMessage, errorMessage;
+        let searchInput, searchResultsSection, heroSection, howItWorksSection, cardsContainer, loadingSpinner, noResultsMessage, errorMessage;
         let authModal, loginForm, registerForm, loginEmailInput, loginPasswordInput, loginBtn, loginError, registerEmailInput, registerPasswordInput, confirmPasswordInput, registerBtn, registerError, closeAuthModalBtn, toggleToRegister, toggleToLogin;
-        let loginNavLink, registerNavLink, profileNavLink, logoutNavLink, userEmailDisplay;
+        let loginNavLink, registerNavLink, profileNavLink, logoutNavLink; 
+        
+        // Nuevas referencias para la sección "Mis Cartas"
+        let myCardsNavLink, myCardsLink, myCardsSection, myCardsContainer, noMyCardsMessage, myCardsErrorMessage;
+        let seriesFilter, setFilter, languageFilter, applyFiltersBtn, showAllSetCardsToggle; // Referencias a los nuevos filtros y toggle
+
+        // Variable para almacenar el usuario actual de Firebase
+        let currentUser = null;
+        // Variable para almacenar todos los sets disponibles (con su serie)
+        let allSets = [];
+        // Variable para almacenar todas las cartas del usuario (para filtrado en cliente)
+        let userCardsCache = [];
 
         // Función para mostrar el spinner de carga
         function showLoadingSpinner() {
@@ -440,16 +472,329 @@
             registerError.classList.add('hidden');
         };
 
-        // Manejar el cierre de sesión (se mantiene global para el onclick en el HTML)
+        // Manejar el cierre de sesión
         window.logoutUser = async () => {
             console.log('[logoutUser] Intentando cerrar sesión.');
             try {
                 await signOut(auth);
                 console.log('Usuario ha cerrado sesión.');
+                // Al cerrar sesión, volver a la vista inicial
+                showInitialSections();
             } catch (error) {
                 console.error('Error al cerrar sesión:', error);
             }
         };
+
+        // --- Funciones de control de visibilidad de secciones ---
+        const showInitialSections = () => {
+            heroSection.classList.remove('hidden');
+            howItWorksSection.classList.remove('hidden');
+            searchResultsSection.classList.add('hidden');
+            myCardsSection.classList.add('hidden'); // Ocultar también la sección de mis cartas
+            searchInput.value = ''; // Limpiar la barra de búsqueda
+            cardsContainer.innerHTML = ''; // Limpiar resultados anteriores
+            noResultsMessage.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+        };
+
+        const showSearchResults = () => {
+            heroSection.classList.add('hidden');
+            howItWorksSection.classList.add('hidden');
+            myCardsSection.classList.add('hidden'); // Ocultar la sección de mis cartas
+            searchResultsSection.classList.remove('hidden');
+        };
+
+        const showMyCardsSection = async () => {
+            console.log('[showMyCardsSection] Mostrando sección Mis Cartas.'); // Log para depuración
+            heroSection.classList.add('hidden');
+            howItWorksSection.classList.add('hidden');
+            searchResultsSection.classList.add('hidden');
+            myCardsSection.classList.remove('hidden');
+            // Limpiar mensajes previos
+            myCardsContainer.innerHTML = '';
+            noMyCardsMessage.classList.add('hidden');
+            myCardsErrorMessage.classList.add('hidden');
+
+            // Cargar y poblar los sets y series si aún no se han cargado
+            if (allSets.length === 0) {
+                await fetchSetsAndPopulateFilter();
+            }
+
+            if (currentUser) {
+                console.log(`[showMyCardsSection] Cargando colección para el usuario: ${currentUser.uid}`);
+                await loadMyCollection(currentUser.uid);
+            } else {
+                noMyCardsMessage.textContent = 'Debes iniciar sesión para ver tu colección.';
+                noMyCardsMessage.classList.remove('hidden');
+                console.log('[showMyCardsSection] No hay usuario logueado para cargar la colección.');
+            }
+        };
+
+        // --- Funciones de Firestore para la Colección del Usuario ---
+
+        // Función para añadir una carta a la colección del usuario
+        window.addCardToCollection = async (cardData) => {
+            if (!currentUser) {
+                console.warn('No hay usuario autenticado. No se puede añadir la carta a la colección.');
+                // Podrías mostrar un mensaje al usuario para que inicie sesión
+                alert('Por favor, inicia sesión para añadir cartas a tu colección.'); // Usar modal personalizado en el futuro
+                return;
+            }
+
+            console.log(`Intentando añadir carta a la colección de ${currentUser.uid}:`, cardData);
+            try {
+                // Usamos el ID de la carta de la API como ID del documento en Firestore
+                const cardRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/my_cards/${cardData.id}`);
+                await setDoc(cardRef, {
+                    id: cardData.id,
+                    name: cardData.name,
+                    imageUrl: cardData.images.small,
+                    set: cardData.set ? cardData.set.name : 'N/A',
+                    setId: cardData.set ? cardData.set.id : 'N/A', // Guardar el ID del set
+                    series: cardData.set && cardData.set.series ? cardData.set.series : 'N/A', // Guardar la serie
+                    number: cardData.number || 'N/A', // Guardar el número de carta
+                    language: 'Español', // Idioma por defecto al añadir
+                    addedAt: new Date(),
+                    // Puedes guardar más datos de la carta si lo necesitas
+                });
+                console.log(`Carta "${cardData.name}" añadida a la colección.`);
+                alert(`"${cardData.name}" ha sido añadida a tu colección.`); // Usar modal personalizado
+            } catch (error) {
+                console.error('Error al añadir carta a la colección:', error);
+                alert('Error al añadir la carta a tu colección. Inténtalo de nuevo.'); // Usar modal personalizado
+            }
+        };
+
+        // Función para cargar y mostrar la colección del usuario con filtros
+        async function loadMyCollection(userId) {
+            myCardsContainer.innerHTML = ''; // Limpiar contenedor
+            noMyCardsMessage.classList.add('hidden');
+            myCardsErrorMessage.classList.add('hidden');
+            showLoadingSpinner(); // Mostrar spinner
+
+            try {
+                const myCardsCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/my_cards`);
+                const querySnapshot = await getDocs(myCardsCollectionRef);
+                userCardsCache = []; // Limpiar cache y rellenar con todas las cartas del usuario
+
+                querySnapshot.forEach(doc => {
+                    userCardsCache.push(doc.data());
+                });
+
+                const selectedSeries = seriesFilter.value;
+                const selectedSetId = setFilter.value; // Ahora obtenemos el ID del set
+                const selectedLanguage = languageFilter.value;
+                const showAll = showAllSetCardsToggle.checked;
+
+                let cardsToDisplay = [];
+
+                if (showAll && selectedSetId) {
+                    // Si "Ver todas" está activo y hay un set seleccionado
+                    console.log(`[loadMyCollection] Modo "Ver todas" para set: ${selectedSetId}`);
+                    const allCardsInSet = await fetchAllCardsInSet(selectedSetId);
+                    const ownedCardIds = new Set(userCardsCache.map(card => card.id));
+
+                    // Combinar cartas poseídas y faltantes
+                    allCardsInSet.forEach(apiCard => {
+                        // Aplicar filtros de serie e idioma a las cartas de la API también
+                        const matchesSeries = selectedSeries === "" || (apiCard.set && apiCard.set.series === selectedSeries);
+                        const matchesLanguage = selectedLanguage === "" || (ownedCardIds.has(apiCard.id) && userCardsCache.find(c => c.id === apiCard.id).language === selectedLanguage);
+                        
+                        if (matchesSeries && matchesLanguage) {
+                            if (ownedCardIds.has(apiCard.id)) {
+                                // Si la poseemos, usar los datos de Firestore (que pueden tener idioma, etc.)
+                                const ownedCard = userCardsCache.find(c => c.id === apiCard.id);
+                                cardsToDisplay.push({ ...ownedCard, isOwned: true });
+                            } else {
+                                // Si no la poseemos, crear un placeholder
+                                cardsToDisplay.push({
+                                    id: apiCard.id,
+                                    name: apiCard.name,
+                                    number: apiCard.number,
+                                    imageUrl: 'https://placehold.co/400x550/e2e8f0/4a5568?text=Falta', // Imagen de placeholder
+                                    set: apiCard.set ? apiCard.set.name : 'N/A',
+                                    series: apiCard.set && apiCard.set.series ? apiCard.set.series : 'N/A',
+                                    language: 'N/A', // No sabemos el idioma de una carta faltante
+                                    isOwned: false
+                                });
+                            }
+                        }
+                    });
+                    // Ordenar por número de carta para ver la colección ordenada
+                    cardsToDisplay.sort((a, b) => {
+                        const numA = parseInt(a.number, 10) || Infinity;
+                        const numB = parseInt(b.number, 10) || Infinity;
+                        return numA - numB;
+                    });
+
+                } else {
+                    // Modo normal: solo mostrar cartas poseídas, aplicando filtros
+                    let filteredCards = userCardsCache.filter(card => {
+                        const matchesSeries = selectedSeries === "" || card.series === selectedSeries;
+                        const matchesSet = selectedSetId === "" || card.setId === selectedSetId; // Ahora filtramos por setId
+                        const matchesLanguage = selectedLanguage === "" || card.language === selectedLanguage;
+                        return matchesSeries && matchesSet && matchesLanguage;
+                    });
+                    // Ordenar por set y luego por número
+                    filteredCards.sort((a, b) => {
+                        if (a.set !== b.set) return a.set.localeCompare(b.set);
+                        const numA = parseInt(a.number, 10) || Infinity;
+                        const numB = parseInt(b.number, 10) || Infinity;
+                        return numA - numB;
+                    });
+                    cardsToDisplay = filteredCards;
+                }
+
+                renderCardsInCollection(cardsToDisplay);
+
+                if (cardsToDisplay.length === 0) {
+                    noMyCardsMessage.textContent = 'No se encontraron cartas en tu colección con los filtros aplicados.';
+                    noMyCardsMessage.classList.remove('hidden');
+                }
+
+            } catch (error) {
+                console.error('Error al cargar la colección:', error);
+                myCardsErrorMessage.classList.remove('hidden');
+            } finally {
+                hideLoadingSpinner(); // Ocultar spinner
+            }
+        }
+
+        // Función auxiliar para renderizar las cartas (poseídas o faltantes)
+        function renderCardsInCollection(cards) {
+            myCardsContainer.innerHTML = ''; // Limpiar contenedor
+            if (cards.length === 0) {
+                noMyCardsMessage.classList.remove('hidden');
+                return;
+            }
+
+            cards.forEach(card => {
+                const isOwned = card.isOwned !== undefined ? card.isOwned : true; // Por defecto es poseída si no se especifica
+                const cardClass = isOwned ? 'card-bg' : 'card-bg missing-card';
+                const imageUrl = isOwned ? card.imageUrl : card.imageUrl; // Placeholder si es faltante
+                const buttonHtml = isOwned ? 
+                    `<button class="btn-secondary px-4 py-2 rounded-lg text-sm font-semibold mt-2" onclick="removeCardFromCollection('${card.id}')">Eliminar</button>` :
+                    `<span class="text-sm text-gray-500 mt-2">Falta en tu colección</span>`;
+
+                const cardElement = `
+                    <div class="${cardClass} rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105">
+                        <img src="${imageUrl}" alt="${card.name}" class="w-full h-auto object-cover rounded-t-xl" onerror="this.onerror=null;this.src='${isOwned ? 'https://placehold.co/400x550/a0aec0/ffffff?text=Imagen+no+disponible' : 'https://placehold.co/400x550/e2e8f0/4a5568?text=Falta'}';">
+                        <div class="p-4">
+                            <h3 class="text-xl font-semibold mb-2 text-gray-900">${card.name}</h3>
+                            <p class="text-gray-600 text-sm mb-3">Número: ${card.number}</p>
+                            <p class="text-gray-600 text-sm mb-3">Serie: ${card.series || 'N/A'}</p>
+                            <p class="text-gray-600 text-sm mb-3">Expansión: ${card.set}</p>
+                            ${isOwned ? `<p class="text-gray-600 text-sm mb-3">Idioma: ${card.language || 'N/A'}</p>` : ''}
+                            <div class="flex justify-between items-center">
+                                ${buttonHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                myCardsContainer.innerHTML += cardElement;
+            });
+        }
+
+
+        // Función para eliminar una carta de la colección del usuario
+        window.removeCardFromCollection = async (cardId) => {
+            if (!currentUser) {
+                console.warn('No hay usuario autenticado. No se puede eliminar la carta.');
+                alert('Por favor, inicia sesión.');
+                return;
+            }
+
+            console.log(`Intentando eliminar carta ${cardId} de la colección de ${currentUser.uid}`);
+            try {
+                await deleteDoc(doc(db, `artifacts/${appId}/users/${currentUser.uid}/my_cards/${cardId}`));
+                console.log(`Carta ${cardId} eliminada.`);
+                alert('Carta eliminada de tu colección.');
+                // Recargar la colección para actualizar la vista
+                await loadMyCollection(currentUser.uid);
+            } catch (error) {
+                console.error('Error al eliminar carta de la colección:', error);
+                alert('Error al eliminar la carta. Inténtalo de nuevo.');
+            }
+        };
+
+        // Función para obtener y poblar los sets y series de la API de Pokémon TCG
+        async function fetchSetsAndPopulateFilter() {
+            if (allSets.length > 0) { // Evitar cargar sets múltiples veces
+                return;
+            }
+            console.log('Cargando sets desde la API de Pokémon TCG para filtros...');
+            try {
+                const response = await fetch('https://api.pokemontcg.io/v2/sets', {
+                    headers: { 'X-Api-Key': POKEMON_TCG_API_KEY }
+                });
+                if (!response.ok) {
+                    throw new Error(`Error HTTP al cargar sets: ${response.status}`);
+                }
+                const data = await response.json();
+                allSets = data.data; // Guardar todos los sets
+
+                allSets.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate)); // Ordenar por fecha de lanzamiento más reciente
+
+                // Poblar filtro de Series
+                const uniqueSeries = [...new Set(allSets.map(set => set.series))].sort();
+                seriesFilter.innerHTML = '<option value="">Todas las Series</option>';
+                uniqueSeries.forEach(series => {
+                    if (series) { // Asegurarse de que la serie no sea nula/vacía
+                        const option = document.createElement('option');
+                        option.value = series;
+                        option.textContent = series;
+                        seriesFilter.appendChild(option);
+                    }
+                });
+                console.log(`Se cargaron ${uniqueSeries.length} series.`);
+
+                // Poblar filtro de Sets inicialmente (todos)
+                populateSetFilter(allSets);
+                setFilter.disabled = false; // Habilitar el filtro de sets
+                console.log(`Se cargaron ${allSets.length} sets.`);
+            } catch (error) {
+                console.error('Error al cargar los sets/series de la API:', error);
+                // Mostrar un mensaje de error si los filtros no se pueden cargar
+                setFilter.disabled = true;
+                seriesFilter.disabled = true;
+                myCardsErrorMessage.textContent = 'No se pudieron cargar los filtros de sets/expansiones. Inténtalo de nuevo más tarde.';
+                myCardsErrorMessage.classList.remove('hidden');
+            }
+        }
+
+        // Función para poblar el filtro de sets basado en una lista de sets
+        function populateSetFilter(setsToDisplay) {
+            setFilter.innerHTML = '<option value="">Todas las Expansiones</option>';
+            setsToDisplay.forEach(set => {
+                const option = document.createElement('option');
+                option.value = set.id; // Usamos el ID del set como valor
+                option.textContent = set.name;
+                setFilter.appendChild(option);
+            });
+        }
+
+        // Función para obtener todas las cartas de un set específico de la API
+        async function fetchAllCardsInSet(setId) {
+            console.log(`Fetching all cards for set ID: ${setId}`);
+            try {
+                // Nota: pageSize=500 es el máximo. Para sets muy grandes, se necesitaría paginación.
+                const response = await fetch(`https://api.pokemontcg.io/v2/cards?q=set.id:${setId}&pageSize=500`, {
+                    headers: { 'X-Api-Key': POKEMON_TCG_API_KEY }
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log(`Fetched ${data.data.length} cards for set ${setId}`);
+                return data.data;
+            } catch (error) {
+                console.error('Error fetching all cards in set:', error);
+                myCardsErrorMessage.textContent = 'Error al cargar todas las cartas de esta expansión. Por favor, inténtalo de nuevo.';
+                myCardsErrorMessage.classList.remove('hidden');
+                return [];
+            }
+        }
+
 
         // --- Asignar Event Listeners a los enlaces de navegación y botones del modal ---
         document.addEventListener('DOMContentLoaded', () => {
@@ -458,7 +803,7 @@
             // Asignar referencias a elementos del DOM
             searchInput = document.getElementById('searchInput');
             searchResultsSection = document.getElementById('searchResults');
-            featuredCardsSection = document.getElementById('featuredCards');
+            heroSection = document.getElementById('heroSection'); // Referencia a la sección hero
             howItWorksSection = document.getElementById('howItWorks');
             cardsContainer = document.getElementById('cardsContainer');
             loadingSpinner = document.getElementById('loadingSpinner');
@@ -485,7 +830,24 @@
             registerNavLink = document.getElementById('registerNavLink');
             profileNavLink = document.getElementById('profileNavLink');
             logoutNavLink = document.getElementById('logoutNavLink');
-            userEmailDisplay = document.getElementById('userEmailDisplay');
+            
+            // Referencias para Mis Cartas
+            myCardsNavLink = document.getElementById('myCardsNavLink');
+            myCardsLink = document.getElementById('myCardsLink');
+            myCardsSection = document.getElementById('myCardsSection');
+            myCardsContainer = document.getElementById('myCardsContainer');
+            noMyCardsMessage = document.getElementById('noMyCardsMessage');
+            myCardsErrorMessage = document.getElementById('myCardsErrorMessage');
+
+            // Referencias a los nuevos filtros
+            seriesFilter = document.getElementById('seriesFilter');
+            setFilter = document.getElementById('setFilter');
+            languageFilter = document.getElementById('languageFilter');
+            applyFiltersBtn = document.getElementById('applyFiltersBtn');
+            showAllSetCardsToggle = document.getElementById('showAllSetCardsToggle');
+
+
+            const homeLink = document.getElementById('homeLink'); // Referencia al logo TCGtrade
 
             // Función de ayuda para verificar y adjuntar listeners
             const setupClickListener = (elementId, handler, preventDefault = true) => {
@@ -508,11 +870,96 @@
             setupClickListener('loginLink', () => showAuthModal('login'));
             setupClickListener('registerLink', () => showAuthModal('register'));
             setupClickListener('logoutLink', () => logoutUser());
+            setupClickListener('homeLink', showInitialSections); // Listener para el logo TCGtrade
+            setupClickListener('myCardsLink', showMyCardsSection); // Listener para "Mis Cartas"
 
             // Adjuntar listeners a los elementos dentro del modal
             setupClickListener('closeAuthModalBtn', hideAuthModal);
             setupClickListener('toggleToRegister', () => showAuthModal('register'));
             setupClickListener('toggleToLogin', () => showAuthModal('login'));
+
+            // Listener para el cambio en el filtro de Series
+            if (seriesFilter) {
+                seriesFilter.addEventListener('change', () => {
+                    const selectedSeries = seriesFilter.value;
+                    if (selectedSeries === "") {
+                        // Si no hay serie seleccionada, mostrar todos los sets
+                        populateSetFilter(allSets);
+                    } else {
+                        // Filtrar sets por la serie seleccionada
+                        const setsInSeries = allSets.filter(set => set.series === selectedSeries);
+                        populateSetFilter(setsInSeries);
+                    }
+                    setFilter.value = ""; // Resetear el filtro de set al cambiar la serie
+                    // Si el toggle "Ver todas" está activo y se cambia la serie, recargar la colección
+                    if (showAllSetCardsToggle.checked) {
+                        if (currentUser) {
+                            loadMyCollection(currentUser.uid);
+                        }
+                    }
+                    // Deshabilitar/desmarcar el toggle si se cambia la serie a "Todas las Series"
+                    if (selectedSeries === "") {
+                        showAllSetCardsToggle.checked = false;
+                        showAllSetCardsToggle.disabled = true;
+                    }
+                });
+            } else {
+                console.error('CRÍTICO: Filtro #seriesFilter no encontrado.');
+            }
+
+            // Listener para el cambio en el filtro de Expansión (Set)
+            if (setFilter) {
+                setFilter.addEventListener('change', () => {
+                    // Habilitar/deshabilitar el toggle "Ver todas" según si hay un set seleccionado
+                    if (setFilter.value) {
+                        showAllSetCardsToggle.disabled = false;
+                    } else {
+                        showAllSetCardsToggle.checked = false; // Desmarcar si no hay set
+                        showAllSetCardsToggle.disabled = true;
+                    }
+                    // Si el toggle "Ver todas" está activo y se cambia el set, recargar la colección
+                    if (showAllSetCardsToggle.checked) {
+                        if (currentUser) {
+                            loadMyCollection(currentUser.uid);
+                        }
+                    }
+                });
+            } else {
+                console.error('CRÍTICO: Filtro #setFilter no encontrado.');
+            }
+
+
+            // Listener para el botón de aplicar filtros
+            if (applyFiltersBtn) {
+                applyFiltersBtn.addEventListener('click', () => {
+                    if (currentUser) {
+                        loadMyCollection(currentUser.uid);
+                    } else {
+                        noMyCardsMessage.textContent = 'Debes iniciar sesión para aplicar filtros a tu colección.';
+                        noMyCardsMessage.classList.remove('hidden');
+                    }
+                });
+            } else {
+                console.error('CRÍTICO: Botón #applyFiltersBtn no encontrado.');
+            }
+
+            // Listener para el toggle "Ver todas las cartas del set"
+            if (showAllSetCardsToggle) {
+                showAllSetCardsToggle.addEventListener('change', () => {
+                    console.log('[showAllSetCardsToggle] Toggle cambiado. Valor:', showAllSetCardsToggle.checked);
+                    // Si el toggle se activa o desactiva, recargar la colección
+                    if (currentUser && setFilter.value) { // Solo recargar si hay usuario y set seleccionado
+                        loadMyCollection(currentUser.uid);
+                    } else if (showAllSetCardsToggle.checked) {
+                        // Si se intenta activar sin set o sin sesión, el toggle ya está deshabilitado o se desmarca con la alerta
+                        alert('Debes iniciar sesión y seleccionar una expansión para ver todas las cartas del set.');
+                        showAllSetCardsToggle.checked = false; // Asegurar que se desmarque
+                    }
+                });
+            } else {
+                console.error('CRÍTICO: Toggle #showAllSetCardsToggle no encontrado.');
+            }
+
 
             // --- Funciones de Autenticación Firebase ---
 
@@ -601,13 +1048,19 @@
 
             // Escuchar cambios en el estado de autenticación
             onAuthStateChanged(auth, (user) => {
+                currentUser = user; // Actualizar la variable currentUser
+                console.log(`[onAuthStateChanged] Estado de autenticación: Usuario logueado: ${!!user}`); // Log del estado
+                
+                // Siempre mostrar el enlace "Mis Cartas"
+                myCardsNavLink.classList.remove('hidden'); 
+                console.log(`[onAuthStateChanged] Visibilidad de Mis Cartas: ${myCardsNavLink.classList.contains('hidden') ? 'oculta' : 'visible'} (siempre visible para edición)`); 
+
                 if (user) {
                     // Usuario logueado
                     loginNavLink.classList.add('hidden');
                     registerNavLink.classList.add('hidden');
                     profileNavLink.classList.remove('hidden');
                     logoutNavLink.classList.remove('hidden');
-                    userEmailDisplay.textContent = user.email;
                     console.log('Usuario actual:', user.email, 'UID:', user.uid);
                     // Aquí podrías cargar datos específicos del perfil si fuera necesario
                 } else {
@@ -616,7 +1069,6 @@
                     registerNavLink.classList.remove('hidden');
                     profileNavLink.classList.add('hidden');
                     logoutNavLink.classList.add('hidden');
-                    userEmailDisplay.textContent = '';
                     console.log('No hay usuario logueado.');
                 }
             });
@@ -644,13 +1096,12 @@
                 errorMessage.classList.add('hidden');
 
                 if (query.length < 3) {
-                    searchResultsSection.classList.add('hidden');
-                    featuredCardsSection.classList.remove('hidden');
-                    howItWorksSection.classList.remove('hidden');
+                    showInitialSections(); // Vuelve a las secciones iniciales si la búsqueda es muy corta o vacía
                     return;
                 }
 
                 showLoadingSpinner();
+                showSearchResults(); // Muestra la sección de resultados al iniciar la búsqueda
 
                 try {
                     const apiUrl = `https://api.pokemontcg.io/v2/cards?q=name:*${query}* OR number:*${query}* OR set.name:*${query}*&pageSize=500`;
@@ -672,10 +1123,6 @@
                     console.log('Cartas recibidas de la API:', cards);
 
                     if (cards && cards.length > 0) {
-                        searchResultsSection.classList.remove('hidden');
-                        featuredCardsSection.classList.add('hidden');
-                        howItWorksSection.classList.add('hidden');
-
                         cards.forEach(card => {
                             const cardElement = `
                                 <div class="card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105">
@@ -683,26 +1130,24 @@
                                     <div class="p-4">
                                         <h3 class="text-xl font-semibold mb-2 text-gray-900">${card.name}</h3>
                                         <p class="text-gray-600 text-sm mb-3">Set: ${card.set ? card.set.name : 'N/A'}</p>
+                                        <p class="text-gray-600 text-sm mb-3">Serie: ${card.set && card.set.series ? card.set.series : 'N/A'}</p>
+                                        <div class="flex justify-between items-center">
+                                            <button class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold" onclick='addCardToCollection(${JSON.stringify(card)})'>Añadir a Colección</button>
+                                        </div>
                                     </div>
                                 </div>
                             `;
                             cardsContainer.innerHTML += cardElement;
                         });
                     } else {
-                        searchResultsSection.classList.remove('hidden');
-                        featuredCardsSection.classList.add('hidden');
-                        howItWorksSection.classList.add('hidden');
                         noResultsMessage.classList.remove('hidden');
                     }
 
                 } catch (error) {
                     console.error('Error al buscar cartas:', error);
-                    searchResultsSection.classList.remove('hidden');
-                    featuredCardsSection.classList.add('hidden');
-                    howItWorksSection.classList.add('hidden');
                     
                     if (error.message.includes('Failed to fetch')) {
-                        errorMessage.textContent = 'Error de conexión: No se pudo conectar con la API de Pokémon TCG. Esto suele ocurrir al ejecutar el archivo HTML directamente desde tu computadora (problemas de CORS). Por favor, intenta ejecutar la aplicación usando un servidor web local (por ejemplo, con `python -m http.server` en la terminal desde la carpeta del archivo) y accede a ella desde `http://localhost:8000/`. También verifica tu conexión a internet o si alguna extensión del navegador está bloqueando la conexión.';
+                        errorMessage.textContent = 'Error de conexión: No se pudo conectar con la API de Pokémon TCG. Esto se debe a una restricción de seguridad (CORS) de la API de Pokémon TCG cuando se accede desde un entorno de desarrollo local como `http://localhost:8000/`. La funcionalidad de búsqueda debería operar correctamente una once que la aplicación esté desplegada en un dominio web real (por ejemplo, `https://tudominio.com`).';
                     } else {
                         errorMessage.textContent = 'Ha ocurrido un error al cargar las cartas. Por favor, asegúrate de haber insertado tu clave API correctamente y verifica tu conexión a internet. Si el problema persiste, la API podría estar experimentando problemas o podrías haber alcanzado tu límite de solicitudes.';
                     }
@@ -725,12 +1170,8 @@
                 }
             });
 
-            // Initial state: ensure featured cards and how it works are visible
-            if (searchInput.value.trim() === '') {
-                searchResultsSection.classList.add('hidden');
-                featuredCardsSection.classList.remove('hidden');
-                howItWorksSection.classList.remove('hidden');
-            }
+            // Initial state: ensure hero and how it works sections are visible on load
+            showInitialSections();
         });
     </script>
 </body>
