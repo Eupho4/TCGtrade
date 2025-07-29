@@ -1,0 +1,1782 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCGtrade - Intercambio Pokémon TCG</title>
+    <!-- Incluir Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        /* Definición de variables CSS para colores */
+        :root {
+            /* Modo Claro */
+            --color-primary-bg: #f0f9ff; /* Un azul muy claro, casi blanco */
+            --color-text: #1a202c; /* Gris oscuro para el texto */
+            --color-header-bg: #2a6f8b; /* Azul teal oscuro */
+            --color-footer-bg: #1f4e5a; /* Azul teal muy oscuro */
+            --color-card-bg: #ffffff; /* Blanco puro para las tarjetas */
+            --color-nav-link-hover: #e0f2fe; /* Azul claro para hover en enlaces de navegación */
+            --color-btn-secondary-bg: #4a5568; /* Gris oscuro */
+            --color-btn-secondary-hover: #2d3748; /* Gris más oscuro */
+            --color-missing-card-bg: #e2e8f0; /* Gris claro para faltantes */
+            --color-missing-card-border: #a0aec0; /* Borde gris para faltantes */
+            --color-settings-bg: #f7fafc; /* Fondo de secciones de ajustes */
+        }
+
+        /* Modo Oscuro */
+        body.dark-mode {
+            --color-primary-bg: #1a1a1a; /* Casi negro */
+            --color-text: #f0f0f0; /* Gris muy claro */
+            --color-header-bg: #000000; /* Negro */
+            --color-footer-bg: #000000; /* Negro */
+            --color-card-bg: #2d2d2d; /* Gris oscuro para tarjetas */
+            --color-nav-link-hover: #444444; /* Gris oscuro para hover */
+            --color-btn-secondary-bg: #555555; /* Gris para botones secundarios */
+            --color-btn-secondary-hover: #666666; /* Gris más oscuro */
+            --color-missing-card-bg: #3a3a3a; /* Gris más oscuro para cartas faltantes */
+            --color-missing-card-border: #777777; /* Borde gris para cartas faltantes */
+            --color-settings-bg: #222222; /* Fondo de secciones de ajustes en oscuro */
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-primary-bg);
+            color: var(--color-text);
+        }
+        .header-bg {
+            background-color: var(--color-header-bg);
+        }
+        .nav-link {
+            transition: color 0.3s ease, transform 0.2s ease;
+        }
+        .nav-link:hover {
+            color: var(--color-nav-link-hover);
+            transform: translateY(-2px);
+        }
+        .btn-primary {
+            background-color: #f97316; /* Naranja vibrante (se mantiene igual) */
+            color: white;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:hover {
+            background-color: #ea580c; /* Naranja más oscuro al hover */
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+        .btn-secondary {
+            background-color: var(--color-btn-secondary-bg);
+            color: white;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .btn-secondary:hover {
+            background-color: var(--color-btn-secondary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+        .card-bg {
+            background-color: var(--color-card-bg);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+        .card-bg:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+        .footer-bg {
+            background-color: var(--color-footer-bg);
+        }
+        /* Estilos para el spinner de carga */
+        .loader {
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid #f97316; /* Orange */
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            display: none; /* Hidden by default */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Estilos para la sección hero */
+        .hero-section {
+            background: linear-gradient(to right, var(--color-header-bg), var(--color-footer-bg)); /* Degradado de azul teal */
+            color: white;
+            padding: 4rem 1rem;
+            text-align: center;
+            border-radius: 1rem; /* Bordes redondeados */
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .hero-section h1 {
+            font-size: 3.5rem; /* Tamaño de fuente grande */
+            font-weight: 800; /* Extra bold */
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .hero-section p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        .icon {
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+
+        /* Estilos para el modal de autenticación */
+        .auth-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .auth-modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .auth-modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 450px;
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+        .auth-modal-overlay.show .auth-modal-content {
+            transform: translateY(0);
+        }
+        .auth-modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #4a5568;
+        }
+        .auth-form-toggle {
+            color: #2a6f8b;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        /* Estilo para las cartas faltantes */
+        .missing-card {
+            background-color: var(--color-missing-card-bg);
+            border: 2px dashed var(--color-missing-card-border);
+            color: var(--color-text);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 1rem;
+            height: 100%; /* Para que ocupe el mismo espacio que una carta normal */
+        }
+        .missing-card img {
+            opacity: 0.3; /* Imagen tenue */
+        }
+        /* Estilos para la barra lateral del perfil */
+        .profile-sidebar {
+            background-color: var(--color-card-bg);
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            padding: 1.5rem;
+        }
+        .profile-sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            color: var(--color-text);
+            font-weight: 600;
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+        .profile-sidebar-link:hover {
+            background-color: var(--color-nav-link-hover);
+            color: var(--color-header-bg);
+        }
+        .profile-sidebar-link.active {
+            background-color: var(--color-header-bg);
+            color: white;
+        }
+        .profile-content-area {
+            background-color: var(--color-card-bg);
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+            padding: 1.5rem;
+        }
+        /* Estilos específicos para secciones dentro de ajustes */
+        .settings-section-card {
+            background-color: var(--color-settings-bg);
+            color: var(--color-text);
+        }
+
+        /* Estilos para el toggle de modo oscuro */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2196F3;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <!-- Encabezado -->
+    <header class="header-bg shadow-lg py-4 px-6 md:px-10">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
+            <!-- Logo/Nombre del sitio -->
+            <a href="#" class="text-white text-3xl font-bold rounded-md px-3 py-1 flex items-center h-12" id="homeLink">
+                TCGtrade
+            </a>
+
+            <!-- Barra de búsqueda -->
+            <div class="w-full md:w-1/2 lg:w-1/3 mt-4 md:mt-0 relative flex items-center h-12">
+                <input type="text" id="searchInput" placeholder="Buscar cartas, sets, usuarios..."
+                       class="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-800 h-full">
+                <div id="loadingSpinner" class="loader absolute right-3 top-1/2 -translate-y-1/2"></div>
+            </div>
+
+            <!-- Navegación y acciones de usuario -->
+            <nav class="mt-4 md:mt-0">
+                <ul class="flex space-x-4 text-white" id="authNavLinks">
+                    <li><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap"><span class="icon">🔍</span> Explorar</a></li>
+                    <li id="myCardsNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="myCardsLink"><span class="icon">📦</span> Mis Cartas</a></li>
+                    <li><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap"><span class="icon">🤝</span> Intercambios</a></li>
+                    <li id="loginNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="loginLink"><span class="icon">🚪</span> Iniciar Sesión</a></li>
+                    <li id="registerNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="registerLink"><span class="icon">📝</span> Registrarse</a></li>
+                    <li id="profileNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center text-sm h-12 whitespace-nowrap" id="profileLink"><span class="icon">👤</span> Mi Perfil</a></li>
+                    <li id="logoutNavLink" class="hidden"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="logoutLink"><span class="icon">👋</span> Cerrar Sesión</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Contenido Principal -->
+    <main class="flex-grow container mx-auto p-6 md:p-10">
+        <!-- Sección Hero mejorada -->
+        <section class="hero-section" id="heroSection">
+            <h1>Tu Centro de Intercambio de Pokémon TCG</h1>
+            <p class="text-xl">Conecta con coleccionistas de todo el mundo, encuentra las cartas que te faltan y completa tu colección de forma segura y sencilla.</p>
+            <button class="btn-primary text-xl px-8 py-4 rounded-full font-semibold">
+                ¡Empieza a Intercambiar Ahora!
+            </button>
+        </section>
+
+        <!-- Sección de Resultados de Búsqueda -->
+        <section id="searchResults" class="mb-12 hidden">
+            <h2 class="text-3xl font-bold mb-6 text-gray-700 flex items-center">
+                <span class="icon">✨</span> Resultados de Búsqueda
+            </h2>
+            <div id="cardsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Las tarjetas de resultados se insertarán aquí por JavaScript -->
+            </div>
+            <p id="noResultsMessage" class="text-center text-gray-600 mt-8 hidden">No se encontraron resultados para tu búsqueda.</p>
+            <p id="errorMessage" class="text-center text-red-500 mt-8 hidden">Ha ocurrido un error al cargar las cartas. Esto se debe a una restricción de seguridad (CORS) de la API de Pokémon TCG cuando se accede desde un entorno de desarrollo local como `http://localhost:8000/`. La funcionalidad de búsqueda debería operar correctamente una vez que la aplicación esté desplegada en un dominio web real (por ejemplo, `https://tudominio.com`).</p>
+        </section>
+
+        <!-- Sección de Mis Cartas -->
+        <section id="myCardsSection" class="mb-12 hidden">
+            <h2 class="text-3xl font-bold mb-6 text-gray-700 flex items-center">
+                <span class="icon">📦</span> Mi Colección de Cartas
+            </h2>
+            <div class="flex flex-wrap gap-4 mb-6 items-end"> 
+                <div class="flex-1 min-w-[150px] flex flex-col"> 
+                    <label for="seriesFilter" class="block text-gray-700 text-sm font-bold mb-2">Filtrar por Serie:</label>
+                    <select id="seriesFilter" class="shadow border rounded w-full py-2 px-3 h-[42px] text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">Todas las Series</option>
+                        <!-- Opciones de series se cargarán aquí -->
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[150px] flex flex-col"> 
+                    <label for="setFilter" class="block text-gray-700 text-sm font-bold mb-2">Filtrar por Expansión (Set):</label>
+                    <select id="setFilter" class="shadow border rounded w-full py-2 px-3 h-[42px] text-gray-700 leading-tight focus:outline-none focus:shadow-outline" disabled>
+                        <option value="">Todas las Expansiones</option>
+                        <!-- Opciones de sets se cargarán aquí -->
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[150px] flex flex-col"> 
+                    <label for="languageFilter" class="block text-gray-700 text-sm font-bold mb-2">Filtrar por Idioma:</label>
+                    <select id="languageFilter" class="shadow border rounded w-full py-2 px-3 h-[42px] text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">Todos los Idiomas</option>
+                        <option value="Español">Español</option>
+                        <option value="Inglés">Inglés</option>
+                        <option value="Japonés">Japonés</option>
+                        <option value="Francés">Francés</option>
+                        <option value="Alemán">Alemán</option>
+                        <option value="Chino">Chino</option> <!-- Añadido Chino -->
+                        <option value="Italiano">Italiano</option> <!-- Añadido Italiano -->
+                        <!-- Más idiomas si es necesario -->
+                    </select>
+                </div>
+                <div class="flex items-center self-end p-2 rounded-md bg-gray-50 h-[42px]"> 
+                    <input type="checkbox" id="showAllSetCardsToggle" class="mr-2 h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded cursor-pointer" disabled> <!-- Added disabled attribute -->
+                    <label for="showAllSetCardsToggle" class="text-gray-700 text-sm font-bold cursor-pointer">Ver todas las cartas del set (incluidas las faltantes)</label>
+                </div>
+                <button id="applyFiltersBtn" class="btn-primary px-6 py-2 rounded-lg text-sm font-semibold h-[42px]"> 
+                    Aplicar Filtros
+                </button>
+            </div>
+            <div id="myCardsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Las cartas del usuario se cargarán aquí -->
+            </div>
+            <p id="noMyCardsMessage" class="text-center text-gray-600 mt-8 hidden">Aún no tienes cartas en tu colección. ¡Busca y añade algunas!</p>
+            <p id="myCardsErrorMessage" class="text-center text-red-500 mt-8 hidden">Error al cargar tu colección. Por favor, inténtalo de nuevo.</p>
+        </section>
+
+        <!-- Sección de Cartas Destacadas (OCULTADA) -->
+        <!-- La sección de cartas destacadas ha sido comentada/eliminada según tu solicitud. -->
+
+        <!-- Sección de Cómo Funciona -->
+        <section id="howItWorks" class="mb-12 text-center">
+            <h2 class="text-3xl font-bold mb-6 text-gray-700 flex items-center justify-center">
+                <span class="icon">⚙️</span> ¿Cómo funciona TCGtrade?
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="card-bg p-6 rounded-xl shadow-md">
+                    <h3 class="text-2xl font-semibold mb-3 text-gray-800 flex items-center justify-center"><span class="icon">➕</span> 1. Crea tu Colección</h3>
+                    <p class="text-gray-600">Añade las cartas que tienes y las que buscas a tu perfil.</p>
+                </div>
+                <div class="card-bg p-6 rounded-xl shadow-md">
+                    <h3 class="text-2xl font-semibold mb-3 text-gray-800 flex items-center justify-center"><span class="icon">🔎</span> 2. Encuentra Intercambios</h3>
+                    <p class="text-gray-600">Nuestro sistema te conectará con usuarios que tengan lo que necesitas.</p>
+                </div>
+                <div class="card-bg p-6 rounded-xl shadow-md">
+                    <h3 class="text-2xl font-semibold mb-3 text-gray-800 flex items-center justify-center"><span class="icon">🎉</span> 3. Intercambia y Disfruta</h3>
+                    <p class="text-gray-600">Acuerda el intercambio de forma segura y completa tu colección.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Nueva Sección: Mi Perfil -->
+        <section id="profileSection" class="mb-12 hidden">
+            <h2 class="text-3xl font-bold mb-6 text-gray-700 flex items-center">
+                <span class="icon">👤</span> Mi Perfil
+            </h2>
+            <div class="flex flex-col md:flex-row gap-6">
+                <!-- Barra lateral de navegación del perfil -->
+                <div class="profile-sidebar w-full md:w-1/4 p-4">
+                    <nav>
+                        <ul>
+                            <li class="mb-2">
+                                <a href="#" class="profile-sidebar-link active" data-profile-tab="general-info">
+                                    Información General
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="#" class="profile-sidebar-link" data-profile-tab="my-cards-profile">
+                                    Mis Cartas (Colección)
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="#" class="profile-sidebar-link" data-profile-tab="trade-history">
+                                    Historial de Intercambios
+                                </a>
+                            </li>
+                            <li class="mb-2">
+                                <a href="#" class="profile-sidebar-link" data-profile-tab="settings">
+                                    Ajustes
+                                </a>
+                            </li>
+                        </ul>
+                    </nav>
+                </div>
+
+                <!-- Área de contenido del perfil -->
+                <div class="profile-content-area flex-1 p-4">
+                    <div id="profileGeneralInfo" class="profile-tab-content">
+                        <h3 class="text-2xl font-semibold mb-4 text-gray-800">Información General</h3>
+                        <p id="profileLoginRequiredMessage" class="text-red-500 text-lg mb-4 hidden">
+                            Debes iniciar sesión para ver tu información personal.
+                        </p>
+                        <div id="profileGeneralInfoContent">
+                            <div class="mb-4">
+                                <label for="profileName" class="block text-gray-700 text-sm font-bold mb-2">Nombre:</label>
+                                <input type="text" id="profileName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Tu nombre">
+                            </div>
+                            <div class="mb-4">
+                                <label for="profileLastName" class="block text-gray-700 text-sm font-bold mb-2">Apellidos:</label>
+                                <input type="text" id="profileLastName" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Tus apellidos">
+                            </div>
+                            <div class="mb-4">
+                                <label for="profileAddress" class="block text-gray-700 text-sm font-bold mb-2">Dirección:</label>
+                                <input type="text" id="profileAddress" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Tu dirección completa">
+                            </div>
+                            <div class="mb-6">
+                                <label for="profilePhone" class="block text-gray-700 text-sm font-bold mb-2">Número de Teléfono:</label>
+                                <input type="tel" id="profilePhone" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="Tu número de teléfono">
+                            </div>
+                            <p class="text-gray-700 mb-2">
+                                Miembro desde: <span id="profileMemberSince">Cargando...</span>
+                            </p>
+                            <p id="profileSaveMessage" class="text-sm italic mb-4 hidden"></p>
+                            <button id="saveProfileBtn" class="btn-primary px-6 py-2 rounded-lg text-sm font-semibold">
+                                Guardar Cambios
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="profileMyCards" class="profile-tab-content hidden">
+                        <h3 class="text-2xl font-semibold mb-4 text-gray-800">Mis Cartas (Colección)</h3>
+                        <p class="text-gray-700">Aquí podrás gestionar tu colección de cartas.</p>
+                        <!-- Aquí podríamos incrustar la sección de Mis Cartas o un resumen -->
+                        <!-- Para la edición, simplemente mostrará la sección de Mis Cartas si se selecciona esta pestaña -->
+                    </div>
+
+                    <div id="profileTradeHistory" class="profile-tab-content hidden">
+                        <h3 class="text-2xl font-semibold mb-4 text-gray-800">Historial de Intercambios</h3>
+                        <p class="text-gray-700">Aquí verás tus intercambios pasados.</p>
+                    </div>
+
+                    <div id="profileSettings" class="profile-tab-content hidden">
+                        <h3 class="text-2xl font-semibold mb-4 text-gray-800">Ajustes de Perfil</h3>
+                        <p class="text-gray-700 mb-4">Actualiza tu correo electrónico y contraseña.</p>
+
+                        <!-- Sección para cambiar correo electrónico -->
+                        <div class="mb-6 p-4 border rounded-lg bg-gray-50 settings-section-card">
+                            <h4 class="text-xl font-semibold mb-3 text-gray-800">Cambiar Correo Electrónico</h4>
+                            <div class="mb-4">
+                                <label for="settingsNewEmail" class="block text-gray-700 text-sm font-bold mb-2">Nuevo Correo Electrónico:</label>
+                                <input type="email" id="settingsNewEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="nuevo@ejemplo.com">
+                            </div>
+                            <p id="emailChangeMessage" class="text-sm italic mb-4 hidden"></p>
+                            <button id="saveEmailBtn" class="btn-primary px-6 py-2 rounded-lg text-sm font-semibold">
+                                Actualizar Correo
+                            </button>
+                        </div>
+
+                        <!-- Sección para cambiar contraseña -->
+                        <div class="mb-6 p-4 border rounded-lg bg-gray-50 settings-section-card">
+                            <h4 class="text-xl font-semibold mb-3 text-gray-800">Cambiar Contraseña</h4>
+                            <div class="mb-4">
+                                <label for="settingsCurrentPassword" class="block text-gray-700 text-sm font-bold mb-2">Contraseña Actual:</label>
+                                <input type="password" id="settingsCurrentPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="********">
+                            </div>
+                            <div class="mb-4">
+                                <label for="settingsNewPassword" class="block text-gray-700 text-sm font-bold mb-2">Nueva Contraseña:</label>
+                                <input type="password" id="settingsNewPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="********">
+                            </div>
+                            <div class="mb-6">
+                                <label for="settingsConfirmNewPassword" class="block text-gray-700 text-sm font-bold mb-2">Confirmar Nueva Contraseña:</label>
+                                <input type="password" id="settingsConfirmNewPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="********">
+                            </div>
+                            <p id="passwordChangeMessage" class="text-sm italic mb-4 hidden"></p>
+                            <button id="savePasswordBtn" class="btn-primary px-6 py-2 rounded-lg text-sm font-semibold">
+                                Actualizar Contraseña
+                            </button>
+                        </div>
+
+                        <!-- Sección para Modo Oscuro -->
+                        <div class="mb-6 p-4 border rounded-lg bg-gray-50 settings-section-card">
+                            <h4 class="text-xl font-semibold mb-3 text-gray-800">Modo Oscuro</h4>
+                            <div class="flex items-center justify-between">
+                                <label for="darkModeToggle" class="text-gray-700 text-sm font-bold">Activar Modo Oscuro:</label>
+                                <label class="toggle-switch">
+                                    <input type="checkbox" id="darkModeToggle">
+                                    <span class="slider"></span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Pie de página -->
+    <footer class="footer-bg text-white py-8 px-6 md:px-10 mt-12">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center text-center md:text-left">
+            <div class="mb-4 md:mb-0">
+                <p>&copy; 2025 TCGtrade. Todos los derechos reservados.</p>
+                <p>Hecho con <span class="text-red-500">&hearts;</span> para coleccionistas de Pokémon TCG.</p>
+            </div>
+            <nav>
+                <ul class="flex flex-wrap justify-center md:justify-end space-x-6">
+                    <li><a href="#" class="hover:underline rounded-md px-2 py-1">Política de Privacidad</a></li>
+                    <li><a href="#" class="hover:underline rounded-md px-2 py-1">Términos de Servicio</a></li>
+                    <li><a href="#" class="hover:underline rounded-md px-2 py-1">Contacto</a></li>
+                </ul>
+            </nav>
+        </div>
+    </footer>
+
+    <!-- Modal de Autenticación -->
+    <div id="authModal" class="auth-modal-overlay">
+        <div class="auth-modal-content">
+            <span class="auth-modal-close" id="closeAuthModalBtn">&times;</span>
+            
+            <!-- Formulario de Inicio de Sesión -->
+            <div id="loginForm" class="">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800 text-center">Iniciar Sesión</h2>
+                <div class="mb-4">
+                    <label for="loginEmail" class="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico:</label>
+                    <input type="email" id="loginEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="tu@ejemplo.com">
+                </div>
+                <div class="mb-6">
+                    <label for="loginPassword" class="block text-gray-700 text-sm font-bold mb-2">Contraseña:</label>
+                    <input type="password" id="loginPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="********">
+                </div>
+                <p id="loginError" class="text-red-500 text-xs italic mb-4 hidden">Mensaje de error de inicio de sesión</p>
+                <div class="flex items-center justify-between">
+                    <button id="loginBtn" class="btn-primary w-full py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline">
+                        Iniciar Sesión
+                    </button>
+                </div>
+                <p class="text-center text-gray-600 text-sm mt-4">
+                    ¿No tienes una cuenta? <span class="auth-form-toggle" id="toggleToRegister">Regístrate aquí.</span>
+                </p>
+            </div>
+
+            <!-- Formulario de Registro -->
+            <div id="registerForm" class="hidden">
+                <h2 class="text-2xl font-bold mb-6 text-gray-800 text-center">Crear Cuenta</h2>
+                <div class="mb-4">
+                    <label for="registerEmail" class="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico:</label>
+                    <input type="email" id="registerEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" placeholder="tu@ejemplo.com">
+                </div>
+                <div class="mb-4">
+                    <label for="registerPassword" class="block text-gray-700 text-sm font-bold mb-2">Contraseña:</label>
+                    <input type="password" id="registerPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="********">
+                </div>
+                <div class="mb-6">
+                    <label for="confirmPassword" class="block text-gray-700 text-sm font-bold mb-2">Confirmar Contraseña:</label>
+                    <input type="password" id="confirmPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" placeholder="********">
+                </div>
+                <p id="registerError" class="text-red-500 text-xs italic mb-4 hidden">Mensaje de error de registro</p>
+                <div class="flex items-center justify-between">
+                    <button id="registerBtn" class="btn-primary w-full py-2 px-4 rounded-lg focus:outline-none focus:shadow-outline">
+                        Registrarse
+                    </button>
+                </div>
+                <p class="text-center text-gray-600 text-sm mt-4">
+                    ¿Ya tienes una cuenta? <span class="auth-form-toggle" id="toggleToLogin">Inicia sesión aquí.</span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        console.log('Script de TCGtrade cargado. Versión con depuración mejorada.');
+
+        // Importar módulos de Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously, signInWithCustomToken, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, collection, getDocs, deleteDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // =====================================================================================================
+        // IMPORTANTE: PEGA AQUÍ TU OBJETO firebaseConfig COMPLETO DE TU CONSOLA DE FIREBASE.
+        // Reemplaza TODO el bloque 'const firebaseConfig = { ... };' con el tuyo.
+        // Ejemplo (NO USES ESTOS VALORES, SON DE EJEMPLO):
+        // const firebaseConfig = {
+        //   apiKey: "AIzaSyC...",
+        //   authDomain: "tu-proyecto-id.firebaseapp.com",
+        //   projectId: "tu-proyecto-id",
+        //   storageBucket: "tu-proyecto-id.appspot.com",
+        //   messagingSenderId: "...",
+        //   appId: "1:..."
+        // };
+        // =====================================================================================================
+        const firebaseConfig = {
+          apiKey: "AIzaSyCkgz6_Zpu0VOW6GgJxOxd9QlVccsBXnog",
+          authDomain: "tcgtrade-7ba27.firebaseapp.com",
+          projectId: "tcgtrade-7ba27",
+          storageBucket: "tcgtrade-7ba27.firebasestorage.app",
+          messagingSenderId: "207150886257",
+          appId: "1:207150886257:web:26edebbeb7df7a1d935ad0",
+         measurementId: "G-K87XEW912C"
+        };
+        // =====================================================================================================
+
+        // Esta variable appId se usa para la ruta de Firestore.
+        // Si estás fuera del entorno de Canvas, usa el projectId de tu firebaseConfig.
+        const appId = typeof __app_id !== 'undefined' ? __app_id : firebaseConfig.projectId;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // Clave API de Pokémon TCG (la que proporcionaste)
+        // Esta clave ya no se usa directamente en el frontend, sino que se pasa a la función proxy de Netlify.
+        const POKEMON_TCG_API_KEY = 'd008fe15-57fe-4903-b6a0-c5a55be8caf7'; 
+
+        // Declaración de variables para elementos del DOM (se asignarán en DOMContentLoaded)
+        let searchInput, searchResultsSection, heroSection, howItWorksSection, cardsContainer, loadingSpinner, noResultsMessage, errorMessage;
+        let authModal, loginForm, registerForm, loginEmailInput, loginPasswordInput, loginBtn, loginError, registerEmailInput, registerPasswordInput, confirmPasswordInput, registerBtn, registerError, closeAuthModalBtn, toggleToRegister, toggleToLogin;
+        let loginNavLink, registerNavLink, profileNavLink, logoutNavLink; 
+        
+        // Nuevas referencias para la sección "Mis Cartas"
+        let myCardsNavLink, myCardsLink, myCardsSection, myCardsContainer, noMyCardsMessage, myCardsErrorMessage;
+        let seriesFilter, setFilter, languageFilter, applyFiltersBtn, showAllSetCardsToggle; // Referencias a los nuevos filtros y toggle
+
+        // Referencias para la sección "Mi Perfil"
+        let profileLink; // Enlace en la navegación principal
+        let profileSection; // La sección completa del perfil
+        let profileSidebarLinks; // Enlaces de la barra lateral del perfil
+        let profileGeneralInfo, profileMyCardsTabContent, profileTradeHistory, profileSettings; // Contenidos de las pestañas del perfil
+        let profileEmailDisplay, profileUidDisplay, profileMemberSince; // Elementos para mostrar la info del perfil
+        let profileLoginRequiredMessage, profileGeneralInfoContent; // Mensaje de login requerido y contenido de info general
+        // Nuevos campos de perfil
+        let profileNameInput, profileLastNameInput, profileAddressInput, profilePhoneInput, profileSaveMessage, saveProfileBtn;
+        // Nuevos campos y botones de ajustes de perfil
+        let settingsNewEmailInput, emailChangeMessage, saveEmailBtn;
+        let settingsCurrentPasswordInput, settingsNewPasswordInput, settingsConfirmNewPasswordInput, passwordChangeMessage, savePasswordBtn;
+        // Nuevo elemento para el toggle de modo oscuro
+        let darkModeToggle;
+
+
+        // Variable para almacenar el usuario actual de Firebase
+        let currentUser = null;
+        // Variable para almacenar todos los sets disponibles (con su serie)
+        let allSets = [];
+        // Variable para almacenar todas las cartas del usuario (para filtrado en cliente)
+        let userCardsCache = [];
+
+        // Función para mostrar el spinner de carga
+        function showLoadingSpinner() {
+            loadingSpinner.style.display = 'block';
+        }
+
+        // Función para ocultar el spinner de carga
+        function hideLoadingSpinner() {
+            loadingSpinner.style.display = 'none';
+        }
+
+        // --- Funciones del Modal de Autenticación ---
+        const showAuthModal = (formType) => {
+            console.log(`[showAuthModal] Abriendo modal para: ${formType}`);
+            if (!authModal) {
+                console.error('Error: authModal no está definido. No se puede mostrar el modal.');
+                return;
+            }
+            authModal.classList.add('show');
+            loginError.classList.add('hidden');
+            registerError.classList.add('hidden');
+            if (formType === 'login') {
+                loginForm.classList.remove('hidden');
+                registerForm.classList.add('hidden');
+            } else {
+                loginForm.classList.add('hidden');
+                registerForm.classList.remove('hidden');
+            }
+        };
+
+        const hideAuthModal = () => {
+            console.log('[hideAuthModal] Cerrando modal.');
+            if (!authModal) {
+                console.error('Error: authModal no está definido. No se puede ocultar el modal.');
+                return;
+            }
+            authModal.classList.remove('show');
+            // Limpiar campos y errores al cerrar
+            loginEmailInput.value = '';
+            loginPasswordInput.value = '';
+            registerEmailInput.value = '';
+            registerPasswordInput.value = '';
+            confirmPasswordInput.value = '';
+            loginError.classList.add('hidden');
+            registerError.classList.add('hidden');
+        };
+
+        // Manejar el cierre de sesión
+        window.logoutUser = async () => {
+            console.log('[logoutUser] Intentando cerrar sesión.');
+            try {
+                await signOut(auth);
+                console.log('Usuario ha cerrado sesión.');
+                // Al cerrar sesión, volver a la vista inicial
+                showInitialSections();
+            } catch (error) {
+                console.error('Error al cerrar sesión:', error);
+            }
+        };
+
+        // --- Funciones de control de visibilidad de secciones ---
+        const showInitialSections = () => {
+            heroSection.classList.remove('hidden');
+            howItWorksSection.classList.remove('hidden');
+            searchResultsSection.classList.add('hidden');
+            myCardsSection.classList.add('hidden'); // Ocultar también la sección de mis cartas
+            profileSection.classList.add('hidden'); // Ocultar también la sección de mi perfil
+            searchInput.value = ''; // Limpiar la barra de búsqueda
+            cardsContainer.innerHTML = ''; // Limpiar resultados anteriores
+            noResultsMessage.classList.add('hidden');
+            errorMessage.classList.add('hidden');
+        };
+
+        const showSearchResults = () => {
+            heroSection.classList.add('hidden');
+            howItWorksSection.classList.add('hidden');
+            myCardsSection.classList.add('hidden'); // Ocultar la sección de mis cartas
+            profileSection.classList.add('hidden'); // Ocultar también la sección de mi perfil
+            searchResultsSection.classList.remove('hidden');
+        };
+
+        const showMyCardsSection = async () => {
+            console.log('[showMyCardsSection] Mostrando sección Mis Cartas.'); // Log para depuración
+            heroSection.classList.add('hidden');
+            howItWorksSection.classList.add('hidden');
+            searchResultsSection.classList.add('hidden');
+            profileSection.classList.add('hidden'); // Ocultar también la sección de mi perfil
+            myCardsSection.classList.remove('hidden');
+            // Limpiar mensajes previos
+            myCardsContainer.innerHTML = '';
+            noMyCardsMessage.classList.add('hidden');
+            myCardsErrorMessage.classList.add('hidden');
+
+            // Cargar y poblar los sets y series si aún no se han cargado
+            if (allSets.length === 0) {
+                await fetchSetsAndPopulateFilter();
+            }
+
+            if (currentUser) {
+                console.log(`[showMyCardsSection] Cargando colección para el usuario: ${currentUser.uid}`);
+                await loadMyCollection(currentUser.uid);
+            } else {
+                noMyCardsMessage.textContent = 'Debes iniciar sesión para ver tu colección.';
+                noMyCardsMessage.classList.remove('hidden');
+                console.log('[showMyCardsSection] No hay usuario logueado para cargar la colección.');
+            }
+        };
+
+        // Función para mostrar la sección de perfil y la pestaña seleccionada
+        const showProfileSection = async (tabId = 'general-info') => {
+            console.log(`[showProfileSection] Mostrando sección Mi Perfil, pestaña: ${tabId}`);
+            heroSection.classList.add('hidden');
+            howItWorksSection.classList.add('hidden');
+            searchResultsSection.classList.add('hidden');
+            myCardsSection.classList.add('hidden');
+            profileSection.classList.remove('hidden');
+
+            // Ocultar todos los contenidos de las pestañas
+            document.querySelectorAll('.profile-tab-content').forEach(content => {
+                content.classList.add('hidden');
+            });
+            // Mostrar el contenido de la pestaña seleccionada
+            const selectedTabContent = document.getElementById(`profile${tabId.replace(/-/g, '').replace('generalinfo', 'GeneralInfo').replace('mycardsprofile', 'MyCards')}`);
+            if (selectedTabContent) {
+                selectedTabContent.classList.remove('hidden');
+            } else {
+                console.warn(`Contenido de pestaña no encontrado para: ${tabId}`);
+            }
+
+            // Desactivar todos los enlaces de la barra lateral
+            profileSidebarLinks.forEach(link => {
+                link.classList.remove('active');
+            });
+            // Activar el enlace de la pestaña seleccionada
+            const activeLink = document.querySelector(`.profile-sidebar-link[data-profile-tab="${tabId}"]`);
+            if (activeLink) {
+                activeLink.classList.add('active');
+            }
+
+            // Cargar datos específicos de la pestaña
+            if (tabId === 'general-info') {
+                if (currentUser) {
+                    profileLoginRequiredMessage.classList.add('hidden');
+                    profileGeneralInfoContent.classList.remove('hidden');
+                    // Estas líneas ya no son necesarias si no se muestran
+                    // profileEmailDisplay.textContent = currentUser.email;
+                    // profileUidDisplay.textContent = currentUser.uid;
+                    profileMemberSince.textContent = currentUser.metadata.creationTime ? new Date(currentUser.metadata.creationTime).toLocaleDateString() : 'N/A';
+                    
+                    // Cargar datos adicionales del perfil desde Firestore
+                    await loadProfileData();
+
+                } else {
+                    profileLoginRequiredMessage.classList.remove('hidden');
+                    profileGeneralInfoContent.classList.add('hidden');
+                }
+            } else if (tabId === 'my-cards-profile') {
+                // Si la pestaña de Mis Cartas dentro del perfil se selecciona, cargar la colección
+                showMyCardsSection(); // Reutilizamos la función existente
+            } else if (tabId === 'settings') {
+                // Al entrar en ajustes, cargar el email actual en el campo correspondiente
+                if (currentUser) {
+                    settingsNewEmailInput.value = currentUser.email;
+                    emailChangeMessage.classList.add('hidden');
+                    passwordChangeMessage.classList.add('hidden');
+                }
+            }
+        };
+
+        // Función para cargar los datos del perfil desde Firestore y rellenar los campos
+        async function loadProfileData() {
+            if (!currentUser) return;
+
+            console.log(`Cargando datos de perfil para usuario: ${currentUser.uid}`);
+            profileSaveMessage.classList.add('hidden'); // Ocultar mensajes previos
+
+            try {
+                const profileRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/profile/data`);
+                const profileSnap = await getDoc(profileRef);
+
+                if (profileSnap.exists()) {
+                    const data = profileSnap.data();
+                    profileNameInput.value = data.name || '';
+                    profileLastNameInput.value = data.lastName || '';
+                    profileAddressInput.value = data.address || '';
+                    profilePhoneInput.value = data.phone || '';
+                    console.log('Datos de perfil cargados:', data);
+                } else {
+                    console.log('No hay datos de perfil adicionales para este usuario.');
+                    // Limpiar campos si no hay datos
+                    profileNameInput.value = '';
+                    profileLastNameInput.value = '';
+                    profileAddressInput.value = '';
+                    profilePhoneInput.value = '';
+                }
+            } catch (error) {
+                console.error('Error al cargar datos de perfil:', error);
+                profileSaveMessage.textContent = 'Error al cargar los datos de tu perfil.';
+                profileSaveMessage.classList.add('text-red-500');
+                profileSaveMessage.classList.remove('hidden');
+            }
+        }
+
+        // Función para guardar los cambios del perfil en Firestore
+        window.saveProfileChanges = async () => {
+            if (!currentUser) {
+                alert('Debes iniciar sesión para guardar cambios en tu perfil.');
+                return;
+            }
+
+            profileSaveMessage.classList.add('hidden'); // Ocultar mensajes previos
+            profileSaveMessage.classList.remove('text-green-500', 'text-red-500');
+
+            const profileData = {
+                name: profileNameInput.value.trim(),
+                lastName: profileLastNameInput.value.trim(),
+                address: profileAddressInput.value.trim(),
+                phone: profilePhoneInput.value.trim(),
+            };
+
+            console.log(`Guardando cambios de perfil para ${currentUser.uid}:`, profileData);
+
+            try {
+                const profileRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/profile/data`);
+                await setDoc(profileRef, profileData, { merge: true }); // Usar merge para no sobrescribir otros campos
+
+                profileSaveMessage.textContent = '¡Cambios guardados exitosamente!';
+                profileSaveMessage.classList.add('text-green-500');
+                profileSaveMessage.classList.remove('hidden');
+                console.log('Cambios de perfil guardados exitosamente.');
+            } catch (error) {
+                console.error('Error al guardar cambios de perfil:', error);
+                profileSaveMessage.textContent = 'Error al guardar los cambios. Inténtalo de nuevo.';
+                profileSaveMessage.classList.add('text-red-500');
+                profileSaveMessage.classList.remove('hidden');
+            }
+        };
+
+        // Función para cambiar el correo electrónico del usuario
+        window.changeEmail = async () => {
+            if (!currentUser) {
+                alert('Debes iniciar sesión para cambiar tu correo electrónico.');
+                return;
+            }
+
+            emailChangeMessage.classList.add('hidden');
+            emailChangeMessage.classList.remove('text-green-500', 'text-red-500');
+
+            const newEmail = settingsNewEmailInput.value.trim();
+
+            if (!newEmail || !newEmail.includes('@')) {
+                emailChangeMessage.textContent = 'Por favor, introduce un correo electrónico válido.';
+                emailChangeMessage.classList.add('text-red-500');
+                emailChangeMessage.classList.remove('hidden');
+                return;
+            }
+
+            if (newEmail === currentUser.email) {
+                emailChangeMessage.textContent = 'El nuevo correo electrónico es el mismo que el actual.';
+                emailChangeMessage.classList.add('text-red-500');
+                emailChangeMessage.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                await updateEmail(currentUser, newEmail);
+                emailChangeMessage.textContent = 'Correo electrónico actualizado exitosamente.';
+                emailChangeMessage.classList.add('text-green-500');
+                emailChangeMessage.classList.remove('hidden');
+                // profileEmailDisplay.textContent = newEmail; // Ya no se muestra el email en Información General
+                console.log('Correo electrónico actualizado a:', newEmail);
+            } catch (error) {
+                console.error('Error al cambiar correo electrónico:', error.code, error.message);
+                let errorMessageText = 'Error al cambiar el correo electrónico. Inténtalo de nuevo.';
+                if (error.code === 'auth/requires-recent-login') {
+                    errorMessageText = 'Por seguridad, debes volver a iniciar sesión para cambiar tu correo electrónico.';
+                } else if (error.code === 'auth/invalid-email') {
+                    errorMessageText = 'El formato del correo electrónico es inválido.';
+                } else if (error.code === 'auth/email-already-in-use') {
+                    errorMessageText = 'Este correo electrónico ya está en uso.';
+                }
+                emailChangeMessage.textContent = errorMessageText;
+                emailChangeMessage.classList.add('text-red-500');
+                emailChangeMessage.classList.remove('hidden');
+            }
+        };
+
+        // Función para cambiar la contraseña del usuario
+        window.changePassword = async () => {
+            if (!currentUser) {
+                alert('Debes iniciar sesión para cambiar tu contraseña.');
+                return;
+            }
+
+            passwordChangeMessage.classList.add('hidden');
+            passwordChangeMessage.classList.remove('text-green-500', 'text-red-500');
+
+            const currentPassword = settingsCurrentPasswordInput.value;
+            const newPassword = settingsNewPasswordInput.value;
+            const confirmNewPassword = settingsConfirmNewPasswordInput.value;
+
+            if (!currentPassword || !newPassword || !confirmNewPassword) {
+                passwordChangeMessage.textContent = 'Por favor, rellena todos los campos.';
+                passwordChangeMessage.classList.add('text-red-500');
+                passwordChangeMessage.classList.remove('hidden');
+                return;
+            }
+            if (newPassword !== confirmNewPassword) {
+                passwordChangeMessage.textContent = 'La nueva contraseña y la confirmación no coinciden.';
+                passwordChangeMessage.classList.add('text-red-500');
+                passwordChangeMessage.classList.remove('hidden');
+                return;
+            }
+            if (newPassword.length < 6) {
+                passwordChangeMessage.textContent = 'La nueva contraseña debe tener al menos 6 caracteres.';
+                passwordChangeMessage.classList.add('text-red-500');
+                passwordChangeMessage.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                // Para cambiar la contraseña, el usuario debe reautenticarse con sus credenciales actuales.
+                const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+                await reauthenticateWithCredential(currentUser, credential);
+                
+                await updatePassword(currentUser, newPassword);
+                passwordChangeMessage.textContent = 'Contraseña actualizada exitosamente.';
+                passwordChangeMessage.classList.add('text-green-500');
+                passwordChangeMessage.classList.remove('hidden');
+                // Limpiar campos de contraseña
+                settingsCurrentPasswordInput.value = '';
+                settingsNewPasswordInput.value = '';
+                settingsConfirmNewPasswordInput.value = '';
+                console.log('Contraseña actualizada.');
+
+            } catch (error) {
+                console.error('Error al cambiar contraseña:', error.code, error.message);
+                let errorMessageText = 'Error al cambiar la contraseña. Inténtalo de nuevo.';
+                if (error.code === 'auth/wrong-password') {
+                    errorMessageText = 'La contraseña actual es incorrecta.';
+                } else if (error.code === 'auth/requires-recent-login') {
+                    errorMessageText = 'Por seguridad, debes volver a iniciar sesión para cambiar tu contraseña.';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessageText = 'La nueva contraseña es demasiado débil.';
+                }
+                passwordChangeMessage.textContent = errorMessageText;
+                passwordChangeMessage.classList.add('text-red-500');
+                passwordChangeMessage.classList.remove('hidden');
+            }
+        };
+
+
+        // --- Funciones de Firestore para la Colección del Usuario ---
+
+        // Función para añadir una carta a la colección del usuario
+        window.addCardToCollection = async (cardData) => {
+            if (!currentUser) {
+                console.warn('No hay usuario autenticado. No se puede añadir la carta a la colección.');
+                // Podrías mostrar un mensaje al usuario para que inicie sesión
+                alert('Por favor, inicia sesión para añadir cartas a tu colección.'); // Usar modal personalizado en el futuro
+                return;
+            }
+
+            console.log(`Intentando añadir carta a la colección de ${currentUser.uid}:`, cardData);
+            try {
+                // Usamos el ID de la carta de la API como ID del documento en Firestore
+                const cardRef = doc(db, `artifacts/${appId}/users/${currentUser.uid}/my_cards/${cardData.id}`);
+                await setDoc(cardRef, {
+                    id: cardData.id,
+                    name: cardData.name,
+                    imageUrl: cardData.images.small,
+                    set: cardData.set ? cardData.set.name : 'N/A',
+                    setId: cardData.set ? cardData.set.id : 'N/A', // Guardar el ID del set
+                    series: cardData.set && cardData.set.series ? cardData.set.series : 'N/A', // Guardar la serie
+                    number: cardData.number || 'N/A', // Guardar el número de carta
+                    language: 'Español', // Idioma por defecto al añadir
+                    addedAt: new Date(),
+                    // Puedes guardar más datos de la carta si lo necesitas
+                });
+                console.log(`Carta "${cardData.name}" añadida a la colección.`);
+                alert(`"${cardData.name}" ha sido añadida a tu colección.`); // Usar modal personalizado
+            } catch (error) {
+                console.error('Error al añadir carta a la colección:', error);
+                alert('Error al añadir la carta a tu colección. Inténtalo de nuevo.'); // Usar modal personalizado
+            }
+        };
+
+        // Función para cargar y mostrar la colección del usuario con filtros
+        async function loadMyCollection(userId) {
+            myCardsContainer.innerHTML = ''; // Limpiar contenedor
+            noMyCardsMessage.classList.add('hidden');
+            myCardsErrorMessage.classList.add('hidden');
+            showLoadingSpinner(); // Mostrar spinner
+
+            try {
+                const myCardsCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/my_cards`);
+                const querySnapshot = await getDocs(myCardsCollectionRef);
+                userCardsCache = []; // Limpiar cache y rellenar con todas las cartas del usuario
+
+                querySnapshot.forEach(doc => {
+                    userCardsCache.push(doc.data());
+                });
+
+                const selectedSeries = seriesFilter.value;
+                const selectedSetId = setFilter.value; // Ahora obtenemos el ID del set
+                const selectedLanguage = languageFilter.value;
+                const showAll = showAllSetCardsToggle.checked;
+
+                let cardsToDisplay = [];
+
+                if (showAll && selectedSetId) {
+                    // Si "Ver todas" está activo y hay un set seleccionado
+                    console.log(`[loadMyCollection] Modo "Ver todas" para set: ${selectedSetId}`);
+                    const allCardsInSet = await fetchAllCardsInSet(selectedSetId);
+                    const ownedCardIds = new Set(userCardsCache.map(card => card.id));
+
+                    // Combinar cartas poseídas y faltantes
+                    allCardsInSet.forEach(apiCard => {
+                        // Aplicar filtros de serie e idioma a las cartas de la API también
+                        const matchesSeries = selectedSeries === "" || (apiCard.set && apiCard.set.series === selectedSeries);
+                        const matchesLanguage = selectedLanguage === "" || (ownedCardIds.has(apiCard.id) && userCardsCache.find(c => c.id === apiCard.id).language === selectedLanguage);
+                        
+                        if (matchesSeries && matchesLanguage) {
+                            if (ownedCardIds.has(apiCard.id)) {
+                                // Si la poseemos, usar los datos de Firestore (que pueden tener idioma, etc.)
+                                const ownedCard = userCardsCache.find(c => c.id === apiCard.id);
+                                cardsToDisplay.push({ ...ownedCard, isOwned: true });
+                            } else {
+                                // Si no la poseemos, crear un placeholder
+                                cardsToDisplay.push({
+                                    id: apiCard.id,
+                                    name: apiCard.name,
+                                    number: apiCard.number,
+                                    imageUrl: 'https://placehold.co/400x550/e2e8f0/4a5568?text=Falta', // Imagen de placeholder
+                                    set: apiCard.set ? apiCard.set.name : 'N/A',
+                                    series: apiCard.set && apiCard.set.series ? apiCard.set.series : 'N/A',
+                                    language: 'N/A', // No sabemos el idioma de una carta faltante
+                                    isOwned: false
+                                });
+                            }
+                        }
+                    });
+                    // Ordenar por número de carta para ver la colección ordenada
+                    cardsToDisplay.sort((a, b) => {
+                        const numA = parseInt(a.number, 10) || Infinity;
+                        const numB = parseInt(b.number, 10) || Infinity;
+                        return numA - numB;
+                    });
+
+                } else {
+                    // Modo normal: solo mostrar cartas poseídas, aplicando filtros
+                    let filteredCards = userCardsCache.filter(card => {
+                        const matchesSeries = selectedSeries === "" || card.series === selectedSeries;
+                        const matchesSet = selectedSetId === "" || card.setId === selectedSetId; // Ahora filtramos por setId
+                        const matchesLanguage = selectedLanguage === "" || card.language === selectedLanguage;
+                        return matchesSeries && matchesSet && matchesLanguage;
+                    });
+                    // Ordenar por set y luego por número
+                    filteredCards.sort((a, b) => {
+                        if (a.set !== b.set) return a.set.localeCompare(b.set);
+                        const numA = parseInt(a.number, 10) || Infinity;
+                        const numB = parseInt(b.number, 10) || Infinity;
+                        return numA - numB;
+                    });
+                    cardsToDisplay = filteredCards;
+                }
+
+                renderCardsInCollection(cardsToDisplay);
+
+                if (cardsToDisplay.length === 0) {
+                    noMyCardsMessage.textContent = 'No se encontraron cartas en tu colección con los filtros aplicados.';
+                    noMyCardsMessage.classList.remove('hidden');
+                }
+
+            } catch (error) {
+                console.error('Error al cargar la colección:', error);
+                myCardsErrorMessage.classList.remove('hidden');
+            } finally {
+                hideLoadingSpinner(); // Ocultar spinner
+            }
+        }
+
+        // Función auxiliar para renderizar las cartas (poseídas o faltantes)
+        function renderCardsInCollection(cards) {
+            myCardsContainer.innerHTML = ''; // Limpiar contenedor
+            if (cards.length === 0) {
+                noMyCardsMessage.classList.remove('hidden');
+                return;
+            }
+
+            cards.forEach(card => {
+                const isOwned = card.isOwned !== undefined ? card.isOwned : true; // Por defecto es poseída si no se especifica
+                const cardClass = isOwned ? 'card-bg' : 'card-bg missing-card';
+                const imageUrl = isOwned ? card.imageUrl : card.imageUrl; // Placeholder si es faltante
+                const buttonHtml = isOwned ? 
+                    `<button class="btn-secondary px-4 py-2 rounded-lg text-sm font-semibold mt-2" onclick="removeCardFromCollection('${card.id}')">Eliminar</button>` :
+                    `<span class="text-sm text-gray-500 mt-2">Falta en tu colección</span>`;
+
+                const cardElement = `
+                    <div class="${cardClass} rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105">
+                        <img src="${imageUrl}" alt="${card.name}" class="w-full h-auto object-cover rounded-t-xl" onerror="this.onerror=null;this.src='${isOwned ? 'https://placehold.co/400x550/a0aec0/ffffff?text=Imagen+no+disponible' : 'https://placehold.co/400x550/e2e8f0/4a5568?text=Falta'}';">
+                        <div class="p-4">
+                            <h3 class="text-xl font-semibold mb-2 text-gray-900">${card.name}</h3>
+                            <p class="text-gray-600 text-sm mb-3">Número: ${card.number}</p>
+                            <p class="text-gray-600 text-sm mb-3">Serie: ${card.series || 'N/A'}</p>
+                            <p class="text-gray-600 text-sm mb-3">Expansión: ${card.set}</p>
+                            ${isOwned ? `<p class="text-gray-600 text-sm mb-3">Idioma: ${card.language || 'N/A'}</p>` : ''}
+                            <div class="flex justify-between items-center">
+                                ${buttonHtml}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                myCardsContainer.innerHTML += cardElement;
+            });
+        }
+
+
+        // Función para eliminar una carta de la colección del usuario
+        window.removeCardFromCollection = async (cardId) => {
+            if (!currentUser) {
+                console.warn('No hay usuario autenticado. No se puede eliminar la carta.');
+                alert('Por favor, inicia sesión.');
+                return;
+            }
+
+            console.log(`Intentando eliminar carta ${cardId} de la colección de ${currentUser.uid}`);
+            try {
+                await deleteDoc(doc(db, `artifacts/${appId}/users/${currentUser.uid}/my_cards/${cardId}`));
+                console.log(`Carta ${cardId} eliminada.`);
+                alert('Carta eliminada de tu colección.');
+                // Recargar la colección para actualizar la vista
+                await loadMyCollection(currentUser.uid);
+            } catch (error) {
+                console.error('Error al eliminar carta de la colección:', error);
+                alert('Error al eliminar la carta. Inténtalo de nuevo.');
+            }
+        };
+
+        // Función para obtener y poblar los sets y series de la API de Pokémon TCG
+        async function fetchSetsAndPopulateFilter() {
+            if (allSets.length > 0) { // Evitar cargar sets múltiples veces
+                return;
+            }
+            console.log('Cargando sets desde la API de Pokémon TCG para filtros...');
+            try {
+                // Usar el proxy para cargar los sets
+                const response = await fetch('/api/pokemontcg/sets', {
+                    // No enviar X-Api-Key aquí, el proxy la añade desde las variables de entorno de Netlify
+                });
+                if (!response.ok) {
+                    throw new Error(`Error HTTP al cargar sets: ${response.status}`);
+                }
+                const data = await response.json();
+                allSets = data.data; // Guardar todos los sets
+
+                allSets.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate)); // Ordenar por fecha de lanzamiento más reciente
+
+                // Poblar filtro de Series
+                const uniqueSeries = [...new Set(allSets.map(set => set.series))].sort();
+                seriesFilter.innerHTML = '<option value="">Todas las Series</option>';
+                uniqueSeries.forEach(series => {
+                    if (series) { // Asegurarse de que la serie no sea nula/vacía
+                        const option = document.createElement('option');
+                        option.value = series;
+                        option.textContent = series;
+                        seriesFilter.appendChild(option);
+                    }
+                });
+                console.log(`Se cargaron ${uniqueSeries.length} series.`);
+
+                // Poblar filtro de Sets inicialmente (todos)
+                populateSetFilter(allSets);
+                setFilter.disabled = false; // Habilitar el filtro de sets
+                console.log(`Se cargaron ${allSets.length} sets.`);
+            } catch (error) {
+                console.error('Error al cargar los sets/series de la API:', error);
+                // Mostrar un mensaje de error si los filtros no se pueden cargar
+                setFilter.disabled = true;
+                seriesFilter.disabled = true;
+                myCardsErrorMessage.textContent = 'No se pudieron cargar los filtros de sets/expansiones. Inténtalo de nuevo más tarde.';
+                myCardsErrorMessage.classList.remove('hidden');
+            }
+        }
+
+        // Función para poblar el filtro de sets basado en una lista de sets
+        function populateSetFilter(setsToDisplay) {
+            setFilter.innerHTML = '<option value="">Todas las Expansiones</option>';
+            setsToDisplay.forEach(set => {
+                const option = document.createElement('option');
+                option.value = set.id; // Usamos el ID del set como valor
+                option.textContent = set.name;
+                setFilter.appendChild(option);
+            });
+        }
+
+        // Función para obtener todas las cartas de un set específico de la API
+        async function fetchAllCardsInSet(setId) {
+            console.log(`Fetching all cards for set ID: ${setId}`);
+            try {
+                // Usar el proxy para obtener todas las cartas de un set
+                const response = await fetch(`/api/pokemontcg/cards?q=set.id:${setId}&pageSize=500`); // Usando el proxy
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                console.log(`Fetched ${data.data.length} cards for set ${setId}`);
+                return data.data;
+            } catch (error) {
+                console.error('Error fetching all cards in set:', error);
+                myCardsErrorMessage.textContent = 'Error al cargar todas las cartas de esta expansión. Por favor, inténtalo de nuevo.';
+                myCardsErrorMessage.classList.remove('hidden');
+                return [];
+            }
+        }
+
+
+        // --- Asignar Event Listeners a los enlaces de navegación y botones del modal ---
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM completamente cargado y parseado. Iniciando configuración de eventos.');
+
+            // Asignar referencias a elementos del DOM
+            searchInput = document.getElementById('searchInput');
+            searchResultsSection = document.getElementById('searchResults');
+            heroSection = document.getElementById('heroSection'); // Referencia a la sección hero
+            howItWorksSection = document.getElementById('howItWorks');
+            cardsContainer = document.getElementById('cardsContainer');
+            loadingSpinner = document.getElementById('loadingSpinner');
+            noResultsMessage = document.getElementById('noResultsMessage');
+            errorMessage = document.getElementById('errorMessage');
+
+            authModal = document.getElementById('authModal');
+            loginForm = document.getElementById('loginForm');
+            registerForm = document.getElementById('registerForm');
+            loginEmailInput = document.getElementById('loginEmail');
+            loginPasswordInput = document.getElementById('loginPassword');
+            loginBtn = document.getElementById('loginBtn');
+            loginError = document.getElementById('loginError');
+            registerEmailInput = document.getElementById('registerEmail');
+            registerPasswordInput = document.getElementById('registerPassword');
+            confirmPasswordInput = document.getElementById('confirmPassword');
+            registerBtn = document.getElementById('registerBtn');
+            registerError = document.getElementById('registerError');
+            closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
+            toggleToRegister = document.getElementById('toggleToRegister');
+            toggleToLogin = document.getElementById('toggleToLogin');
+
+            loginNavLink = document.getElementById('loginNavLink');
+            registerNavLink = document.getElementById('registerNavLink');
+            profileNavLink = document.getElementById('profileNavLink');
+            logoutNavLink = document.getElementById('logoutNavLink');
+            
+            // Referencias para Mis Cartas
+            myCardsNavLink = document.getElementById('myCardsNavLink');
+            myCardsLink = document.getElementById('myCardsLink');
+            myCardsSection = document.getElementById('myCardsSection');
+            myCardsContainer = document.getElementById('myCardsContainer');
+            noMyCardsMessage = document.getElementById('noMyCardsMessage');
+            myCardsErrorMessage = document.getElementById('myCardsErrorMessage');
+
+            // Referencias a los nuevos filtros
+            seriesFilter = document.getElementById('seriesFilter');
+            setFilter = document.getElementById('setFilter');
+            languageFilter = document.getElementById('languageFilter');
+            applyFiltersBtn = document.getElementById('applyFiltersBtn');
+            showAllSetCardsToggle = document.getElementById('showAllSetCardsToggle');
+
+            // Referencias para la sección "Mi Perfil"
+            profileLink = document.getElementById('profileLink');
+            profileSection = document.getElementById('profileSection');
+            profileSidebarLinks = document.querySelectorAll('.profile-sidebar-link'); // Seleccionar todos los enlaces de la barra lateral
+            profileGeneralInfo = document.getElementById('profileGeneralInfo');
+            profileMyCardsTabContent = document.getElementById('profileMyCards');
+            profileTradeHistory = document.getElementById('profileTradeHistory');
+            profileSettings = document.getElementById('profileSettings');
+            profileEmailDisplay = document.getElementById('profileEmailDisplay'); // Se mantiene por si se decide mostrar en otro lugar
+            profileUidDisplay = document.getElementById('profileUidDisplay');     // Se mantiene por si se decide mostrar en otro lugar
+            profileMemberSince = document.getElementById('profileMemberSince');
+            // Nuevas referencias para el mensaje y contenido de información general
+            profileLoginRequiredMessage = document.getElementById('profileLoginRequiredMessage');
+            profileGeneralInfoContent = document.getElementById('profileGeneralInfoContent');
+            profileNameInput = document.getElementById('profileName');
+            profileLastNameInput = document.getElementById('profileLastName');
+            profileAddressInput = document.getElementById('profileAddress');
+            profilePhoneInput = document.getElementById('profilePhone');
+            profileSaveMessage = document.getElementById('profileSaveMessage');
+            saveProfileBtn = document.getElementById('saveProfileBtn');
+            settingsNewEmailInput = document.getElementById('settingsNewEmail');
+            emailChangeMessage = document.getElementById('emailChangeMessage');
+            saveEmailBtn = document.getElementById('saveEmailBtn');
+            settingsCurrentPasswordInput = document.getElementById('settingsCurrentPassword');
+            settingsNewPasswordInput = document.getElementById('settingsNewPassword');
+            settingsConfirmNewPasswordInput = document.getElementById('settingsConfirmNewPassword');
+            passwordChangeMessage = document.getElementById('passwordChangeMessage');
+            savePasswordBtn = document.getElementById('savePasswordBtn');
+            darkModeToggle = document.getElementById('darkModeToggle'); // Referencia al toggle de modo oscuro
+
+
+            const homeLink = document.getElementById('homeLink'); // Referencia al logo TCGtrade
+
+            // Función de ayuda para verificar y adjuntar listeners
+            const setupClickListener = (elementId, handler, preventDefault = true) => {
+                const element = document.getElementById(elementId);
+                if (element) {
+                    console.log(`Elemento #${elementId} encontrado. Adjuntando listener.`);
+                    element.addEventListener('click', (e) => {
+                        if (preventDefault) {
+                            e.preventDefault();
+                        }
+                        console.log(`Click detectado en #${elementId}.`);
+                        handler();
+                    });
+                } else {
+                    console.error(`CRÍTICO: Elemento con ID #${elementId} NO ENCONTRADO. La funcionalidad asociada no funcionará.`);
+                }
+            };
+
+            // Adjuntar listeners a los enlaces de navegación
+            setupClickListener('loginLink', () => showAuthModal('login'));
+            setupClickListener('registerLink', () => showAuthModal('register'));
+            setupClickListener('logoutLink', () => logoutUser());
+            setupClickListener('homeLink', showInitialSections); // Listener para el logo TCGtrade
+            setupClickListener('myCardsLink', showMyCardsSection); // Listener para "Mis Cartas"
+            setupClickListener('profileLink', () => showProfileSection('general-info')); // Listener para "Mi Perfil"
+
+            // Adjuntar listeners a los elementos dentro del modal
+            setupClickListener('closeAuthModalBtn', hideAuthModal);
+            setupClickListener('toggleToRegister', () => showAuthModal('register'));
+            setupClickListener('toggleToLogin', () => showAuthModal('login'));
+
+            // Listener para el cambio en el filtro de Series
+            if (seriesFilter) {
+                seriesFilter.addEventListener('change', () => {
+                    const selectedSeries = seriesFilter.value;
+                    if (selectedSeries === "") {
+                        // Si no hay serie seleccionada, mostrar todos los sets
+                        populateSetFilter(allSets);
+                    } else {
+                        // Filtrar sets por la serie seleccionada
+                        const setsInSeries = allSets.filter(set => set.series === selectedSeries);
+                        populateSetFilter(setsInSeries);
+                    }
+                    setFilter.value = ""; // Resetear el filtro de set al cambiar la serie
+                    // Si el toggle "Ver todas" está activo y se cambia la serie, recargar la colección
+                    if (showAllSetCardsToggle.checked) {
+                        if (currentUser) {
+                            loadMyCollection(currentUser.uid);
+                        }
+                    }
+                    // Deshabilitar/desmarcar el toggle si se cambia la serie a "Todas las Series"
+                    if (selectedSeries === "") {
+                        showAllSetCardsToggle.checked = false;
+                        showAllSetCardsToggle.disabled = true;
+                    }
+                });
+            } else {
+                console.error('CRÍTICO: Filtro #seriesFilter no encontrado.');
+            }
+
+            // Listener para el cambio en el filtro de Expansión (Set)
+            if (setFilter) {
+                setFilter.addEventListener('change', () => {
+                    // Habilitar/deshabilitar el toggle "Ver todas" según si hay un set seleccionado
+                    if (setFilter.value) {
+                        showAllSetCardsToggle.disabled = false;
+                    } else {
+                        showAllSetCardsToggle.checked = false; // Desmarcar si no hay set
+                        showAllSetCardsToggle.disabled = true;
+                    }
+                    // Si el toggle "Ver todas" está activo y se cambia el set, recargar la colección
+                    if (showAllSetCardsToggle.checked) {
+                        if (currentUser) {
+                            loadMyCollection(currentUser.uid);
+                        }
+                    }
+                });
+            } else {
+                console.error('CRÍTICO: Filtro #setFilter no encontrado.');
+            }
+
+
+            // Listener para el botón de aplicar filtros
+            if (applyFiltersBtn) {
+                applyFiltersBtn.addEventListener('click', () => {
+                    if (currentUser) {
+                        loadMyCollection(currentUser.uid);
+                    } else {
+                        noMyCardsMessage.textContent = 'Debes iniciar sesión para aplicar filtros a tu colección.';
+                        noMyCardsMessage.classList.remove('hidden');
+                    }
+                });
+            } else {
+                console.error('CRÍTICO: Botón #applyFiltersBtn no encontrado.');
+            }
+
+            // Listener para el toggle "Ver todas las cartas del set"
+            if (showAllSetCardsToggle) {
+                showAllSetCardsToggle.addEventListener('change', () => {
+                    console.log('[showAllSetCardsToggle] Toggle cambiado. Valor:', showAllSetCardsToggle.checked);
+                    // Si el toggle se activa o desactiva, recargar la colección
+                    if (currentUser && setFilter.value) { // Solo recargar si hay usuario y set seleccionado
+                        loadMyCollection(currentUser.uid);
+                    } else if (showAllSetCardsToggle.checked) {
+                        // Si se intenta activar sin set o sin sesión, el toggle ya está deshabilitado o se desmarca con la alerta
+                        alert('Debes iniciar sesión y seleccionar una expansión para ver todas las cartas del set.');
+                        showAllSetCardsToggle.checked = false; // Asegurar que se desmarque
+                    }
+                });
+            } else {
+                console.error('CRÍTICO: Toggle #showAllSetCardsToggle no encontrado.');
+            }
+
+            // Listeners para los enlaces de la barra lateral del perfil
+            // Se asignan después de que profileSidebarLinks se haya inicializado
+            // Se moverá la inicialización de profileSidebarLinks al principio de DOMContentLoaded
+            // para asegurar que esté disponible aquí.
+            // (Ya se ha movido en la última versión del código)
+            if (profileSidebarLinks) {
+                profileSidebarLinks.forEach(link => {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const tabId = e.target.dataset.profileTab;
+                        showProfileSection(tabId);
+                    });
+                });
+            } else {
+                console.error('CRÍTICO: profileSidebarLinks no encontrado.');
+            }
+
+            // Listener para el botón de guardar cambios del perfil
+            if (saveProfileBtn) {
+                saveProfileBtn.addEventListener('click', saveProfileChanges);
+            } else {
+                console.error('CRÍTICO: Botón #saveProfileBtn no encontrado.');
+            }
+
+            // Listener para el botón de actualizar correo electrónico
+            if (saveEmailBtn) {
+                saveEmailBtn.addEventListener('click', changeEmail);
+            } else {
+                console.error('CRÍTICO: Botón #saveEmailBtn no encontrado.');
+            }
+
+            // Listener para el botón de actualizar contraseña
+            if (savePasswordBtn) {
+                savePasswordBtn.addEventListener('click', changePassword);
+            } else {
+                console.error('CRÍTICO: Botón #savePasswordBtn no encontrado.');
+            }
+
+            // Listener para el toggle de Modo Oscuro
+            if (darkModeToggle) {
+                darkModeToggle.addEventListener('change', () => {
+                    toggleDarkMode();
+                });
+            } else {
+                console.error('CRÍTICO: Toggle #darkModeToggle no encontrado.');
+            }
+
+            // Cargar la preferencia de modo oscuro al iniciar
+            const isDarkMode = localStorage.getItem('darkMode') === 'true';
+            if (isDarkMode) {
+                document.body.classList.add('dark-mode');
+                if (darkModeToggle) { // Asegurarse de que el toggle exista antes de intentar marcarlo
+                    darkModeToggle.checked = true;
+                }
+            }
+
+
+            // --- Funciones de Autenticación Firebase ---
+
+            // Manejar el inicio de sesión
+            if (loginBtn) {
+                loginBtn.addEventListener('click', async () => {
+                    console.log('Click en botón de Iniciar Sesión.');
+                    const email = loginEmailInput.value;
+                    const password = loginPasswordInput.value;
+                    loginError.classList.add('hidden'); // Ocultar errores previos
+
+                    try {
+                        await signInWithEmailAndPassword(auth, email, password);
+                        hideAuthModal();
+                        console.log('Usuario ha iniciado sesión exitosamente:', auth.currentUser.email);
+                    } catch (error) {
+                        console.error('Error al iniciar sesión:', error.code, error.message);
+                        let errorMessageText = 'Error al iniciar sesión. Por favor, verifica tus credenciales.';
+                        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                            errorMessageText = 'Correo electrónico o contraseña incorrectos.';
+                        } else if (error.code === 'auth/invalid-email') {
+                            errorMessageText = 'Formato de correo electrónico inválido.';
+                        }
+                        loginError.textContent = errorMessageText;
+                        loginError.classList.remove('hidden');
+                    }
+                });
+            } else {
+                console.error('CRÍTICO: Botón #loginBtn no encontrado.');
+            }
+
+            // Manejar el registro
+            if (registerBtn) {
+                registerBtn.addEventListener('click', async () => {
+                    console.log('Click en botón de Registrarse.');
+                    const email = registerEmailInput.value;
+                    const password = registerPasswordInput.value;
+                    const confirmPassword = confirmPasswordInput.value;
+                    registerError.classList.add('hidden'); // Ocultar errores previos
+
+                    if (password !== confirmPassword) {
+                        registerError.textContent = 'Las contraseñas no coinciden.';
+                        registerError.classList.remove('hidden');
+                        return;
+                    }
+                    if (password.length < 6) {
+                        registerError.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+                        registerError.classList.remove('hidden');
+                        return;
+                    }
+
+                    try {
+                        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                        const user = userCredential.user;
+
+                        // Guardar un perfil básico del usuario en Firestore
+                        const userId = user.uid;
+                        const userProfileRef = doc(db, `artifacts/${appId}/users/${userId}/profile/data`); // Ruta para datos privados del usuario
+                        await setDoc(userProfileRef, {
+                            email: user.email,
+                            createdAt: new Date(),
+                            // Puedes añadir más campos aquí, como nombre de usuario, etc.
+                        });
+
+                        hideAuthModal();
+                        console.log('Usuario registrado exitosamente y perfil creado:', user.email);
+                    } catch (error) {
+                        console.error('Error al registrar usuario:', error.code, error.message);
+                        let errorMessageText = 'Error al registrar. Por favor, inténtalo de nuevo.';
+                        if (error.code === 'auth/email-already-in-use') {
+                            errorMessageText = 'Este correo electrónico ya está registrado.';
+                        } else if (error.code === 'auth/invalid-email') {
+                            errorMessageText = 'Formato de correo electrónico inválido.';
+                        } else if (error.code === 'auth/weak-password') {
+                            errorMessageText = 'La contraseña es demasiado débil.';
+                        } else if (error.code === 'auth/operation-not-allowed') {
+                            errorMessageText = 'La autenticación por correo electrónico y contraseña no está habilitada en tu proyecto de Firebase. Por favor, ve a la Consola de Firebase > Authentication > Sign-in method y habilita "Email/Password".';
+                        }
+                        registerError.textContent = errorMessageText;
+                        registerError.classList.remove('hidden');
+                    }
+                });
+            } else {
+                console.error('CRÍTICO: Botón #registerBtn no encontrado.');
+            }
+
+            // Escuchar cambios en el estado de autenticación
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user; // Actualizar la variable currentUser
+                console.log(`[onAuthStateChanged] Estado de autenticación: Usuario logueado: ${!!user}`); // Log del estado
+                
+                // Siempre mostrar el enlace "Mis Cartas"
+                myCardsNavLink.classList.remove('hidden'); 
+                console.log(`[onAuthStateChanged] Visibilidad de Mis Cartas: ${myCardsNavLink.classList.contains('hidden') ? 'oculta' : 'visible'} (siempre visible para edición)`); 
+
+                // Mostrar/ocultar enlaces de autenticación según el estado
+                if (user) {
+                    loginNavLink.classList.add('hidden');
+                    registerNavLink.classList.add('hidden');
+                    profileNavLink.classList.remove('hidden'); // Mostrar Mi Perfil
+                    logoutNavLink.classList.remove('hidden');
+                    console.log('Usuario actual:', user.email, 'UID:', user.uid);
+                    // Si el usuario acaba de iniciar sesión y estamos en la sección de perfil, actualizarla
+                    if (!profileSection.classList.contains('hidden')) {
+                         showProfileSection(document.querySelector('.profile-sidebar-link.active')?.dataset.profileTab || 'general-info');
+                    }
+                } else {
+                    loginNavLink.classList.remove('hidden');
+                    registerNavLink.classList.remove('hidden');
+                    // profileNavLink.classList.add('hidden'); // Eliminado: ahora siempre visible para edición
+                    logoutNavLink.classList.add('hidden');
+                    console.log('No hay usuario logueado.');
+                    // Si el usuario cierra sesión y estaba en el perfil, volver al inicio
+                    if (!profileSection.classList.contains('hidden')) {
+                        showInitialSections();
+                    }
+                }
+            });
+
+            // Autenticación inicial con token o anónima
+            if (initialAuthToken) {
+                signInWithCustomToken(auth, initialAuthToken)
+                    .then(() => console.log('Autenticación inicial con token personalizada exitosa.'))
+                    .catch((error) => {
+                        console.error('Error en la autenticación inicial con token:', error);
+                        signInAnonymously(auth)
+                            .then(() => console.log('Autenticación anónima exitosa.'))
+                            .catch((anonError) => console.error('Error en la autenticación anónima:', anonError));
+                    });
+            } else {
+                signInAnonymously(auth)
+                    .then(() => console.log('Autenticación anónima exitosa.'))
+                    .catch((error) => console.error('Error en la autenticación anónima:', error));
+            }
+
+            // --- Función de Búsqueda de Cartas (existente) ---
+            async function fetchCards(query) {
+                cardsContainer.innerHTML = '';
+                noResultsMessage.classList.add('hidden');
+                errorMessage.classList.add('hidden');
+
+                if (query.length < 3) {
+                    showInitialSections(); // Vuelve a las secciones iniciales si la búsqueda es muy corta o vacía
+                    return;
+                }
+
+                showLoadingSpinner();
+                showSearchResults(); // Muestra la sección de resultados al iniciar la búsqueda
+
+                try {
+                    // Usar el proxy para la búsqueda de cartas
+                    const apiUrl = `/api/pokemontcg/cards?q=name:*${query}* OR number:*${query}* OR set.name:*${query}*&pageSize=500`;
+                    console.log('Intentando obtener datos de la API (vía proxy):', apiUrl);
+
+                    const response = await fetch(apiUrl); // No enviar X-Api-Key aquí, el proxy la añade
+
+                    if (!response.ok) {
+                        throw new Error(`Error HTTP! estado: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    const cards = data.data;
+
+                    console.log('Cartas recibidas de la API (vía proxy):', cards);
+
+                    if (cards && cards.length > 0) {
+                        cards.forEach(card => {
+                            const cardElement = `
+                                <div class="card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105">
+                                    <img src="${card.images.small}" alt="${card.name}" class="w-full h-auto object-cover rounded-t-xl" onerror="this.onerror=null;this.src='https://placehold.co/400x550/a0aec0/ffffff?text=Imagen+no+disponible';">
+                                    <div class="p-4">
+                                        <h3 class="text-xl font-semibold mb-2 text-gray-900">${card.name}</h3>
+                                        <p class="text-gray-600 text-sm mb-3">Set: ${card.set ? card.set.name : 'N/A'}</p>
+                                        <p class="text-gray-600 text-sm mb-3">Serie: ${card.set && card.set.series ? card.set.series : 'N/A'}</p>
+                                        <div class="flex justify-between items-center">
+                                            <button class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold" onclick='addCardToCollection(${JSON.stringify(card)})'>Añadir a Colección</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            cardsContainer.innerHTML += cardElement;
+                        });
+                    } else {
+                        noResultsMessage.classList.remove('hidden');
+                    }
+
+                } catch (error) {
+                    console.error('Error al buscar cartas:', error);
+                    
+                    if (error.message.includes('Failed to fetch')) {
+                        errorMessage.textContent = 'Error de conexión: No se pudo conectar con la API de Pokémon TCG. Esto se debe a una restricción de seguridad (CORS) de la API de Pokémon TCG cuando se accede desde un entorno de desarrollo local como `http://localhost:8000/`. La funcionalidad de búsqueda debería operar correctamente una once que la aplicación esté desplegada en un dominio web real (por ejemplo, `https://tudominio.com`).';
+                    } else {
+                        errorMessage.textContent = 'Ha ocurrido un error al cargar las cartas. Por favor, asegúrate de haber insertado tu clave API correctamente y verifica tu conexión a internet. Si el problema persiste, la API podría estar experimentando problemas o podrías haber alcanzado tu límite de solicitudes.';
+                    }
+                    errorMessage.classList.remove('hidden');
+                    cardsContainer.innerHTML = '';
+                } finally {
+                    hideLoadingSpinner();
+                }
+            }
+
+            // Event listener for search input
+            let searchTimeout;
+            searchInput.addEventListener('keyup', (event) => {
+                clearTimeout(searchTimeout);
+                const query = event.target.value.trim();
+                if (query.length >= 3 || query.length === 0) {
+                    searchTimeout = setTimeout(() => {
+                        fetchCards(query);
+                    }, 500);
+                }
+            });
+
+            // Initial state: ensure hero and how it works sections are visible on load
+            showInitialSections();
+        });
+    </script>
+</body>
+</html>
