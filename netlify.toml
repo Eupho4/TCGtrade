@@ -1,14 +1,14 @@
 # netlify.toml
 [build]
-  functions = "netlify/functions" # Indica a Netlify dónde encontrar tus funciones
+  functions = "netlify/functions"
 
-[[redirects]] # <--- Probablemente el problema esté en esta línea o en la anterior/siguiente
-  from = "/api/pokemontcg/*" # La ruta que tu frontend usará para el proxy
-  to = "/.netlify/functions/pokemon-proxy/:splat" # Redirige a tu función sin servidor
-  status = 200 # Asegura que la redirección sea transparente
+[[redirects]]
+  from = "/api/pokemontcg/*"
+  to = "/.netlify/functions/pokemon-proxy/:splat"
+  status = 200
 
 [[plugins]]
-package = "@netlify/plugin-functions-install-core"
+  package = "@netlify/plugin-functions-install-core"
 
 [functions]
   node_bundler = "esbuild"
