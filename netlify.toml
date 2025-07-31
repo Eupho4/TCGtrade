@@ -1,8 +1,7 @@
 # netlify.toml
 [build]
   functions = "netlify/functions"
-  # Añade este comando para asegurar que las dependencias de las funciones se instalen
-  command = "npm install --prefix netlify/functions" 
+  command = "npm install --prefix netlify/functions" # Asegúrate de que esta línea no tenga espacios extra al inicio
 
 [[redirects]]
   from = "/api/pokemontcg/*"
