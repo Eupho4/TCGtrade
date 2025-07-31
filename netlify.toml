@@ -9,3 +9,8 @@
 
 [[plugins]]
 package = "@netlify/plugin-functions-install-core"
+
+[functions] # <--- NUEVA SECCIÓN
+  node_bundler = "esbuild" # <--- Configuración para el empaquetado de Node.js
+  external_node_modules = ["node-fetch"] # <--- Asegura que node-fetch se incluya
+  timeout = 60 # <--- Aumenta el tiempo de espera de la función a 60 segundos (valor en segundos)
