@@ -1,9 +1,8 @@
 // netlify/functions/pokemon-proxy.js
-// Cambiamos la importación de require a import para mayor compatibilidad con esbuild
 import fetch from 'node-fetch'; 
 
 // Clave API de Pokémon TCG (la misma que usas en tu frontend)
-const POKEMON_TCG_API_KEY = process.env.POKEMON_TCG_API_KEY; // Se cargará desde las variables de entorno de Netlify
+const POKEMON_TCG_API_KEY = process.env.POKEMON_TCG_API_KEY; // Se carga desde las variables de entorno de Netlify
 
 exports.handler = async function(event, context) {
   // Obtener la ruta del proxy (ej: /cards?q=...)
