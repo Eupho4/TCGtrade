@@ -57,8 +57,8 @@
             transition: color 0.3s ease, transform 0.2s ease;
         }
         .nav-link:hover {
-            color: var(--color-nav-link-hover);
-            transform: translateY(-2px);
+            background-color: var(--color-nav-link-hover);
+            color: var(--color-header-bg);
         }
         .btn-primary {
             background-color: #f97316; /* Naranja vibrante (se mantiene igual) */
@@ -664,7 +664,7 @@
                     </button>
                 </div>
                 <p class="text-center text-gray-600 text-sm mt-4">
-                    ¿No tienes una cuenta? <span class="auth-form-toggle" id="toggleToLogin">Regístrate aquí.</span>
+                    ¿No tienes una cuenta? <span class="auth-form-toggle" id="toggleToRegister">Regístrate aquí.</span>
                 </p>
             </div>
 
@@ -718,13 +718,12 @@
         // };
         // =====================================================================================================
         const firebaseConfig = {
-          apiKey: "AIzaSyCkgz6_Zpu0VOW6GgJxOxd9QlVccsBXnog",
-          authDomain: "tcgtrade-7ba27.firebaseapp.com",
-          projectId: "tcgtrade-7ba27",
-          storageBucket: "tcgtrade-7ba27.firebasestorage.app",
-          messagingSenderId: "207150886257",
-          appId: "1:207150886257:web:26edebbeb7df7a1d935ad0",
-          measurementId: "G-K87XEW912C"
+          apiKey: "TU_API_KEY_AQUI", // <--- REEMPLAZA ESTO con tu clave API de Firebase
+          authDomain: "TU_AUTH_DOMAIN_AQUI",
+          projectId: "TU_PROJECT_ID_AQUI",
+          storageBucket: "TU_STORAGE_BUCKET_AQUI",
+          messagingSenderId: "TU_MESSAGING_SENDER_ID_AQUI",
+          appId: "TU_APP_ID_AQUI"
         };
         // =====================================================================================================
 
@@ -768,13 +767,6 @@
         // Referencia para la sección de intercambios
         let interchangesSection;
 
-
-        // Variable para almacenar el usuario actual de Firebase
-        let currentUser = null;
-        // Variable para almacenar todos los sets disponibles (con su serie)
-        let allSets = [];
-        // Variable para almacenar todas las cartas del usuario (para filtrado en cliente)
-        let userCardsCache = [];
 
         // Función para mostrar el spinner de carga
         function showLoadingSpinner() {
