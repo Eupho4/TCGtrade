@@ -1,0 +1,13 @@
+[build]
+  functions = "netlify/functions"
+  command = "npm install --prefix netlify/functions"
+
+[[redirects]]
+  from = "/api/pokemontcg/*"
+  to = "/.netlify/functions/pokemon-proxy/:splat"
+  status = 200
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["node-fetch"]
+
