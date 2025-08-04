@@ -4,19 +4,11 @@
 
 [[redirects]]
   from = "/api/pokemontcg/*"
-  to = "/.netlify/functions/pokemon-proxy/:splat"
+  to = "/.netlify/functions/pokemon-proxy"
   status = 200
+  force = true
 
 [functions]
   node_bundler = "esbuild"
   included_files = ["node_modules/**"]
-  # Añadir un timeout más largo para las funciones
   timeout = 30 # segundos
-
-
-
-
-
-
-
-
