@@ -1,5 +1,12 @@
 // netlify/functions/pokemon-proxy.js
-const fetch = require('node-fetch');
+// En Node.js 18+ fetch está disponible globalmente, pero para compatibilidad:
+let fetch;
+try {
+  fetch = globalThis.fetch || require('node-fetch');
+} catch (error) {
+  // Si node-fetch no está disponible, usar fetch global
+  fetch = globalThis.fetch;
+}
 
 // Clave API de Pokémon TCG (se carga desde las variables de entorno de Netlify)
 const POKEMON_TCG_API_KEY = process.env.POKEMON_TCG_API_KEY;
