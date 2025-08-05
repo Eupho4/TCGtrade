@@ -3,14 +3,14 @@
   "version": "1.0.0",
   "description": "Aplicación de intercambio de cartas Pokémon",
   "main": "index.html",
+  "type": "commonjs",
   "scripts": {
     "start": "live-server",
     "build": "echo 'Build completed'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies": {
-    "node-fetch": "^2.6.7"
-  },
+  "dependencies": {},
+  "devDependencies": {},
   "keywords": [
     "pokemon",
     "tcg",
