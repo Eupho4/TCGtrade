@@ -40,8 +40,25 @@ exports.handler = async (event, context) => {
 
     console.log('URL final:', apiUrl);
 
+    // Headers para la API de Pokémon TCG
+    const apiHeaders = {
+      'Content-Type': 'application/json'
+    };
+
+    // Agregar API Key si está disponible en las variables de entorno
+    if (process.env.POKEMON_TCG_API_KEY) {
+      apiHeaders['X-Api-Key'] = process.env.POKEMON_TCG_API_KEY;
+      console.log('API Key configurada');
+    } else {
+      console.log('API Key no encontrada, usando acceso público limitado');
+    }
+
     // Hacer petición a la API
-    const response = await fetch(apiUrl);
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: apiHeaders
+    });
+    
     console.log('Status de API:', response.status);
 
     if (!response.ok) {
@@ -53,13 +70,14 @@ exports.handler = async (event, context) => {
         body: JSON.stringify({
           error: 'API Error',
           status: response.status,
-          message: errorText
+          message: errorText,
+          url: apiUrl
         })
       };
     }
 
     const data = await response.json();
-    console.log('Datos recibidos exitosamente');
+    console.log('Datos recibidos exitosamente:', data.data ? data.data.length : 0, 'items');
 
     return {
       statusCode: 200,
@@ -74,7 +92,8 @@ exports.handler = async (event, context) => {
       headers,
       body: JSON.stringify({
         error: 'Internal error',
-        message: error.message
+        message: error.message,
+        stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       })
     };
   }
