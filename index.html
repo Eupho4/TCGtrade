@@ -192,7 +192,7 @@
                                 <p class="text-gray-600 text-sm mb-3">Serie: ${card.set?.series || 'N/A'}</p>
                                 <div class="flex justify-between items-center">
                                     <button class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold"
-                                            onclick="alert('Carta: ${card.name}')">
+                                            onclick="showCardDetails('${card.id}', '${card.name}', '${card.images?.small || ''}', '${card.set?.name || 'N/A'}', '${card.set?.series || 'N/A'}', '${card.number || 'N/A'}')">
                                         Ver Detalles
                                     </button>
                                 </div>
@@ -464,8 +464,6 @@
             });
         }
 
-
-
         // --- Funciones de Autenticación ---
         window.logoutUser = async () => {
             try {
@@ -529,6 +527,9 @@
             // Event listeners para navegación
             const homeLink = document.getElementById('homeLink');
             if (homeLink) homeLink.addEventListener('click', (e) => { e.preventDefault(); showInitialSections(); });
+
+            const startTradingBtn = document.getElementById('startTradingBtn');
+            if (startTradingBtn) startTradingBtn.addEventListener('click', (e) => { e.preventDefault(); showAuthModal('register'); });
 
             const loginLink = document.getElementById('loginLink');
             if (loginLink) loginLink.addEventListener('click', (e) => { e.preventDefault(); showAuthModal('login'); });
@@ -718,6 +719,49 @@
             // Mostrar secciones iniciales
             showInitialSections();
         });
+
+        // Función para mostrar detalles de carta
+        window.showCardDetails = (cardId, cardName, imageUrl, setName, series, number) => {
+            if (!currentUser) {
+                alert('Inicia sesión para añadir cartas a tu colección');
+                showAuthModal('login');
+                return;
+            }
+
+            const confirmed = confirm(`¿Quieres añadir "${cardName}" a tu colección?\n\nSet: ${setName}\nSerie: ${series}\nNúmero: ${number}`);
+            
+            if (confirmed) {
+                addCardToCollection(cardId, cardName, imageUrl, setName, series, number);
+            }
+        };
+
+        // Función para añadir carta a la colección
+        async function addCardToCollection(cardId, cardName, imageUrl, setName, series, number) {
+            if (!currentUser) return;
+
+            try {
+                // Pedir idioma al usuario
+                const language = prompt('¿En qué idioma es esta carta?', 'Español') || 'Español';
+
+                const cardData = {
+                    id: cardId,
+                    name: cardName,
+                    imageUrl: imageUrl,
+                    set: setName,
+                    series: series,
+                    number: number,
+                    language: language,
+                    setId: cardId.split('-')[0], // Extraer setId del cardId
+                    addedAt: new Date()
+                };
+
+                await setDoc(doc(db, `artifacts/${appId}/users/${currentUser.uid}/my_cards/${cardId}`), cardData);
+                alert(`¡Carta "${cardName}" añadida a tu colección!`);
+            } catch (error) {
+                console.error('Error al añadir carta:', error);
+                alert('Error al añadir la carta. Inténtalo de nuevo.');
+            }
+        }
 
         // Hacer funciones disponibles globalmente
         window.showAuthModal = showAuthModal;
@@ -972,7 +1016,7 @@
         <section class="hero-section" id="heroSection">
             <h1>Tu Centro de Intercambio de Pokémon TCG</h1>
             <p class="text-xl">Conecta con coleccionistas de todo el mundo, encuentra las cartas que te faltan y completa tu colección de forma segura y sencilla.</p>
-            <button class="btn-primary text-xl px-8 py-4 rounded-full font-semibold">
+            <button id="startTradingBtn" class="btn-primary text-xl px-8 py-4 rounded-full font-semibold">
                 ¡Empieza a Intercambiar Ahora!
             </button>
         </section>
