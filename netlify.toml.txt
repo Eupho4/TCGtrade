@@ -1,12 +1,13 @@
 [build]
   functions = "netlify/functions"
-  command = "npm install"
   publish = "."
 
+# Redirect para la API de Pokémon
 [[redirects]]
   from = "/api/pokemontcg/*"
-  to = "/.netlify/functions/pokemon-proxy?splat=:splat"
+  to = "/.netlify/functions/pokemon-proxy"
   status = 200
+  force = true
 
 [functions]
   node_bundler = "esbuild"
