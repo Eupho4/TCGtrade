@@ -222,7 +222,7 @@
 
             try {
                 // URL corregida para usar tu función pokemon-proxy
-                const response = await fetch(`/.netlify/functions/pokemon-proxy/cards?q=set.id:${setId}&pageSize=500`, {
+                const response = await fetch(`/api/pokemontcg/cards?q=set.id:${setId}&pageSize=500`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
@@ -464,35 +464,7 @@
             });
         }
 
-        // Función para obtener todas las cartas de un set (CORREGIDA)
-        async function fetchAllCardsInSet(setId) {
-            console.log(`Obteniendo todas las cartas del set: ${setId}`);
 
-            try {
-                const response = await fetch(`/api/pokemontcg/cards?q=set.id:${setId}&pageSize=500`, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-
-                const data = await response.json();
-                console.log(`Obtenidas ${data.data?.length || 0} cartas del set ${setId}`);
-                return data.data || [];
-
-            } catch (error) {
-                console.error('Error al obtener cartas del set:', error);
-                if (myCardsErrorMessage) {
-                    myCardsErrorMessage.textContent = 'Error al cargar las cartas de esta expansión.';
-                    myCardsErrorMessage.classList.remove('hidden');
-                }
-                return [];
-            }
-        }
 
         // --- Funciones de Autenticación ---
         window.logoutUser = async () => {
