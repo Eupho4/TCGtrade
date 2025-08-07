@@ -183,9 +183,9 @@
             showSearchResults();
 
             try {
-                // Construir URL optimizada (menos resultados para evitar timeouts)
+                // Construir URL con más resultados (ajustado para API Key)
                 const encodedQuery = encodeURIComponent(query.toLowerCase());
-                const apiUrl = `/api/pokemontcg/cards?q=name:*${encodedQuery}*&pageSize=20`;
+                const apiUrl = `/api/pokemontcg/cards?q=name:*${encodedQuery}*&pageSize=100`;
 
                 console.log('🌐 Fetching from URL:', apiUrl);
 
@@ -266,10 +266,83 @@
             } catch (error) {
                 console.error('❌ Error completo en fetchCards:', error);
 
+                // Si es timeout y es la primera búsqueda, intentar con menos resultados
+                if (error.name === 'AbortError' && !query.includes('_retry')) {
+                    console.log('🔄 Timeout detectado, reintentando con menos resultados...');
+                    
+                    try {
+                        const retryUrl = `/api/pokemontcg/cards?q=name:*${encodeURIComponent(query.toLowerCase())}*&pageSize=20`;
+                        console.log('🔄 Retry URL:', retryUrl);
+                        
+                        const retryController = new AbortController();
+                        const retryTimeoutId = setTimeout(() => retryController.abort(), 10000);
+                        
+                        const retryResponse = await fetch(retryUrl, {
+                            signal: retryController.signal,
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                        
+                        clearTimeout(retryTimeoutId);
+                        
+                        if (retryResponse.ok) {
+                            const retryData = await retryResponse.json();
+                            const retryCards = retryData.data || [];
+                            
+                            console.log('✅ Retry successful:', retryCards.length, 'cards');
+                            
+                            // Mostrar mensaje de retry
+                            if (errorMessage) {
+                                errorMessage.textContent = `⚠️ Búsqueda limitada a ${retryCards.length} cartas debido a timeout. Configura tu API Key para obtener todos los resultados.`;
+                                errorMessage.classList.remove('hidden');
+                            }
+                            
+                            // Renderizar cartas del retry
+                            if (retryCards.length > 0) {
+                                retryCards.forEach((card, index) => {
+                                    const cardElement = document.createElement('div');
+                                    cardElement.className = 'card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105';
+                                    
+                                    const safeCardId = (card.id || '').replace(/'/g, "\\'");
+                                    const safeCardName = (card.name || '').replace(/'/g, "\\'");
+                                    const safeSetName = (card.set?.name || 'N/A').replace(/'/g, "\\'");
+                                    const safeSeries = (card.set?.series || 'N/A').replace(/'/g, "\\'");
+                                    const safeNumber = (card.number || 'N/A').replace(/'/g, "\\'");
+                                    const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
+                                    
+                                    cardElement.innerHTML = `
+                                        <img src="${card.images?.small || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen'}"
+                                             alt="${card.name || 'Carta sin nombre'}"
+                                             class="w-full h-auto object-cover rounded-t-xl"
+                                             onerror="this.src='https://placehold.co/400x550/a0aec0/ffffff?text=Error+imagen'">
+                                        <div class="p-4">
+                                            <h3 class="text-xl font-semibold mb-2 text-gray-900">${card.name || 'Nombre no disponible'}</h3>
+                                            <p class="text-gray-600 text-sm mb-3">Set: ${card.set?.name || 'N/A'}</p>
+                                            <p class="text-gray-600 text-sm mb-3">Serie: ${card.set?.series || 'N/A'}</p>
+                                            <p class="text-gray-600 text-sm mb-3">Número: ${card.number || 'N/A'}</p>
+                                            <div class="flex justify-between items-center">
+                                                <button class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold"
+                                                        onclick="showCardDetails('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">
+                                                    Ver Detalles
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `;
+                                    cardsContainer.appendChild(cardElement);
+                                });
+                                
+                                hideLoadingSpinner();
+                                return; // Exit successfully
+                            }
+                        }
+                    } catch (retryError) {
+                        console.error('❌ Retry también falló:', retryError);
+                    }
+                }
+
                 let errorMsg = 'Error al buscar cartas. ';
                 
                 if (error.name === 'AbortError') {
-                    errorMsg += 'La búsqueda tardó demasiado tiempo. La API está lenta sin API Key. Prueba con términos más específicos.';
+                    errorMsg += 'La búsqueda tardó demasiado tiempo. Configura tu API Key para mejor rendimiento o prueba términos más específicos.';
                 } else if (error.message.includes('Failed to fetch')) {
                     errorMsg += 'Problema de conexión. Verifica tu internet o prueba más tarde.';
                 } else if (error.message.includes('404')) {
