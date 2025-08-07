@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Nueva Funcionalidad de Búsqueda</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .loading-spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto p-6">
+        <h1 class="text-3xl font-bold mb-6 text-center text-blue-600">🧪 Test Nueva Búsqueda</h1>
+        
+        <!-- Test de Búsqueda -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-6">
+            <h2 class="text-xl font-bold mb-4">🔍 Test Búsqueda con Retry</h2>
+            <div class="flex gap-4 mb-4">
+                <input type="text" id="searchInput" placeholder="Buscar carta (ej: mew, pikachu)" 
+                       class="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                <button onclick="testSearch()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                    Buscar
+                </button>
+            </div>
+            
+            <!-- Loading Spinner -->
+            <div id="loadingSpinner" class="loading-spinner hidden"></div>
+            
+            <!-- Mensajes -->
+            <div id="statusMessage" class="mb-4 p-3 rounded-lg hidden"></div>
+            
+            <!-- Resultados -->
+            <div id="results" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        </div>
+        
+        <!-- Logs -->
+        <div class="bg-gray-900 text-green-400 rounded-lg p-4">
+            <h3 class="text-lg font-bold mb-2">📋 Logs en Tiempo Real:</h3>
+            <div id="logs" class="text-sm font-mono max-h-96 overflow-y-auto"></div>
+        </div>
+    </div>
+
+    <script>
+        const searchInput = document.getElementById('searchInput');
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const statusMessage = document.getElementById('statusMessage');
+        const results = document.getElementById('results');
+        const logs = document.getElementById('logs');
+        
+        function log(message) {
+            const timestamp = new Date().toLocaleTimeString();
+            const logElement = document.createElement('div');
+            logElement.textContent = `[${timestamp}] ${message}`;
+            logs.appendChild(logElement);
+            logs.scrollTop = logs.scrollHeight;
+            console.log(message);
+        }
+        
+        function showMessage(text, type = 'info') {
+            statusMessage.className = `mb-4 p-3 rounded-lg ${
+                type === 'error' ? 'bg-red-100 text-red-800' :
+                type === 'success' ? 'bg-green-100 text-green-800' :
+                type === 'warning' ? 'bg-yellow-100 text-yellow-800' :
+                'bg-blue-100 text-blue-800'
+            }`;
+            statusMessage.innerHTML = text;
+            statusMessage.classList.remove('hidden');
+        }
+        
+        function showLoading() {
+            loadingSpinner.classList.remove('hidden');
+        }
+        
+        function hideLoading() {
+            loadingSpinner.classList.add('hidden');
+        }
+        
+        async function testSearch() {
+            const query = searchInput.value.trim();
+            if (query.length < 2) {
+                showMessage('Ingresa al menos 2 caracteres', 'error');
+                return;
+            }
+            
+            log(`🔍 Iniciando búsqueda para: "${query}"`);
+            results.innerHTML = '';
+            statusMessage.classList.add('hidden');
+            showLoading();
+            
+            try {
+                // Construir URL optimizada
+                const encodedQuery = encodeURIComponent(query.toLowerCase());
+                const searchType = query.length <= 4 ? `name:${encodedQuery}*` : `name:*${encodedQuery}*`;
+                const apiUrl = `/api/pokemontcg/cards?q=${searchType}&pageSize=100`;
+                
+                log(`🌐 URL de búsqueda: ${apiUrl}`);
+                log(`📊 Tipo de búsqueda: ${query.length <= 4 ? 'Exacta' : 'Wildcard'}`);
+                
+                // Primer intento
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => {
+                    log('⏰ Timeout alcanzado (12s), abortando...');
+                    controller.abort();
+                }, 12000);
+                
+                const response = await fetch(apiUrl, {
+                    signal: controller.signal,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                clearTimeout(timeoutId);
+                log(`📡 Respuesta recibida: ${response.status}`);
+                
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API Error ${response.status}: ${errorText}`);
+                }
+                
+                const data = await response.json();
+                const cards = data.data || [];
+                
+                log(`✅ Éxito: ${cards.length} cartas encontradas`);
+                showMessage(`✅ Encontradas ${cards.length} cartas`, 'success');
+                
+                // Mostrar cartas
+                displayCards(cards);
+                
+            } catch (error) {
+                log(`❌ Error: ${error.message}`);
+                
+                // Sistema de retry
+                if ((error.name === 'AbortError' || error.message.includes('408'))) {
+                    log('🔄 Iniciando sistema de retry...');
+                    await retrySearch(query);
+                } else {
+                    showMessage(`❌ Error: ${error.message}`, 'error');
+                }
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        async function retrySearch(query) {
+            try {
+                log('🔄 Retry: Usando búsqueda optimizada...');
+                
+                const simpleQuery = encodeURIComponent(query.toLowerCase());
+                const retryUrl = `/api/pokemontcg/cards?q=name:${simpleQuery}&pageSize=30`;
+                
+                log(`🔄 URL de retry: ${retryUrl}`);
+                
+                const retryController = new AbortController();
+                const retryTimeoutId = setTimeout(() => {
+                    log('⏰ Timeout de retry alcanzado (8s)');
+                    retryController.abort();
+                }, 8000);
+                
+                const retryResponse = await fetch(retryUrl, {
+                    signal: retryController.signal,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                clearTimeout(retryTimeoutId);
+                
+                if (retryResponse.ok) {
+                    const retryData = await retryResponse.json();
+                    const retryCards = retryData.data || [];
+                    
+                    log(`✅ Retry exitoso: ${retryCards.length} cartas`);
+                    
+                    displayCards(retryCards);
+                    
+                    // Mostrar botón de cargar más
+                    showMessage(`
+                        ⚠️ Búsqueda optimizada: ${retryCards.length} cartas encontradas. La API está lenta hoy.<br>
+                        <button onclick="loadMoreResults('${query}')" class="bg-blue-500 text-white px-4 py-2 mt-2 rounded-lg text-sm hover:bg-blue-600">
+                            🔄 Intentar Cargar Más Cartas
+                        </button>
+                    `, 'warning');
+                    
+                } else {
+                    throw new Error(`Retry failed: ${retryResponse.status}`);
+                }
+                
+            } catch (retryError) {
+                log(`❌ Retry falló: ${retryError.message}`);
+                showMessage('❌ No se pudieron cargar las cartas. La API está muy lenta.', 'error');
+            }
+        }
+        
+        async function loadMoreResults(query) {
+            log(`🔄 Intentando cargar más resultados para: "${query}"`);
+            
+            statusMessage.classList.add('hidden');
+            showLoading();
+            
+            try {
+                const encodedQuery = encodeURIComponent(query.toLowerCase());
+                const moreUrl = `/api/pokemontcg/cards?q=name:*${encodedQuery}*&pageSize=50`;
+                
+                log(`🔄 URL para más resultados: ${moreUrl}`);
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => {
+                    log('⏰ Timeout para más resultados (15s)');
+                    controller.abort();
+                }, 15000);
+                
+                const response = await fetch(moreUrl, {
+                    signal: controller.signal,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const cards = data.data || [];
+                    
+                    log(`✅ Más resultados cargados: ${cards.length} cartas`);
+                    
+                    results.innerHTML = '';
+                    displayCards(cards);
+                    
+                    showMessage(`✅ ¡Éxito! Cargadas ${cards.length} cartas adicionales.`, 'success');
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+            } catch (error) {
+                log(`❌ Error al cargar más: ${error.message}`);
+                showMessage('❌ No se pudieron cargar más resultados. La API está muy lenta en este momento.', 'error');
+            } finally {
+                hideLoading();
+            }
+        }
+        
+        function displayCards(cards) {
+            results.innerHTML = '';
+            
+            cards.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'bg-white rounded-lg shadow-md overflow-hidden';
+                
+                cardElement.innerHTML = `
+                    <img src="${card.images?.small || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen'}"
+                         alt="${card.name || 'Carta sin nombre'}"
+                         class="w-full h-48 object-cover">
+                    <div class="p-4">
+                        <h3 class="font-bold text-lg mb-2">${card.name || 'Sin nombre'}</h3>
+                        <p class="text-gray-600 text-sm">Set: ${card.set?.name || 'N/A'}</p>
+                        <p class="text-gray-600 text-sm">Serie: ${card.set?.series || 'N/A'}</p>
+                        <p class="text-gray-600 text-sm">Número: ${card.number || 'N/A'}</p>
+                    </div>
+                `;
+                
+                results.appendChild(cardElement);
+            });
+        }
+        
+        // Hacer función global
+        window.loadMoreResults = loadMoreResults;
+        
+        // Enter para buscar
+        searchInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                testSearch();
+            }
+        });
+        
+        log('🚀 Test de búsqueda cargado y listo');
+    </script>
+</body>
+</html>
