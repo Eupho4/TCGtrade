@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Simple - JavaScript</title>
+</head>
+<body>
+    <h1>Test Simple de JavaScript</h1>
+    <button id="testBtn">Test Button</button>
+    <div id="result"></div>
+
+    <script>
+        console.log('🔧 JavaScript funcionando!');
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🔧 DOM cargado!');
+            
+            const btn = document.getElementById('testBtn');
+            const result = document.getElementById('result');
+            
+            if (btn) {
+                btn.addEventListener('click', () => {
+                    result.innerHTML = '✅ JavaScript y event listeners funcionando!';
+                    console.log('✅ Click detectado!');
+                });
+                console.log('✅ Event listener añadido');
+            } else {
+                console.error('❌ Botón no encontrado');
+            }
+        });
+
+        // Test de módulos
+        const testModule = () => {
+            console.log('🔧 Función de módulo funcionando');
+        };
+
+        // Exponer al window
+        window.testModule = testModule;
+    </script>
+</body>
+</html>
