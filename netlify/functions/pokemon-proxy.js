@@ -3,6 +3,8 @@ exports.handler = async (event, context) => {
   console.log('Método:', event.httpMethod);
   console.log('Path completo:', event.path);
   console.log('Query string:', event.queryStringParameters);
+  console.log('Raw URL:', event.rawUrl);
+  console.log('Headers recibidos:', event.headers);
 
   // Headers CORS
   const headers = {
@@ -23,11 +25,24 @@ exports.handler = async (event, context) => {
   }
 
   try {
-    // Extraer el endpoint del path
-    const pathMatch = event.path.match(/\/api\/pokemontcg\/(.+)/);
-    const endpoint = pathMatch ? pathMatch[1] : 'cards';
+    // Extraer el endpoint del path con mejor handling
+    let endpoint = 'cards'; // default
+    
+    if (event.path) {
+      const pathMatch = event.path.match(/\/api\/pokemontcg\/(.+)/);
+      if (pathMatch) {
+        endpoint = pathMatch[1];
+      }
+    } else if (event.rawUrl) {
+      const urlMatch = event.rawUrl.match(/\/api\/pokemontcg\/(.+?)(?:\?|$)/);
+      if (urlMatch) {
+        endpoint = urlMatch[1];
+      }
+    }
     
     console.log('Endpoint extraído:', endpoint);
+    console.log('Path original:', event.path);
+    console.log('Raw URL:', event.rawUrl);
 
     // Construir URL de la API
     let apiUrl = `https://api.pokemontcg.io/v2/${endpoint}`;
@@ -53,11 +68,20 @@ exports.handler = async (event, context) => {
       console.log('API Key no encontrada, usando acceso público limitado');
     }
 
-    // Hacer petición a la API
+    // Hacer petición a la API con timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      console.log('⏰ Timeout alcanzado, abortando petición');
+      controller.abort();
+    }, 25000); // 25 segundos timeout
+
     const response = await fetch(apiUrl, {
       method: 'GET',
-      headers: apiHeaders
+      headers: apiHeaders,
+      signal: controller.signal
     });
+
+    clearTimeout(timeoutId);
     
     console.log('Status de API:', response.status);
 
@@ -120,12 +144,27 @@ exports.handler = async (event, context) => {
 
   } catch (error) {
     console.error('Error en función:', error);
+    
+    let statusCode = 500;
+    let errorMessage = error.message;
+    
+    if (error.name === 'AbortError') {
+      statusCode = 408; // Request Timeout
+      errorMessage = 'La petición a la API tardó demasiado tiempo';
+      console.log('⏰ Petición abortada por timeout');
+    } else if (error.message.includes('fetch')) {
+      statusCode = 502; // Bad Gateway
+      errorMessage = 'Error de conexión con la API externa';
+    }
+    
     return {
-      statusCode: 500,
+      statusCode: statusCode,
       headers,
       body: JSON.stringify({
-        error: 'Internal error',
-        message: error.message,
+        error: 'Proxy error',
+        message: errorMessage,
+        type: error.name,
+        timestamp: new Date().toISOString(),
         stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
       })
     };
