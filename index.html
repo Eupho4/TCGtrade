@@ -183,15 +183,15 @@
             showSearchResults();
 
             try {
-                // Construir URL con mejor encoding
+                // Construir URL optimizada (menos resultados para evitar timeouts)
                 const encodedQuery = encodeURIComponent(query.toLowerCase());
-                const apiUrl = `/api/pokemontcg/cards?q=name:*${encodedQuery}*&pageSize=50`;
+                const apiUrl = `/api/pokemontcg/cards?q=name:*${encodedQuery}*&pageSize=20`;
 
                 console.log('🌐 Fetching from URL:', apiUrl);
 
-                // Hacer petición con timeout
+                // Hacer petición con timeout (reducido)
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos timeout
+                const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 segundos timeout
 
                 const response = await fetch(apiUrl, {
                     signal: controller.signal,
@@ -269,13 +269,13 @@
                 let errorMsg = 'Error al buscar cartas. ';
                 
                 if (error.name === 'AbortError') {
-                    errorMsg += 'La búsqueda tardó demasiado tiempo.';
+                    errorMsg += 'La búsqueda tardó demasiado tiempo. La API está lenta sin API Key. Prueba con términos más específicos.';
                 } else if (error.message.includes('Failed to fetch')) {
-                    errorMsg += 'Problema de conexión. Verifica tu internet.';
+                    errorMsg += 'Problema de conexión. Verifica tu internet o prueba más tarde.';
                 } else if (error.message.includes('404')) {
-                    errorMsg += 'Servicio no disponible temporalmente.';
+                    errorMsg += 'Servicio no disponible temporalmente. Prueba más tarde.';
                 } else {
-                    errorMsg += error.message;
+                    errorMsg += error.message + ' (Configura tu API Key para mejor rendimiento)';
                 }
 
                 if (errorMessage) {
@@ -477,11 +477,11 @@
             console.log('🔄 Cargando sets desde la API...');
 
             try {
-                // Timeout más largo para sets
+                // Timeout reducido para sets
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 segundos
+                const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos
 
-                const response = await fetch('/api/pokemontcg/sets?pageSize=500', {
+                const response = await fetch('/api/pokemontcg/sets?pageSize=50', {
                     method: 'GET',
                     signal: controller.signal,
                     headers: {
@@ -526,10 +526,42 @@
 
             } catch (error) {
                 console.error('Error al cargar sets:', error);
+                console.log('🔄 Intentando cargar sets básicos como fallback...');
+                
+                // Fallback: usar sets básicos si la API falla
+                try {
+                    const fallbackResponse = await fetch('/api/pokemontcg/sets?pageSize=10');
+                    if (fallbackResponse.ok) {
+                        const fallbackData = await fallbackResponse.json();
+                        allSets = fallbackData.data || [];
+                        console.log('✅ Sets básicos cargados como fallback:', allSets.length);
+                        
+                        if (allSets.length > 0) {
+                            // Poblar filtros con datos básicos
+                            const uniqueSeries = [...new Set(allSets.map(set => set.series))].filter(Boolean).sort();
+                            if (seriesFilter) {
+                                seriesFilter.innerHTML = '<option value="">Todas las Series</option>';
+                                uniqueSeries.forEach(series => {
+                                    const option = document.createElement('option');
+                                    option.value = series;
+                                    option.textContent = series;
+                                    seriesFilter.appendChild(option);
+                                });
+                            }
+                            populateSetFilter(allSets);
+                            if (setFilter) setFilter.disabled = false;
+                            return; // Exit successfully
+                        }
+                    }
+                } catch (fallbackError) {
+                    console.error('Fallback también falló:', fallbackError);
+                }
+                
+                // Si todo falla, deshabilitar filtros
                 if (setFilter) setFilter.disabled = true;
                 if (seriesFilter) seriesFilter.disabled = true;
                 if (myCardsErrorMessage) {
-                    myCardsErrorMessage.textContent = 'No se pudieron cargar los filtros. Inténtalo más tarde.';
+                    myCardsErrorMessage.textContent = 'No se pudieron cargar los filtros. La API está lenta. Intenta más tarde o configura tu API Key.';
                     myCardsErrorMessage.classList.remove('hidden');
                 }
             }

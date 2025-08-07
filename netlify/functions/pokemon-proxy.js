@@ -68,12 +68,12 @@ exports.handler = async (event, context) => {
       console.log('API Key no encontrada, usando acceso público limitado');
     }
 
-    // Hacer petición a la API con timeout
+    // Hacer petición a la API con timeout (reducido para Netlify)
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       console.log('⏰ Timeout alcanzado, abortando petición');
       controller.abort();
-    }, 25000); // 25 segundos timeout
+    }, 8000); // 8 segundos timeout (Netlify tiene límite de 10s)
 
     const response = await fetch(apiUrl, {
       method: 'GET',
