@@ -26,14 +26,27 @@ export default async function handler(req, res) {
     console.log('📋 URL completa:', req.url);
     console.log('📋 Query params:', req.query);
 
-    // Extraer endpoint de la URL
-    const endpoint = req.url.replace('/api/pokemon-proxy', '').replace(/^\//, '');
+    // Extraer endpoint de la URL o query params
+    let endpoint = req.query.endpoint || req.url.replace('/api/pokemon-proxy', '').replace(/^\//, '');
+    
+    // Si viene del query param, necesitamos reconstruir la query string
+    if (req.query.endpoint) {
+      const queryParams = new URLSearchParams();
+      Object.keys(req.query).forEach(key => {
+        if (key !== 'endpoint') {
+          queryParams.append(key, req.query[key]);
+        }
+      });
+      if (queryParams.toString()) {
+        endpoint += '?' + queryParams.toString();
+      }
+    }
     
     if (!endpoint) {
       return res.status(400).json({
         error: 'Missing endpoint',
         message: 'Debes especificar un endpoint de la API',
-        example: '/api/pokemon-proxy/cards?name=pikachu'
+        example: '/api/pokemon-proxy?endpoint=cards&q=name:pikachu'
       });
     }
 
