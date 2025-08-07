@@ -76,8 +76,41 @@ exports.handler = async (event, context) => {
       };
     }
 
-    const data = await response.json();
-    console.log('Datos recibidos exitosamente:', data.data ? data.data.length : 0, 'items');
+    // Leer respuesta como texto primero para debug
+    const responseText = await response.text();
+    console.log('Respuesta recibida, longitud:', responseText.length, 'caracteres');
+    
+    if (responseText.length === 0) {
+      console.error('Respuesta vacía de la API');
+      return {
+        statusCode: 502,
+        headers,
+        body: JSON.stringify({
+          error: 'Empty response',
+          message: 'La API devolvió una respuesta vacía'
+        })
+      };
+    }
+
+    // Intentar parsear JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+      console.log('JSON parseado exitosamente:', data.data ? data.data.length : 0, 'items');
+    } catch (jsonError) {
+      console.error('Error al parsear JSON:', jsonError.message);
+      console.error('Respuesta que causó el error:', responseText.substring(0, 500));
+      
+      return {
+        statusCode: 502,
+        headers,
+        body: JSON.stringify({
+          error: 'JSON Parse Error',
+          message: jsonError.message,
+          rawResponse: responseText.substring(0, 1000)
+        })
+      };
+    }
 
     return {
       statusCode: 200,
