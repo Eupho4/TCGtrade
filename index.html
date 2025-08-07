@@ -185,13 +185,13 @@
             try {
                 // Construir URL con mejor encoding
                 const encodedQuery = encodeURIComponent(query.toLowerCase());
-                const apiUrl = `/api/pokemontcg/cards?q=name:*${encodedQuery}*&pageSize=20`;
+                const apiUrl = `/api/pokemontcg/cards?q=name:*${encodedQuery}*&pageSize=50`;
 
                 console.log('🌐 Fetching from URL:', apiUrl);
 
                 // Hacer petición con timeout
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos timeout
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos timeout
 
                 const response = await fetch(apiUrl, {
                     signal: controller.signal,
@@ -470,26 +470,39 @@
             }
         };
 
-        // Función para obtener sets de la API (CORREGIDA)
+        // Función para obtener sets de la API (MEJORADA)
         async function fetchSetsAndPopulateFilter() {
             if (allSets.length > 0) return;
 
-            console.log('Cargando sets desde la API...');
+            console.log('🔄 Cargando sets desde la API...');
 
             try {
-                const response = await fetch('/api/pokemontcg/sets', {
+                // Timeout más largo para sets
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 45000); // 45 segundos
+
+                const response = await fetch('/api/pokemontcg/sets?pageSize=500', {
                     method: 'GET',
+                    signal: controller.signal,
                     headers: {
                         'Content-Type': 'application/json'
                     }
                 });
 
+                clearTimeout(timeoutId);
+
+                console.log('📡 Sets API Response status:', response.status);
+
                 if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
+                    const errorText = await response.text();
+                    console.error('❌ Sets API Error:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
 
                 const data = await response.json();
                 allSets = data.data || [];
+                
+                console.log('✅ Sets cargados:', allSets.length);
 
                 allSets.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
 
