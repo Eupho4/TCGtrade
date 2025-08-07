@@ -50,11 +50,24 @@ export default async function handler(req, res) {
       });
     }
 
-    // Construir URL de la API
+    // Construir URL de la API con optimizaciones
     const baseUrl = 'https://api.pokemontcg.io/v2';
-    const apiUrl = `${baseUrl}/${endpoint}`;
+    let apiUrl = `${baseUrl}/${endpoint}`;
     
-    console.log('🌐 Fetching from Pokemon API:', apiUrl);
+    // Optimizar consultas para ser más rápidas
+    if (endpoint.includes('cards?q=')) {
+      // Si no tiene pageSize, añadir uno pequeño por defecto
+      if (!endpoint.includes('pageSize=')) {
+        apiUrl += (endpoint.includes('?') ? '&' : '?') + 'pageSize=20';
+      }
+      // Si tiene pageSize muy grande, reducirlo
+      apiUrl = apiUrl.replace(/pageSize=(\d+)/, (match, size) => {
+        const pageSize = parseInt(size);
+        return pageSize > 50 ? 'pageSize=30' : match;
+      });
+    }
+    
+    console.log('🌐 Fetching from Pokemon API (optimized):', apiUrl);
 
     // Configurar headers (incluyendo API Key si está disponible)
     const apiHeaders = {
@@ -70,12 +83,12 @@ export default async function handler(req, res) {
       console.log('⚠️ API Key no encontrada, usando acceso público limitado');
     }
 
-    // Hacer petición a la API con timeout optimizado para Vercel
+    // Hacer petición a la API con timeout agresivo para Vercel
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
-      console.log('⏰ Timeout alcanzado (9s), abortando petición');
+      console.log('⏰ Timeout alcanzado (7s), abortando petición');
       controller.abort();
-    }, 9000); // 9 segundos - optimizado para Vercel
+    }, 7000); // 7 segundos - más agresivo para evitar timeout de Vercel
 
     console.log('📡 Iniciando fetch a Pokemon API...');
     const startTime = Date.now();
