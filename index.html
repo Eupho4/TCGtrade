@@ -183,9 +183,11 @@
             showSearchResults();
 
             try {
-                // Construir URL con más resultados (ajustado para API Key)
+                // Construir URL optimizada - búsqueda más eficiente
                 const encodedQuery = encodeURIComponent(query.toLowerCase());
-                const apiUrl = `/api/pokemontcg/cards?q=name:*${encodedQuery}*&pageSize=100`;
+                // Usar búsqueda exacta primero, luego wildcard si es necesario
+                const searchType = query.length <= 4 ? `name:${encodedQuery}*` : `name:*${encodedQuery}*`;
+                const apiUrl = `/api/pokemontcg/cards?q=${searchType}&pageSize=100`;
 
                 console.log('🌐 Fetching from URL:', apiUrl);
 
@@ -266,16 +268,18 @@
             } catch (error) {
                 console.error('❌ Error completo en fetchCards:', error);
 
-                // Si es timeout y es la primera búsqueda, intentar con menos resultados
-                if (error.name === 'AbortError' && !query.includes('_retry')) {
-                    console.log('🔄 Timeout detectado, reintentando con menos resultados...');
+                // Si es timeout, intentar con búsqueda más simple y menos resultados
+                if ((error.name === 'AbortError' || error.message.includes('408')) && !query.includes('_retry')) {
+                    console.log('🔄 Timeout detectado, reintentando con búsqueda optimizada...');
                     
                     try {
-                        const retryUrl = `/api/pokemontcg/cards?q=name:*${encodeURIComponent(query.toLowerCase())}*&pageSize=20`;
-                        console.log('🔄 Retry URL:', retryUrl);
+                        // Usar búsqueda más simple para el retry
+                        const simpleQuery = encodeURIComponent(query.toLowerCase());
+                        const retryUrl = `/api/pokemontcg/cards?q=name:${simpleQuery}&pageSize=30`;
+                        console.log('🔄 Retry URL (búsqueda exacta):', retryUrl);
                         
                         const retryController = new AbortController();
-                        const retryTimeoutId = setTimeout(() => retryController.abort(), 10000);
+                        const retryTimeoutId = setTimeout(() => retryController.abort(), 8000); // Timeout más corto
                         
                         const retryResponse = await fetch(retryUrl, {
                             signal: retryController.signal,
@@ -290,9 +294,14 @@
                             
                             console.log('✅ Retry successful:', retryCards.length, 'cards');
                             
-                            // Mostrar mensaje de retry
+                            // Mostrar mensaje de retry con opción de cargar más
                             if (errorMessage) {
-                                errorMessage.textContent = `⚠️ Búsqueda limitada a ${retryCards.length} cartas debido a timeout. Configura tu API Key para obtener todos los resultados.`;
+                                errorMessage.innerHTML = `
+                                    ⚠️ Búsqueda optimizada: ${retryCards.length} cartas encontradas. La API está lenta hoy.<br>
+                                    <button onclick="loadMoreResults('${query}')" class="btn-primary px-4 py-2 mt-2 rounded-lg text-sm">
+                                        🔄 Intentar Cargar Más Cartas
+                                    </button>
+                                `;
                                 errorMessage.classList.remove('hidden');
                             }
                             
@@ -975,6 +984,88 @@
                 alert('Error al añadir la carta. Inténtalo de nuevo.');
             }
         }
+
+        // Función para cargar más resultados
+        window.loadMoreResults = async (query) => {
+            console.log('🔄 Intentando cargar más resultados para:', query);
+            
+            if (errorMessage) errorMessage.classList.add('hidden');
+            showLoadingSpinner();
+            
+            try {
+                // Intentar con wildcard pero menos resultados
+                const encodedQuery = encodeURIComponent(query.toLowerCase());
+                const moreUrl = `/api/pokemontcg/cards?q=name:*${encodedQuery}*&pageSize=50`;
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000); // Más tiempo
+                
+                const response = await fetch(moreUrl, {
+                    signal: controller.signal,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const cards = data.data || [];
+                    
+                    // Limpiar contenedor y mostrar nuevos resultados
+                    cardsContainer.innerHTML = '';
+                    
+                    if (cards.length > 0) {
+                        cards.forEach(card => {
+                            const cardElement = document.createElement('div');
+                            cardElement.className = 'card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105';
+                            
+                            const safeCardId = (card.id || '').replace(/'/g, "\\'");
+                            const safeCardName = (card.name || '').replace(/'/g, "\\'");
+                            const safeSetName = (card.set?.name || 'N/A').replace(/'/g, "\\'");
+                            const safeSeries = (card.set?.series || 'N/A').replace(/'/g, "\\'");
+                            const safeNumber = (card.number || 'N/A').replace(/'/g, "\\'");
+                            const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
+                            
+                            cardElement.innerHTML = `
+                                <img src="${card.images?.small || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen'}"
+                                     alt="${card.name || 'Carta sin nombre'}"
+                                     class="w-full h-auto object-cover rounded-t-xl"
+                                     onerror="this.src='https://placehold.co/400x550/a0aec0/ffffff?text=Error+imagen'">
+                                <div class="p-4">
+                                    <h3 class="text-xl font-semibold mb-2 text-gray-900">${card.name || 'Nombre no disponible'}</h3>
+                                    <p class="text-gray-600 text-sm mb-3">Set: ${card.set?.name || 'N/A'}</p>
+                                    <p class="text-gray-600 text-sm mb-3">Serie: ${card.set?.series || 'N/A'}</p>
+                                    <p class="text-gray-600 text-sm mb-3">Número: ${card.number || 'N/A'}</p>
+                                    <div class="flex justify-between items-center">
+                                        <button class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold"
+                                                onclick="showCardDetails('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">
+                                            Ver Detalles
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                            cardsContainer.appendChild(cardElement);
+                        });
+                        
+                        if (errorMessage) {
+                            errorMessage.innerHTML = `✅ ¡Éxito! Cargadas ${cards.length} cartas adicionales.`;
+                            errorMessage.classList.remove('hidden');
+                        }
+                    }
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+            } catch (error) {
+                console.error('Error al cargar más resultados:', error);
+                if (errorMessage) {
+                    errorMessage.textContent = '❌ No se pudieron cargar más resultados. La API está muy lenta en este momento.';
+                    errorMessage.classList.remove('hidden');
+                }
+            } finally {
+                hideLoadingSpinner();
+            }
+        };
 
         // Hacer funciones disponibles globalmente
         window.showAuthModal = showAuthModal;
