@@ -183,18 +183,18 @@
             showSearchResults();
 
             try {
-                // Construir URL súper optimizada para Vercel
+                // Construir URL optimizada para Railway (sin límite de timeout)
                 const encodedQuery = encodeURIComponent(query.toLowerCase());
-                // Estrategia más agresiva: menos resultados, más rápido
+                // Railway puede manejar búsquedas más grandes sin timeout
                 const searchType = query.length <= 4 ? `name:${encodedQuery}*` : `name:*${encodedQuery}*`;
-                const pageSize = query.length <= 4 ? 30 : 20; // Menos resultados para ser más rápido
+                const pageSize = 100; // Railway puede manejar 100 cartas sin problema
                 const apiUrl = `/api/pokemontcg/cards?q=${searchType}&pageSize=${pageSize}`;
 
                 console.log('🌐 Fetching from URL:', apiUrl);
 
                 // Hacer petición con timeout (reducido)
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000); // 8 segundos - más rápido para Vercel
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos - Railway no tiene límite de 10s
 
                 const response = await fetch(apiUrl, {
                     signal: controller.signal,
