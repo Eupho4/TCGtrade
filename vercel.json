@@ -1,0 +1,41 @@
+{
+  "functions": {
+    "netlify/functions/*.js": {
+      "runtime": "nodejs18.x",
+      "maxDuration": 10
+    }
+  },
+  "rewrites": [
+    {
+      "source": "/api/pokemontcg/(.*)",
+      "destination": "/netlify/functions/pokemon-proxy"
+    },
+    {
+      "source": "/api/test",
+      "destination": "/netlify/functions/test-function"
+    },
+    {
+      "source": "/api/check-api-key",
+      "destination": "/netlify/functions/check-api-key"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Access-Control-Allow-Methods",
+          "value": "GET, POST, PUT, DELETE, OPTIONS"
+        },
+        {
+          "key": "Access-Control-Allow-Headers",
+          "value": "Content-Type, Authorization"
+        }
+      ]
+    }
+  ]
+}
