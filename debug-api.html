@@ -170,52 +170,72 @@
         async function testDOM() {
             const result = document.getElementById('dom-result');
             
-            log('🔍 Testing DOM elements', 'info');
-            
-            // Simular que estamos en la página principal
-            const elements = [
-                'searchInput',
-                'homeLink',
-                'loginLink',
-                'myCardsLink',
-                'profileLink',
-                'cardsContainer'
-            ];
+            log('🔍 Testing DOM elements on main page', 'info');
             
             let html = '<h3>DOM Elements Test:</h3>';
-            
-            elements.forEach(id => {
-                const element = document.getElementById(id);
-                const exists = element !== null;
-                const color = exists ? 'success' : 'error';
-                html += `<div class="${color}">${id}: ${exists ? '✅ Found' : '❌ Not found'}</div>`;
-                log(`DOM ${id}: ${exists ? 'Found' : 'Not found'}`, exists ? 'success' : 'error');
-            });
+            html += '<p class="warning">ℹ️ Estos elementos no existen en esta página de test, es normal.</p>';
+            html += '<p class="warning">🔍 Probando elementos en la página principal...</p>';
             
             // Test iframe para la página principal
-            html += '<br><h4>Testing main page elements via iframe:</h4>';
-            html += '<iframe src="/" width="1" height="1" style="visibility: hidden;" onload="checkMainPageElements(this)"></iframe>';
-            html += '<div id="iframe-results">Loading main page...</div>';
+            html += '<iframe src="/" width="100%" height="400" onload="checkMainPageElements(this)" style="border: 1px solid #333; margin: 10px 0;"></iframe>';
+            html += '<div id="iframe-results">Cargando página principal...</div>';
             
             result.innerHTML = html;
         }
 
         function checkMainPageElements(iframe) {
-            const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
-            const iframeResultsDiv = document.getElementById('iframe-results');
-            
-            const elements = ['searchInput', 'homeLink', 'loginLink', 'myCardsLink', 'profileLink'];
-            let html = '';
-            
-            elements.forEach(id => {
-                const element = iframeDoc.getElementById(id);
-                const exists = element !== null;
-                const color = exists ? 'success' : 'error';
-                html += `<div class="${color}">Main page ${id}: ${exists ? '✅ Found' : '❌ Not found'}</div>`;
-                log(`Main page ${id}: ${exists ? 'Found' : 'Not found'}`, exists ? 'success' : 'error');
-            });
-            
-            iframeResultsDiv.innerHTML = html;
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                const iframeResultsDiv = document.getElementById('iframe-results');
+                
+                if (!iframeDoc) {
+                    iframeResultsDiv.innerHTML = '<div class="error">❌ No se pudo acceder al contenido de la página principal</div>';
+                    log('❌ No se pudo acceder al iframe de la página principal', 'error');
+                    return;
+                }
+                
+                const elements = [
+                    'searchInput', 
+                    'homeLink', 
+                    'loginLink', 
+                    'myCardsLink', 
+                    'profileLink',
+                    'cardsContainer',
+                    'authModal',
+                    'myCardsSection'
+                ];
+                
+                let html = '<h4>🔍 Elementos en la página principal:</h4>';
+                let foundCount = 0;
+                
+                elements.forEach(id => {
+                    const element = iframeDoc.getElementById(id);
+                    const exists = element !== null;
+                    const color = exists ? 'success' : 'error';
+                    
+                    if (exists) foundCount++;
+                    
+                    html += `<div class="${color}">${id}: ${exists ? '✅ Encontrado' : '❌ No encontrado'}</div>`;
+                    log(`Página principal ${id}: ${exists ? 'Encontrado' : 'No encontrado'}`, exists ? 'success' : 'error');
+                });
+                
+                html += `<div class="warning"><br>📊 Total: ${foundCount}/${elements.length} elementos encontrados</div>`;
+                
+                if (foundCount > 0) {
+                    html += '<div class="success">✅ La página principal se está cargando correctamente</div>';
+                    log(`✅ Página principal OK: ${foundCount}/${elements.length} elementos encontrados`, 'success');
+                } else {
+                    html += '<div class="error">❌ Posible problema con la carga de la página principal</div>';
+                    log('❌ Posible problema con la página principal', 'error');
+                }
+                
+                iframeResultsDiv.innerHTML = html;
+                
+            } catch (error) {
+                const iframeResultsDiv = document.getElementById('iframe-results');
+                iframeResultsDiv.innerHTML = `<div class="error">❌ Error al verificar elementos: ${error.message}</div>`;
+                log(`❌ Error al verificar elementos de la página principal: ${error.message}`, 'error');
+            }
         }
 
         // Auto-start logging
