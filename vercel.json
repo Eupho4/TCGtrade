@@ -1,22 +1,8 @@
 {
-  "functions": {
-    "netlify/functions/*.js": {
-      "runtime": "nodejs18.x",
-      "maxDuration": 10
-    }
-  },
   "rewrites": [
     {
       "source": "/api/pokemontcg/(.*)",
-      "destination": "/netlify/functions/pokemon-proxy"
-    },
-    {
-      "source": "/api/test",
-      "destination": "/netlify/functions/test-function"
-    },
-    {
-      "source": "/api/check-api-key",
-      "destination": "/netlify/functions/check-api-key"
+      "destination": "/api/pokemon-proxy?endpoint=$1"
     }
   ],
   "headers": [
