@@ -237,8 +237,13 @@
         // Auto-ejecutar tests al cargar
         window.addEventListener('load', () => {
             console.log('🔧 Página de test cargada');
-            console.log('🔍 Verificando elementos...');
-            testDOMElements();
+            console.log('🔍 Esperando a que el DOM esté listo...');
+            
+            // Esperar un poco más para que el DOM esté completamente listo
+            setTimeout(() => {
+                console.log('🔍 Verificando elementos...');
+                testDOMElements();
+            }, 2000); // Esperar 2 segundos
         });
     </script>
 </body>
