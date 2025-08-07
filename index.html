@@ -187,7 +187,7 @@
                 const encodedQuery = encodeURIComponent(query.toLowerCase());
                 // Usar búsqueda exacta primero, luego wildcard si es necesario
                 const searchType = query.length <= 4 ? `name:${encodedQuery}*` : `name:*${encodedQuery}*`;
-                const apiUrl = `/api/pokemontcg/cards?q=${searchType}&pageSize=100`;
+                const apiUrl = `/api/pokemon-proxy/cards?q=${searchType}&pageSize=100`;
 
                 console.log('🌐 Fetching from URL:', apiUrl);
 
@@ -275,7 +275,7 @@
                     try {
                         // Usar búsqueda más simple para el retry
                         const simpleQuery = encodeURIComponent(query.toLowerCase());
-                        const retryUrl = `/api/pokemontcg/cards?q=name:${simpleQuery}&pageSize=30`;
+                        const retryUrl = `/api/pokemon-proxy/cards?q=name:${simpleQuery}&pageSize=30`;
                         console.log('🔄 Retry URL (búsqueda exacta):', retryUrl);
                         
                         const retryController = new AbortController();
@@ -563,7 +563,7 @@
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos
 
-                const response = await fetch('/api/pokemontcg/sets?pageSize=50', {
+                const response = await fetch('/api/pokemon-proxy/sets?pageSize=50', {
                     method: 'GET',
                     signal: controller.signal,
                     headers: {
@@ -612,7 +612,7 @@
                 
                 // Fallback: usar sets básicos si la API falla
                 try {
-                    const fallbackResponse = await fetch('/api/pokemontcg/sets?pageSize=10');
+                    const fallbackResponse = await fetch('/api/pokemon-proxy/sets?pageSize=10');
                     if (fallbackResponse.ok) {
                         const fallbackData = await fallbackResponse.json();
                         allSets = fallbackData.data || [];
@@ -995,7 +995,7 @@
             try {
                 // Intentar con wildcard pero menos resultados
                 const encodedQuery = encodeURIComponent(query.toLowerCase());
-                const moreUrl = `/api/pokemontcg/cards?q=name:*${encodedQuery}*&pageSize=50`;
+                const moreUrl = `/api/pokemon-proxy/cards?q=name:*${encodedQuery}*&pageSize=50`;
                 
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 15000); // Más tiempo
