@@ -1,0 +1,33 @@
+# Archivos de desarrollo
+.env
+.env.local
+.env.example
+k.env
+
+# Archivos de testing
+test-*.html
+debug-*.html
+
+# Documentación
+*.md
+CAMBIOS_REALIZADOS.md
+INSTRUCCIONES_REPARACION.md
+PARCHE_BUSQUEDA.md
+
+# Archivos de Netlify (ya no necesarios)
+netlify/
+netlify.toml
+
+# Archivos de Vercel (opcional)
+vercel.json
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+npm-debug.log*
+
+# Dependencias de desarrollo
+node_modules/
