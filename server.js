@@ -8,16 +8,59 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Cache simple para evitar requests repetidos
+const cache = new Map();
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+
+// Rate limiting simple
+const requestCounts = new Map();
+const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minuto
+const RATE_LIMIT_MAX = 10; // máximo 10 requests por minuto
+
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static('.'));
+
+// Función de rate limiting
+function checkRateLimit(identifier) {
+  const now = Date.now();
+  const windowStart = now - RATE_LIMIT_WINDOW;
+  
+  if (!requestCounts.has(identifier)) {
+    requestCounts.set(identifier, []);
+  }
+  
+  const requests = requestCounts.get(identifier);
+  
+  // Limpiar requests antiguos
+  const validRequests = requests.filter(time => time > windowStart);
+  requestCounts.set(identifier, validRequests);
+  
+  if (validRequests.length >= RATE_LIMIT_MAX) {
+    return false;
+  }
+  
+  validRequests.push(now);
+  return true;
+}
 
 // Función proxy para Pokemon TCG API
 async function pokemonProxy(req, res) {
   console.log('🚀 Railway Proxy - Pokemon TCG API');
   console.log('📋 URL:', req.originalUrl);
   console.log('📋 Query:', req.query);
+  
+  // Rate limiting por IP
+  const clientIP = req.ip || req.connection.remoteAddress;
+  if (!checkRateLimit(clientIP)) {
+    return res.status(429).json({
+      error: 'Rate limit exceeded',
+      message: 'Demasiadas búsquedas en poco tiempo. Intenta de nuevo en 1 minuto.',
+      suggestion: 'Espera un momento antes de hacer otra búsqueda',
+      timestamp: new Date().toISOString()
+    });
+  }
 
   try {
     // Extraer endpoint de la URL
@@ -38,6 +81,21 @@ async function pokemonProxy(req, res) {
     const apiUrl = `${baseUrl}/${fullEndpoint}`;
     
     console.log('🌐 Fetching from Pokemon API:', apiUrl);
+    
+    // Verificar cache
+    const cacheKey = apiUrl;
+    const cachedData = cache.get(cacheKey);
+    if (cachedData && (Date.now() - cachedData.timestamp) < CACHE_DURATION) {
+      console.log('✅ Serving from cache');
+      return res.json({
+        ...cachedData.data,
+        _metadata: {
+          ...cachedData.data._metadata,
+          cached: true,
+          cacheAge: Date.now() - cachedData.timestamp
+        }
+      });
+    }
 
     // Configurar headers (incluyendo API Key si está disponible)
     const apiHeaders = {
@@ -205,6 +263,15 @@ async function pokemonProxy(req, res) {
       }
     };
 
+    // Guardar en cache si la respuesta es exitosa
+    if (data.data && data.data.length > 0) {
+      cache.set(cacheKey, {
+        data: responseData,
+        timestamp: Date.now()
+      });
+      console.log('💾 Datos guardados en cache');
+    }
+
     return res.json(responseData);
 
   } catch (error) {
@@ -267,6 +334,33 @@ app.get('/api/check-api-key', (req, res) => {
     timestamp: new Date().toISOString(),
     message: hasApiKey ? 'API Key está configurada correctamente en Railway' : 'API Key NO está configurada',
     platform: 'Railway'
+  });
+});
+
+// Función para ver el estado del cache y rate limiting
+app.get('/api/cache-status', (req, res) => {
+  const cacheSize = cache.size;
+  const requestCount = requestCounts.size;
+  
+  res.json({
+    cacheSize: cacheSize,
+    requestCount: requestCount,
+    cacheDuration: CACHE_DURATION / 1000 + ' seconds',
+    rateLimitWindow: RATE_LIMIT_WINDOW / 1000 + ' seconds',
+    rateLimitMax: RATE_LIMIT_MAX,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Función para limpiar el cache
+app.get('/api/clear-cache', (req, res) => {
+  const cacheSize = cache.size;
+  cache.clear();
+  
+  res.json({
+    message: 'Cache limpiado correctamente',
+    previousSize: cacheSize,
+    timestamp: new Date().toISOString()
   });
 });
 
