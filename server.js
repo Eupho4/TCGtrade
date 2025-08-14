@@ -53,14 +53,51 @@ async function pokemonProxy(req, res) {
       console.log('⚠️ API Key no encontrada, usando acceso público limitado');
     }
 
-    // Hacer petición a la API SIN TIMEOUT (Railway no tiene límite de 10s)
+    // Hacer petición a la API con reintentos automáticos
     console.log('📡 Iniciando fetch a Pokemon API...');
     const startTime = Date.now();
 
     // Importar fetch dinámicamente para Node.js
     const fetch = (await import('node-fetch')).default;
     
-    const response = await fetch(apiUrl, {
+    // Función para hacer fetch con reintentos
+    async function fetchWithRetry(url, options, maxRetries = 3) {
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+          console.log(`🔄 Intento ${attempt}/${maxRetries}...`);
+          
+          const response = await fetch(url, {
+            ...options,
+            timeout: 30000 // 30 segundos de timeout
+          });
+          
+          if (response.ok) {
+            console.log(`✅ Intento ${attempt} exitoso`);
+            return response;
+          }
+          
+          // Si no es exitoso pero no es un error de red, no reintentar
+          if (response.status >= 400 && response.status < 500) {
+            console.log(`⚠️ Error del cliente (${response.status}), no reintentando`);
+            return response;
+          }
+          
+          console.log(`⚠️ Intento ${attempt} falló con status ${response.status}`);
+          
+        } catch (error) {
+          console.log(`❌ Intento ${attempt} falló:`, error.message);
+          
+          if (attempt === maxRetries) {
+            throw error;
+          }
+          
+          // Esperar antes del siguiente intento
+          await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+        }
+      }
+    }
+    
+    const response = await fetchWithRetry(apiUrl, {
       method: 'GET',
       headers: apiHeaders
     });
@@ -78,9 +115,11 @@ async function pokemonProxy(req, res) {
       console.error('❌ Respuesta vacía de la API');
       return res.status(502).json({
         error: 'Empty response',
-        message: 'La API de Pokemon TCG devolvió una respuesta vacía',
+        message: 'La API de Pokemon TCG devolvió una respuesta vacía. Esto puede ocurrir por límites de rate o sobrecarga temporal.',
+        suggestion: 'Intenta la búsqueda de nuevo en unos segundos',
         url: apiUrl,
         fetchTime: `${fetchTime}ms`,
+        hasApiKey: !!process.env.POKEMON_TCG_API_KEY,
         timestamp: new Date().toISOString()
       });
     }
@@ -140,17 +179,29 @@ async function pokemonProxy(req, res) {
     
     let errorMessage = 'Error interno del servidor';
     let errorType = 'ServerError';
+    let statusCode = 500;
     
     if (error.message.includes('fetch')) {
       errorMessage = 'Error de conexión con la API de Pokemon TCG';
       errorType = 'ConnectionError';
+    } else if (error.message.includes('timeout')) {
+      errorMessage = 'Timeout al conectar con la API de Pokemon TCG';
+      errorType = 'TimeoutError';
+      statusCode = 504;
+    } else if (error.message.includes('ENOTFOUND')) {
+      errorMessage = 'No se pudo resolver el dominio de la API';
+      errorType = 'DNSError';
+      statusCode = 502;
     }
 
-    return res.status(500).json({
+    return res.status(statusCode).json({
       error: 'Proxy error',
       type: errorType,
       message: errorMessage,
       details: error.message,
+      suggestion: 'Intenta la búsqueda de nuevo en unos segundos',
+      hasApiKey: !!process.env.POKEMON_TCG_API_KEY,
+      url: apiUrl,
       stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
       timestamp: new Date().toISOString()
     });
