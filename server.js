@@ -8,14 +8,18 @@ const cors = require('cors');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Cache simple para evitar requests repetidos
+// Cache mejorado para uso público
 const cache = new Map();
-const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+const CACHE_DURATION = 30 * 60 * 1000; // 30 minutos (más largo para uso público)
 
-// Rate limiting simple
+// Rate limiting optimizado para múltiples usuarios
 const requestCounts = new Map();
 const RATE_LIMIT_WINDOW = 60 * 1000; // 1 minuto
-const RATE_LIMIT_MAX = 10; // máximo 10 requests por minuto
+const RATE_LIMIT_MAX = 50; // 50 requests por minuto (más permisivo)
+
+// Cache de respuestas vacías para evitar requests repetidos a la API
+const emptyResponseCache = new Map();
+const EMPTY_CACHE_DURATION = 2 * 60 * 1000; // 2 minutos para respuestas vacías
 
 // Middleware
 app.use(cors());
@@ -171,6 +175,50 @@ async function pokemonProxy(req, res) {
     // Verificar si la respuesta está vacía
     if (!responseText || responseText.trim() === '') {
       console.error('❌ Respuesta vacía de la API');
+      
+      // Cache de respuestas vacías para evitar requests repetidos
+      emptyResponseCache.set(cacheKey, {
+        timestamp: Date.now(),
+        count: (emptyResponseCache.get(cacheKey)?.count || 0) + 1
+      });
+      
+      const emptyCacheData = emptyResponseCache.get(cacheKey);
+      const timeSinceLastEmpty = Date.now() - emptyCacheData.timestamp;
+      
+      // Si hemos tenido muchas respuestas vacías recientemente, sugerir esperar
+      if (emptyCacheData.count >= 3 && timeSinceLastEmpty < EMPTY_CACHE_DURATION) {
+        return res.status(502).json({
+          error: 'API temporarily unavailable',
+          message: 'La API de Pokemon TCG está temporalmente sobrecargada. Intenta de nuevo en 2 minutos.',
+          suggestion: 'La API está experimentando alta demanda. Espera un momento antes de intentar de nuevo.',
+          retryAfter: Math.ceil((EMPTY_CACHE_DURATION - timeSinceLastEmpty) / 1000),
+          url: apiUrl,
+          fetchTime: `${fetchTime}ms`,
+          hasApiKey: !!process.env.POKEMON_TCG_API_KEY,
+          timestamp: new Date().toISOString()
+        });
+      }
+      
+      // Intentar fallback para búsquedas populares
+      const query = req.query.q || '';
+      const searchTerm = query.toLowerCase().replace(/name:\*|\*/g, '').trim();
+      
+      if (fallbackData[searchTerm]) {
+        console.log('🔄 Usando datos de fallback para:', searchTerm);
+        return res.json({
+          ...fallbackData[searchTerm],
+          _metadata: {
+            fetchTime: `${fetchTime}ms`,
+            timestamp: new Date().toISOString(),
+            hasApiKey: !!process.env.POKEMON_TCG_API_KEY,
+            endpoint: fullEndpoint,
+            platform: 'Railway',
+            fallback: true,
+            message: 'Datos de fallback - API temporalmente no disponible'
+          }
+        });
+      }
+      
       return res.status(502).json({
         error: 'Empty response',
         message: 'La API de Pokemon TCG devolvió una respuesta vacía. Esto puede ocurrir por límites de rate o sobrecarga temporal.',
@@ -340,14 +388,18 @@ app.get('/api/check-api-key', (req, res) => {
 // Función para ver el estado del cache y rate limiting
 app.get('/api/cache-status', (req, res) => {
   const cacheSize = cache.size;
+  const emptyCacheSize = emptyResponseCache.size;
   const requestCount = requestCounts.size;
   
   res.json({
     cacheSize: cacheSize,
+    emptyCacheSize: emptyCacheSize,
     requestCount: requestCount,
     cacheDuration: CACHE_DURATION / 1000 + ' seconds',
+    emptyCacheDuration: EMPTY_CACHE_DURATION / 1000 + ' seconds',
     rateLimitWindow: RATE_LIMIT_WINDOW / 1000 + ' seconds',
     rateLimitMax: RATE_LIMIT_MAX,
+    fallbackDataAvailable: Object.keys(fallbackData),
     timestamp: new Date().toISOString()
   });
 });
@@ -355,14 +407,51 @@ app.get('/api/cache-status', (req, res) => {
 // Función para limpiar el cache
 app.get('/api/clear-cache', (req, res) => {
   const cacheSize = cache.size;
+  const emptyCacheSize = emptyResponseCache.size;
   cache.clear();
+  emptyResponseCache.clear();
   
   res.json({
     message: 'Cache limpiado correctamente',
-    previousSize: cacheSize,
+    previousCacheSize: cacheSize,
+    previousEmptyCacheSize: emptyCacheSize,
     timestamp: new Date().toISOString()
   });
 });
+
+// Datos de fallback para búsquedas populares
+const fallbackData = {
+  'pikachu': {
+    data: [
+      {
+        id: 'basep-1',
+        name: 'Pikachu',
+        supertype: 'Pokémon',
+        subtypes: ['Basic'],
+        hp: '60',
+        types: ['Lightning'],
+        set: { name: 'Wizards Black Star Promos', series: 'Base' },
+        images: { small: 'https://images.pokemontcg.io/basep/1.png' }
+      }
+    ],
+    totalCount: 1
+  },
+  'charizard': {
+    data: [
+      {
+        id: 'base4-4',
+        name: 'Charizard',
+        supertype: 'Pokémon',
+        subtypes: ['Stage 2'],
+        hp: '120',
+        types: ['Fire'],
+        set: { name: 'Base Set 2', series: 'Base' },
+        images: { small: 'https://images.pokemontcg.io/base4/4.png' }
+      }
+    ],
+    totalCount: 1
+  }
+};
 
 // Función para probar la API directamente
 app.get('/api/test-pokemon-api', async (req, res) => {
