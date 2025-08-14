@@ -661,6 +661,7 @@ app.listen(PORT, () => {
   console.log(`🚀 Railway Server iniciado en puerto ${PORT}`);
   console.log(`🔑 API Key configurada: ${!!process.env.POKEMON_TCG_API_KEY ? 'SÍ' : 'NO'}`);
   console.log(`🌐 Servidor listo para recibir peticiones`);
+  console.log(`📅 Deploy timestamp: ${new Date().toISOString()}`);
 });
 
 // Manejar errores no capturados
