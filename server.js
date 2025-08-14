@@ -419,7 +419,7 @@ app.get('/api/clear-cache', (req, res) => {
   });
 });
 
-// Datos de fallback para búsquedas populares
+// Datos de fallback expandidos para búsquedas populares
 const fallbackData = {
   'pikachu': {
     data: [
@@ -450,6 +450,66 @@ const fallbackData = {
       }
     ],
     totalCount: 1
+  },
+  'ekans': {
+    data: [
+      {
+        id: 'base1-31',
+        name: 'Ekans',
+        supertype: 'Pokémon',
+        subtypes: ['Basic'],
+        hp: '40',
+        types: ['Grass'],
+        set: { name: 'Base Set', series: 'Base' },
+        images: { small: 'https://images.pokemontcg.io/base1/31.png' }
+      }
+    ],
+    totalCount: 1
+  },
+  'zapdos': {
+    data: [
+      {
+        id: 'base1-16',
+        name: 'Zapdos',
+        supertype: 'Pokémon',
+        subtypes: ['Basic'],
+        hp: '90',
+        types: ['Lightning'],
+        set: { name: 'Base Set', series: 'Base' },
+        images: { small: 'https://images.pokemontcg.io/base1/16.png' }
+      }
+    ],
+    totalCount: 1
+  },
+  'mewtwo': {
+    data: [
+      {
+        id: 'base1-10',
+        name: 'Mewtwo',
+        supertype: 'Pokémon',
+        subtypes: ['Basic'],
+        hp: '90',
+        types: ['Psychic'],
+        set: { name: 'Base Set', series: 'Base' },
+        images: { small: 'https://images.pokemontcg.io/base1/10.png' }
+      }
+    ],
+    totalCount: 1
+  },
+  'blastoise': {
+    data: [
+      {
+        id: 'base1-2',
+        name: 'Blastoise',
+        supertype: 'Pokémon',
+        subtypes: ['Stage 2'],
+        hp: '100',
+        types: ['Water'],
+        set: { name: 'Base Set', series: 'Base' },
+        images: { small: 'https://images.pokemontcg.io/base1/2.png' }
+      }
+    ],
+    totalCount: 1
   }
 };
 
@@ -470,6 +530,8 @@ app.get('/api/test-pokemon-api', async (req, res) => {
       apiHeaders['X-Api-Key'] = process.env.POKEMON_TCG_API_KEY;
     }
     
+    console.log('🔑 Headers being sent:', apiHeaders);
+    
     const response = await fetch(testUrl, {
       method: 'GET',
       headers: apiHeaders,
@@ -484,8 +546,9 @@ app.get('/api/test-pokemon-api', async (req, res) => {
       contentType: response.headers.get('content-type'),
       responseLength: responseText.length,
       isHTML: responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html'),
-      responsePreview: responseText.substring(0, 200),
+      responsePreview: responseText.substring(0, 500),
       hasApiKey: !!process.env.POKEMON_TCG_API_KEY,
+      apiKeyPreview: process.env.POKEMON_TCG_API_KEY ? process.env.POKEMON_TCG_API_KEY.substring(0, 8) + '...' : 'No configurada',
       timestamp: new Date().toISOString()
     });
     
@@ -494,6 +557,85 @@ app.get('/api/test-pokemon-api', async (req, res) => {
       error: 'Test failed',
       message: error.message,
       hasApiKey: !!process.env.POKEMON_TCG_API_KEY,
+      timestamp: new Date().toISOString()
+    });
+  }
+});
+
+// Función para probar diferentes endpoints de la API
+app.get('/api/debug-api', async (req, res) => {
+  try {
+    console.log('🔍 Debugging Pokemon API...');
+    
+    const fetch = (await import('node-fetch')).default;
+    const tests = [
+      {
+        name: 'Basic cards endpoint',
+        url: 'https://api.pokemontcg.io/v2/cards?pageSize=1'
+      },
+      {
+        name: 'Pikachu search',
+        url: 'https://api.pokemontcg.io/v2/cards?q=name:pikachu&pageSize=1'
+      },
+      {
+        name: 'Sets endpoint',
+        url: 'https://api.pokemontcg.io/v2/sets?pageSize=1'
+      }
+    ];
+    
+    const results = [];
+    
+    for (const test of tests) {
+      try {
+        const apiHeaders = {
+          'User-Agent': 'TCGtrade-Railway/1.0',
+          'Accept': 'application/json'
+        };
+        
+        if (process.env.POKEMON_TCG_API_KEY) {
+          apiHeaders['X-Api-Key'] = process.env.POKEMON_TCG_API_KEY;
+        }
+        
+        const response = await fetch(test.url, {
+          method: 'GET',
+          headers: apiHeaders,
+          timeout: 10000
+        });
+        
+        const responseText = await response.text();
+        
+        results.push({
+          test: test.name,
+          url: test.url,
+          status: response.status,
+          ok: response.ok,
+          responseLength: responseText.length,
+          isEmpty: !responseText || responseText.trim() === '',
+          isHTML: responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html'),
+          responsePreview: responseText.substring(0, 200),
+          contentType: response.headers.get('content-type')
+        });
+        
+      } catch (error) {
+        results.push({
+          test: test.name,
+          url: test.url,
+          error: error.message
+        });
+      }
+    }
+    
+    res.json({
+      results: results,
+      hasApiKey: !!process.env.POKEMON_TCG_API_KEY,
+      apiKeyPreview: process.env.POKEMON_TCG_API_KEY ? process.env.POKEMON_TCG_API_KEY.substring(0, 8) + '...' : 'No configurada',
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      error: 'Debug failed',
+      message: error.message,
       timestamp: new Date().toISOString()
     });
   }
