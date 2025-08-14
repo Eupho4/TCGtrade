@@ -123,6 +123,39 @@ async function pokemonProxy(req, res) {
         timestamp: new Date().toISOString()
       });
     }
+    
+    // Verificar si la respuesta es HTML (error page)
+    if (responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html')) {
+      console.error('❌ API devolvió HTML en lugar de JSON');
+      console.error('📄 Response preview:', responseText.substring(0, 500));
+      
+      // Detectar el tipo de error HTML
+      let errorType = 'HTML Response';
+      let errorMessage = 'La API de Pokemon TCG devolvió una página HTML en lugar de datos JSON';
+      
+      if (responseText.includes('rate limit') || responseText.includes('too many requests')) {
+        errorType = 'Rate Limit';
+        errorMessage = 'Se ha excedido el límite de requests. Intenta de nuevo en unos minutos.';
+      } else if (responseText.includes('maintenance') || responseText.includes('service unavailable')) {
+        errorType = 'Service Unavailable';
+        errorMessage = 'La API de Pokemon TCG está temporalmente en mantenimiento.';
+      } else if (responseText.includes('unauthorized') || responseText.includes('forbidden')) {
+        errorType = 'Authentication Error';
+        errorMessage = 'Error de autenticación con la API. Verifica tu API Key.';
+      }
+      
+      return res.status(502).json({
+        error: errorType,
+        message: errorMessage,
+        suggestion: 'Intenta la búsqueda de nuevo en unos minutos',
+        url: apiUrl,
+        responseType: 'HTML',
+        responsePreview: responseText.substring(0, 200),
+        fetchTime: `${fetchTime}ms`,
+        hasApiKey: !!process.env.POKEMON_TCG_API_KEY,
+        timestamp: new Date().toISOString()
+      });
+    }
 
     // Intentar parsear JSON
     let data;
@@ -235,6 +268,52 @@ app.get('/api/check-api-key', (req, res) => {
     message: hasApiKey ? 'API Key está configurada correctamente en Railway' : 'API Key NO está configurada',
     platform: 'Railway'
   });
+});
+
+// Función para probar la API directamente
+app.get('/api/test-pokemon-api', async (req, res) => {
+  try {
+    console.log('🧪 Testing Pokemon API directly...');
+    
+    const fetch = (await import('node-fetch')).default;
+    const testUrl = 'https://api.pokemontcg.io/v2/cards?q=name:pikachu&pageSize=1';
+    
+    const apiHeaders = {
+      'User-Agent': 'TCGtrade-Railway/1.0',
+      'Accept': 'application/json'
+    };
+    
+    if (process.env.POKEMON_TCG_API_KEY) {
+      apiHeaders['X-Api-Key'] = process.env.POKEMON_TCG_API_KEY;
+    }
+    
+    const response = await fetch(testUrl, {
+      method: 'GET',
+      headers: apiHeaders,
+      timeout: 10000
+    });
+    
+    const responseText = await response.text();
+    
+    res.json({
+      status: response.status,
+      ok: response.ok,
+      contentType: response.headers.get('content-type'),
+      responseLength: responseText.length,
+      isHTML: responseText.trim().startsWith('<!DOCTYPE') || responseText.trim().startsWith('<html'),
+      responsePreview: responseText.substring(0, 200),
+      hasApiKey: !!process.env.POKEMON_TCG_API_KEY,
+      timestamp: new Date().toISOString()
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      error: 'Test failed',
+      message: error.message,
+      hasApiKey: !!process.env.POKEMON_TCG_API_KEY,
+      timestamp: new Date().toISOString()
+    });
+  }
 });
 
 // Servir archivos estáticos (HTML, CSS, JS)
