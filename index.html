@@ -350,12 +350,16 @@
                 }
 
                 // Cargar datos en el formulario de perfil personal
+                const profileUsernameInput = document.getElementById('profileUsername');
                 const profileNameInput = document.getElementById('profileName');
                 const profileLastNameInput = document.getElementById('profileLastName');
                 const profileAddressInput = document.getElementById('profileAddress');
                 const profileBirthDateInput = document.getElementById('profileBirthDate');
                 const profileEmailInput = document.getElementById('profileEmail');
 
+                if (profileUsernameInput) {
+                    profileUsernameInput.value = userData?.username || '';
+                }
                 if (profileNameInput) {
                     profileNameInput.value = userData?.name || '';
                 }
@@ -1297,10 +1301,36 @@
 
             if (registerBtn) {
                 registerBtn.addEventListener('click', async () => {
+                    const username = document.getElementById('registerUsername')?.value?.trim();
                     const email = registerEmailInput?.value;
                     const password = registerPasswordInput?.value;
                     const confirmPassword = confirmPasswordInput?.value;
                     if (registerError) registerError.classList.add('hidden');
+
+                    // Validaciones
+                    if (!username) {
+                        if (registerError) {
+                            registerError.textContent = 'El nombre de usuario es obligatorio.';
+                            registerError.classList.remove('hidden');
+                        }
+                        return;
+                    }
+
+                    if (username.length < 3) {
+                        if (registerError) {
+                            registerError.textContent = 'El nombre de usuario debe tener al menos 3 caracteres.';
+                            registerError.classList.remove('hidden');
+                        }
+                        return;
+                    }
+
+                    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                        if (registerError) {
+                            registerError.textContent = 'El nombre de usuario solo puede contener letras, números y guiones bajos.';
+                            registerError.classList.remove('hidden');
+                        }
+                        return;
+                    }
 
                     if (password !== confirmPassword) {
                         if (registerError) {
@@ -1319,18 +1349,31 @@
                     }
 
                     try {
+                        // Verificar si el usuario ya existe
+                        const usernameQuery = await getDocs(collection(db, 'users'));
+                        const existingUser = usernameQuery.docs.find(doc => doc.data().username === username);
+                        
+                        if (existingUser) {
+                            if (registerError) {
+                                registerError.textContent = 'Este nombre de usuario ya está en uso.';
+                                registerError.classList.remove('hidden');
+                            }
+                            return;
+                        }
+
                         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                         const user = userCredential.user;
 
-                        // Crear perfil básico en Firestore
-                        const userProfileRef = doc(db, `artifacts/${appId}/users/${user.uid}/profile/data`);
-                        await setDoc(userProfileRef, {
+                        // Crear perfil completo en Firestore
+                        await setDoc(doc(db, 'users', user.uid), {
+                            username: username,
                             email: user.email,
-                            createdAt: new Date()
+                            createdAt: new Date(),
+                            updatedAt: new Date()
                         });
 
                         hideAuthModal();
-                        console.log('Usuario registrado:', user.email);
+                        console.log('Usuario registrado:', user.email, 'Username:', username);
                     } catch (error) {
                         console.error('Error al registrar:', error);
                         let errorMessage = 'Error al registrar.';
@@ -2061,6 +2104,17 @@
                         </h3>
                         
                         <form id="profilePersonalForm" class="space-y-6">
+                            <!-- Usuario (solo lectura) -->
+                            <div>
+                                <label for="profileUsername" class="block text-gray-700 text-sm font-bold mb-2">
+                                    Nombre de Usuario
+                                </label>
+                                <input type="text" id="profileUsername" name="username" 
+                                       class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-400 leading-tight bg-gray-50 cursor-not-allowed"
+                                       placeholder="usuario123" readonly>
+                                <p class="text-xs text-gray-500 mt-1">El nombre de usuario no se puede modificar</p>
+                            </div>
+                            
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <!-- Nombre -->
                                 <div>
@@ -2264,6 +2318,11 @@
 
             <div id="registerForm" class="hidden">
                 <h2 class="text-2xl font-bold mb-4 text-gray-800">Registrarse</h2>
+                <div class="mb-4">
+                    <label for="registerUsername" class="block text-gray-700 text-sm font-bold mb-2">Nombre de Usuario *:</label>
+                    <input type="text" id="registerUsername" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required placeholder="usuario123">
+                    <p class="text-xs text-gray-500 mt-1">Este será tu nombre único en la plataforma</p>
+                </div>
                 <div class="mb-4">
                     <label for="registerEmail" class="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico:</label>
                     <input type="email" id="registerEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
