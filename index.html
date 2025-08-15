@@ -301,6 +301,12 @@
                 console.log('🔧 Datos a guardar:', profileData);
                 console.log('🔧 Usuario UID:', currentUser.uid);
                 console.log('🔧 Firebase db disponible:', !!db);
+                console.log('🔧 Firebase auth disponible:', !!auth);
+
+                // Verificar que Firebase esté inicializado correctamente
+                if (!db) {
+                    throw new Error('Firebase Firestore no está inicializado');
+                }
 
                 // Guardar en Firestore
                 console.log('🔧 Guardando en Firestore...');
@@ -322,6 +328,10 @@
                     console.log('🔧 Email ha cambiado, actualizando en Auth...');
                     console.log('🔧 Email actual:', currentUser.email);
                     console.log('🔧 Email nuevo:', email);
+                    
+                    if (!auth) {
+                        throw new Error('Firebase Auth no está inicializado');
+                    }
                     
                     try {
                         await updateEmail(currentUser, email);
@@ -401,14 +411,34 @@
             console.log('🔧 Probando conexión con Firebase...');
             
             try {
+                // Verificar configuración
+                console.log('🔧 Configuración Firebase:', {
+                    apiKey: firebaseConfig.apiKey ? 'Configurado' : 'No configurado',
+                    authDomain: firebaseConfig.authDomain,
+                    projectId: firebaseConfig.projectId,
+                    storageBucket: firebaseConfig.storageBucket,
+                    messagingSenderId: firebaseConfig.messagingSenderId,
+                    appId: firebaseConfig.appId
+                });
+
+                // Verificar inicialización
+                console.log('🔧 Firebase App inicializado:', !!app);
+                console.log('🔧 Firebase Auth inicializado:', !!auth);
+                console.log('🔧 Firebase Firestore inicializado:', !!db);
+
                 // Probar Firestore
                 console.log('🔧 Probando Firestore...');
                 const testDoc = doc(db, 'test', 'connection-test');
                 await setDoc(testDoc, { 
                     timestamp: new Date(),
-                    test: true 
+                    test: true,
+                    message: 'Prueba de conexión exitosa'
                 });
                 console.log('✅ Firestore funciona correctamente');
+                
+                // Leer el documento de prueba
+                const testDocRead = await getDoc(testDoc);
+                console.log('✅ Lectura de Firestore exitosa:', testDocRead.data());
                 
                 // Limpiar documento de prueba
                 await deleteDoc(testDoc);
@@ -418,16 +448,82 @@
                 console.log('🔧 Probando Auth...');
                 if (auth) {
                     console.log('✅ Firebase Auth está disponible');
-                    console.log('🔧 Usuario actual:', currentUser ? currentUser.uid : 'No hay usuario');
+                    console.log('🔧 Usuario actual:', currentUser ? {
+                        uid: currentUser.uid,
+                        email: currentUser.email,
+                        displayName: currentUser.displayName
+                    } : 'No hay usuario autenticado');
                 } else {
                     console.error('❌ Firebase Auth no está disponible');
                 }
+
+                // Mostrar información sobre el almacenamiento de datos
+                console.log('📊 INFORMACIÓN SOBRE ALMACENAMIENTO DE DATOS:');
+                console.log('📊 1. CREDENCIALES DE ACCESO:');
+                console.log('   - Se almacenan en Firebase Authentication');
+                console.log('   - Incluye: email, contraseña (hasheada), UID único');
+                console.log('   - Ubicación: Firebase Console > Authentication > Users');
                 
-                alert('✅ Conexión con Firebase exitosa\n\nEstructura de la base de datos:\n\n📁 users/{userId}\n  ├── username (string)\n  ├── email (string)\n  ├── name (string)\n  ├── lastName (string)\n  ├── address (string)\n  ├── birthDate (string)\n  ├── createdAt (timestamp)\n  └── updatedAt (timestamp)\n\n📁 artifacts/{appId}/users/{userId}/my_cards/{cardId}\n  └── Datos de las cartas del usuario');
+                console.log('📊 2. DATOS DEL PERFIL:');
+                console.log('   - Se almacenan en Firestore Database');
+                console.log('   - Colección: "users"');
+                console.log('   - Documento ID: UID del usuario');
+                console.log('   - Campos: username, name, lastName, address, birthDate, email, createdAt, updatedAt');
+                console.log('   - Ubicación: Firebase Console > Firestore Database > users/{uid}');
                 
+                console.log('📊 3. COLECCIÓN DE CARTAS:');
+                console.log('   - Se almacenan en Firestore Database');
+                console.log('   - Colección: "users/{uid}/cards"');
+                console.log('   - Documento ID: ID de la carta de la API');
+                console.log('   - Campos: id, name, number, imageUrl, set, series, language, addedAt');
+                console.log('   - Ubicación: Firebase Console > Firestore Database > users/{uid}/cards');
+                
+                console.log('📊 4. INTERCAMBIOS (futuro):');
+                console.log('   - Se almacenarán en Firestore Database');
+                console.log('   - Colección: "trades" o "users/{uid}/trades"');
+                console.log('   - Campos: participantes, cartas ofrecidas, cartas solicitadas, estado, fecha');
+
+                // Mostrar mensaje de éxito
+                alert(`✅ CONEXIÓN EXITOSA CON FIREBASE
+
+📊 INFORMACIÓN DEL ALMACENAMIENTO:
+
+🔐 CREDENCIALES:
+- Firebase Authentication
+- Email y contraseña (seguras)
+
+👤 PERFIL DE USUARIO:
+- Firestore: users/{uid}
+- Datos personales y configuración
+
+🃏 COLECCIÓN DE CARTAS:
+- Firestore: users/{uid}/cards
+- Cartas que posee el usuario
+
+📈 ESTADÍSTICAS:
+- Calculadas en tiempo real
+- Basadas en la colección de cartas
+
+🔧 Estado actual: ${currentUser ? 'Usuario autenticado' : 'No autenticado'}
+📧 Email: ${currentUser?.email || 'N/A'}
+🆔 UID: ${currentUser?.uid || 'N/A'}`);
+
             } catch (error) {
-                console.error('❌ Error en la prueba de Firebase:', error);
-                alert(`❌ Error en la conexión con Firebase:\n${error.message}`);
+                console.error('❌ Error en la conexión con Firebase:', error);
+                alert(`❌ ERROR EN LA CONEXIÓN CON FIREBASE:
+
+🔍 Detalles del error:
+- Tipo: ${error.name || 'Error'}
+- Mensaje: ${error.message}
+- Código: ${error.code || 'N/A'}
+
+🔧 Posibles soluciones:
+1. Verificar configuración de Firebase
+2. Comprobar reglas de Firestore
+3. Verificar conexión a internet
+4. Revisar consola del navegador
+
+📞 Si el problema persiste, contacta al administrador.`);
             }
         }
 
@@ -483,6 +579,11 @@
                 console.log('🔧 Validaciones pasadas, reautenticando...');
                 console.log('🔧 Email del usuario:', currentUser.email);
                 console.log('🔧 Firebase Auth disponible:', !!auth);
+
+                // Verificar que Firebase Auth esté inicializado
+                if (!auth) {
+                    throw new Error('Firebase Auth no está inicializado');
+                }
 
                 // Reautenticar al usuario antes de cambiar la contraseña
                 console.log('🔧 Creando credenciales...');
