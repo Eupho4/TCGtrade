@@ -840,6 +840,152 @@
         window.applyDarkMode = applyDarkMode;
         window.loadDarkModePreference = loadDarkModePreference;
 
+        // Sistema de internacionalización (i18n)
+        const translations = {
+            es: {
+                // Navegación
+                'nav.explore': 'Explorar',
+                'nav.myCards': 'Mis Cartas',
+                'nav.interchanges': 'Intercambios',
+                'nav.login': 'Iniciar Sesión',
+                'nav.register': 'Registrarse',
+                'nav.profile': 'Mi Perfil',
+                'nav.logout': 'Cerrar Sesión',
+                'nav.language': 'Idioma',
+                
+                // Header
+                'header.searchPlaceholder': 'Buscar cartas, sets, usuarios...',
+                
+                // Hero
+                'hero.title': 'Tu Centro de Intercambio de Pokémon TCG',
+                'hero.subtitle': 'Conecta con coleccionistas de todo el mundo, encuentra las cartas que te faltan y completa tu colección de forma segura y sencilla.',
+                'hero.startButton': '¡Empieza a Intercambiar Ahora!',
+                
+                // Filtros
+                'filter.series': 'Filtrar por Serie:',
+                'filter.set': 'Filtrar por Expansión (Set):',
+                'filter.language': 'Filtrar por Idioma:',
+                'filter.allSeries': 'Todas las Series',
+                'filter.allSets': 'Todas las Expansiones',
+                'filter.allLanguages': '🌍 Todos los Idiomas',
+                'filter.apply': 'Aplicar Filtros',
+                
+                // Secciones
+                'section.myCollection': 'Mi Colección de Cartas',
+                'section.interchanges': 'Intercambios',
+                'section.howItWorks': '¿Cómo funciona TCGtrade?',
+                'section.step1': '1. Crea tu Colección',
+                'section.step2': '2. Encuentra Intercambios',
+                'section.step3': '3. Intercambia y Disfruta',
+                'section.step1Desc': 'Añade las cartas que tienes y las que buscas a tu perfil.',
+                'section.step2Desc': 'Nuestro sistema te conectará con usuarios que tengan lo que necesitas.',
+                'section.step3Desc': 'Acuerda el intercambio de forma segura y completa tu colección.',
+                
+                // Mensajes
+                'message.noCards': 'Aún no tienes cartas en tu colección. ¡Busca y añade algunas!',
+                'message.error': 'Ha ocurrido un error al cargar las cartas.',
+                'message.noResults': 'No se encontraron resultados para tu búsqueda.',
+                'message.interchangesComing': 'Aquí podrás ver y gestionar tus intercambios de cartas.'
+            },
+            en: {
+                // Navigation
+                'nav.explore': 'Explore',
+                'nav.myCards': 'My Cards',
+                'nav.interchanges': 'Interchanges',
+                'nav.login': 'Login',
+                'nav.register': 'Register',
+                'nav.profile': 'My Profile',
+                'nav.logout': 'Logout',
+                'nav.language': 'Language',
+                
+                // Header
+                'header.searchPlaceholder': 'Search cards, sets, users...',
+                
+                // Hero
+                'hero.title': 'Your Pokémon TCG Trading Center',
+                'hero.subtitle': 'Connect with collectors worldwide, find the cards you need and complete your collection safely and easily.',
+                'hero.startButton': 'Start Trading Now!',
+                
+                // Filters
+                'filter.series': 'Filter by Series:',
+                'filter.set': 'Filter by Expansion (Set):',
+                'filter.language': 'Filter by Language:',
+                'filter.allSeries': 'All Series',
+                'filter.allSets': 'All Expansions',
+                'filter.allLanguages': '🌍 All Languages',
+                'filter.apply': 'Apply Filters',
+                
+                // Sections
+                'section.myCollection': 'My Card Collection',
+                'section.interchanges': 'Interchanges',
+                'section.howItWorks': 'How does TCGtrade work?',
+                'section.step1': '1. Create your Collection',
+                'section.step2': '2. Find Interchanges',
+                'section.step3': '3. Trade and Enjoy',
+                'section.step1Desc': 'Add the cards you have and the ones you\'re looking for to your profile.',
+                'section.step2Desc': 'Our system will connect you with users who have what you need.',
+                'section.step3Desc': 'Agree on the exchange safely and complete your collection.',
+                
+                // Messages
+                'message.noCards': 'You don\'t have any cards in your collection yet. Search and add some!',
+                'message.error': 'An error occurred while loading the cards.',
+                'message.noResults': 'No results found for your search.',
+                'message.interchangesComing': 'Here you will be able to view and manage your card exchanges.'
+            }
+        };
+
+        // Función para aplicar idioma
+        function applyLanguage(language) {
+            console.log('🌍 Applying language:', language);
+            
+            const currentTranslations = translations[language] || translations.es;
+            
+            // Traducir elementos con data-i18n
+            document.querySelectorAll('[data-i18n]').forEach(element => {
+                const key = element.getAttribute('data-i18n');
+                const translation = currentTranslations[key];
+                if (translation) {
+                    element.textContent = translation;
+                }
+            });
+            
+            // Traducir placeholders
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
+                const key = element.getAttribute('data-i18n-placeholder');
+                const translation = currentTranslations[key];
+                if (translation) {
+                    element.placeholder = translation;
+                }
+            });
+            
+            // Traducir elementos específicos que no usan data-i18n
+            const specificElements = {
+                'searchInput': 'header.searchPlaceholder',
+                'noMyCardsMessage': 'message.noCards',
+                'myCardsErrorMessage': 'message.error',
+                'noResultsMessage': 'message.noResults',
+                'interchangesSection p': 'message.interchangesComing'
+            };
+            
+            Object.entries(specificElements).forEach(([selector, key]) => {
+                const element = document.querySelector(selector);
+                if (element) {
+                    const translation = currentTranslations[key];
+                    if (translation) {
+                        element.textContent = translation;
+                    }
+                }
+            });
+            
+            console.log('✅ Language applied successfully');
+        }
+
+        // Aplicar idioma al cargar la página
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedLanguage = localStorage.getItem('selectedLanguage') || 'es';
+            applyLanguage(savedLanguage);
+        });
+
         // Función de prueba para verificar que todo funciona
         window.testNavigation = function() {
             console.log('🧪 Probando navegación...');
@@ -1641,11 +1787,19 @@
             // Language selector in header
             const languageSelector = document.getElementById('languageSelector');
             if (languageSelector) {
+                // Cargar idioma guardado
+                const savedLanguage = localStorage.getItem('selectedLanguage') || 'es';
+                languageSelector.value = savedLanguage;
+                
                 languageSelector.addEventListener('change', (e) => {
-                    console.log('🌍 Language changed to:', e.target.value);
-                    // Aquí puedes implementar la lógica de cambio de idioma
-                    // Por ahora solo recargamos la página
-                    window.location.reload();
+                    const newLanguage = e.target.value;
+                    console.log('🌍 Language changed to:', newLanguage);
+                    
+                    // Guardar preferencia en localStorage
+                    localStorage.setItem('selectedLanguage', newLanguage);
+                    
+                    // Aplicar el idioma
+                    applyLanguage(newLanguage);
                 });
             }
 
