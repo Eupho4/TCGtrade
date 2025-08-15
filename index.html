@@ -704,6 +704,28 @@
             }
         }
 
+        // Función de prueba para verificar que todo funciona
+        window.testNavigation = function() {
+            console.log('🧪 Probando navegación...');
+            console.log('Funciones disponibles:', {
+                showInitialSections: typeof showInitialSections,
+                showAuthModal: typeof showAuthModal,
+                showMyCardsSection: typeof showMyCardsSection,
+                showInterchangesSection: typeof showInterchangesSection,
+                showProfileSection: typeof showProfileSection,
+                logoutUser: typeof logoutUser
+            });
+            
+            // Probar cada función
+            try {
+                console.log('✅ Todas las funciones están disponibles');
+                return true;
+            } catch (error) {
+                console.error('❌ Error en las funciones:', error);
+                return false;
+            }
+        };
+
         // Función para cargar estadísticas del perfil
         async function loadProfileStats() {
             if (!currentUser) return;
@@ -1378,6 +1400,27 @@
             // Ejecutar debug
             debugElements();
 
+            // Debug adicional para verificar elementos críticos
+            setTimeout(() => {
+                console.log('🔍 Verificación adicional de elementos críticos:');
+                const criticalElements = [
+                    'homeLink', 'loginLink', 'registerLink', 'logoutLink',
+                    'myCardsLink', 'interchangesLink', 'profileLink', 'startTradingBtn'
+                ];
+                
+                criticalElements.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        console.log(`✅ ${id} encontrado:`, element);
+                        // Verificar si tiene event listeners
+                        const hasListeners = element.onclick || element.getAttribute('onclick');
+                        console.log(`   - Event listeners: ${hasListeners ? 'Sí' : 'No'}`);
+                    } else {
+                        console.error(`❌ ${id} NO encontrado`);
+                    }
+                });
+            }, 100);
+
             // Asignar referencias a elementos del DOM
             searchInput = document.getElementById('searchInput');
             searchResultsSection = document.getElementById('searchResults');
@@ -1565,6 +1608,91 @@
 
             // Configurar eventos de navegación
             setupNavigationEvents();
+
+            // Configuración adicional de eventos - Método alternativo
+            console.log('🔧 Configurando eventos adicionales...');
+            
+            // Event listeners directos para navegación
+            document.addEventListener('click', function(e) {
+                const target = e.target.closest('a, button');
+                if (!target) return;
+
+                // Home Link
+                if (target.id === 'homeLink' || target.closest('#homeLink')) {
+                    e.preventDefault();
+                    console.log('🏠 Home link clicked (event delegation)');
+                    showInitialSections();
+                    return;
+                }
+
+                // Login Link
+                if (target.id === 'loginLink' || target.closest('#loginLink')) {
+                    e.preventDefault();
+                    console.log('🚪 Login link clicked (event delegation)');
+                    showAuthModal('login');
+                    return;
+                }
+
+                // Register Link
+                if (target.id === 'registerLink' || target.closest('#registerLink')) {
+                    e.preventDefault();
+                    console.log('📝 Register link clicked (event delegation)');
+                    showAuthModal('register');
+                    return;
+                }
+
+                // Logout Link
+                if (target.id === 'logoutLink' || target.closest('#logoutLink')) {
+                    e.preventDefault();
+                    console.log('👋 Logout link clicked (event delegation)');
+                    logoutUser();
+                    return;
+                }
+
+                // My Cards Link
+                if (target.id === 'myCardsLink' || target.closest('#myCardsLink')) {
+                    e.preventDefault();
+                    console.log('📦 My cards link clicked (event delegation)');
+                    showMyCardsSection();
+                    return;
+                }
+
+                // Interchanges Link
+                if (target.id === 'interchangesLink' || target.closest('#interchangesLink')) {
+                    e.preventDefault();
+                    console.log('🤝 Interchanges link clicked (event delegation)');
+                    showInterchangesSection();
+                    return;
+                }
+
+                // Profile Link
+                if (target.id === 'profileLink' || target.closest('#profileLink')) {
+                    e.preventDefault();
+                    console.log('👤 Profile link clicked (event delegation)');
+                    if (currentUser) {
+                        showProfileSection();
+                    } else {
+                        showAuthModal('login');
+                    }
+                    return;
+                }
+
+                // Start Trading Button
+                if (target.id === 'startTradingBtn' || target.closest('#startTradingBtn')) {
+                    e.preventDefault();
+                    console.log('🚀 Start trading clicked (event delegation)');
+                    showAuthModal('register');
+                    return;
+                }
+
+                // Explorar links
+                if (target.textContent.includes('Explorar') && target.href === '#') {
+                    e.preventDefault();
+                    console.log('🔍 Explorar link clicked (event delegation)');
+                    showInitialSections();
+                    return;
+                }
+            });
 
             // Event listeners para tabs del perfil
             const profilePersonalTab = document.getElementById('profilePersonalTab');
