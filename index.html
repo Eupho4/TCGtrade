@@ -161,6 +161,10 @@
             let targetTab;
 
             switch(tabName) {
+                case 'personal':
+                    targetContent = document.getElementById('profilePersonalContent');
+                    targetTab = document.getElementById('profilePersonalTab');
+                    break;
                 case 'dashboard':
                     targetContent = document.getElementById('profileDashboardContent');
                     targetTab = document.getElementById('profileDashboardTab');
@@ -211,6 +215,84 @@
             }
         }
 
+        // Función para mostrar mensajes de estado del perfil
+        function showProfileSaveMessage(message, type = 'success') {
+            const messageElement = document.getElementById('profileSaveMessage');
+            if (!messageElement) return;
+
+            const messageText = messageElement.querySelector('p');
+            if (messageText) {
+                messageText.textContent = message;
+            }
+
+            // Aplicar estilos según el tipo
+            messageElement.className = 'mt-4 p-3 rounded-lg';
+            if (type === 'success') {
+                messageElement.classList.add('bg-green-100', 'text-green-700', 'border', 'border-green-200');
+            } else if (type === 'error') {
+                messageElement.classList.add('bg-red-100', 'text-red-700', 'border', 'border-red-200');
+            } else if (type === 'info') {
+                messageElement.classList.add('bg-blue-100', 'text-blue-700', 'border', 'border-blue-200');
+            }
+
+            messageElement.classList.remove('hidden');
+
+            // Ocultar después de 3 segundos
+            setTimeout(() => {
+                messageElement.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Función para guardar datos del perfil
+        async function saveProfileData() {
+            if (!currentUser) {
+                showProfileSaveMessage('Debes iniciar sesión para guardar cambios', 'error');
+                return;
+            }
+
+            try {
+                const name = document.getElementById('profileName')?.value?.trim();
+                const lastName = document.getElementById('profileLastName')?.value?.trim();
+                const address = document.getElementById('profileAddress')?.value?.trim();
+                const birthDate = document.getElementById('profileBirthDate')?.value;
+
+                // Validaciones básicas
+                if (!name) {
+                    showProfileSaveMessage('El nombre es obligatorio', 'error');
+                    return;
+                }
+                if (!lastName) {
+                    showProfileSaveMessage('Los apellidos son obligatorios', 'error');
+                    return;
+                }
+
+                // Preparar datos para guardar
+                const profileData = {
+                    name: name,
+                    lastName: lastName,
+                    address: address || '',
+                    birthDate: birthDate || '',
+                    updatedAt: new Date()
+                };
+
+                // Guardar en Firestore
+                await setDoc(doc(db, 'users', currentUser.uid), profileData, { merge: true });
+
+                // Actualizar el nombre en el header del perfil
+                const userNameElement = document.getElementById('profileUserName');
+                if (userNameElement) {
+                    userNameElement.textContent = `${name} ${lastName}`;
+                }
+
+                showProfileSaveMessage('✅ Perfil actualizado correctamente', 'success');
+                console.log('✅ Datos del perfil guardados:', profileData);
+
+            } catch (error) {
+                console.error('❌ Error al guardar datos del perfil:', error);
+                showProfileSaveMessage('❌ Error al guardar los cambios', 'error');
+            }
+        }
+
         // Función para cargar información del usuario
         async function loadUserInfo() {
             if (!currentUser) return;
@@ -241,6 +323,29 @@
                             month: 'long' 
                         });
                     }
+                }
+
+                // Cargar datos en el formulario de perfil personal
+                const profileNameInput = document.getElementById('profileName');
+                const profileLastNameInput = document.getElementById('profileLastName');
+                const profileAddressInput = document.getElementById('profileAddress');
+                const profileBirthDateInput = document.getElementById('profileBirthDate');
+                const profileEmailInput = document.getElementById('profileEmail');
+
+                if (profileNameInput) {
+                    profileNameInput.value = userData?.name || '';
+                }
+                if (profileLastNameInput) {
+                    profileLastNameInput.value = userData?.lastName || '';
+                }
+                if (profileAddressInput) {
+                    profileAddressInput.value = userData?.address || '';
+                }
+                if (profileBirthDateInput) {
+                    profileBirthDateInput.value = userData?.birthDate || '';
+                }
+                if (profileEmailInput) {
+                    profileEmailInput.value = currentUser.email || '';
                 }
 
             } catch (error) {
@@ -1043,11 +1148,15 @@
             });
 
             // Event listeners para tabs del perfil
+            const profilePersonalTab = document.getElementById('profilePersonalTab');
             const profileDashboardTab = document.getElementById('profileDashboardTab');
             const profileCollectionTab = document.getElementById('profileCollectionTab');
             const profileTradesTab = document.getElementById('profileTradesTab');
             const profileSettingsTab = document.getElementById('profileSettingsTab');
 
+            if (profilePersonalTab) {
+                profilePersonalTab.addEventListener('click', () => switchProfileTab('personal'));
+            }
             if (profileDashboardTab) {
                 profileDashboardTab.addEventListener('click', () => switchProfileTab('dashboard'));
             }
@@ -1059,6 +1168,24 @@
             }
             if (profileSettingsTab) {
                 profileSettingsTab.addEventListener('click', () => switchProfileTab('settings'));
+            }
+
+            // Event listener para el formulario de perfil personal
+            const profilePersonalForm = document.getElementById('profilePersonalForm');
+            if (profilePersonalForm) {
+                profilePersonalForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await saveProfileData();
+                });
+            }
+
+            // Event listener para el botón cancelar
+            const cancelProfileBtn = document.getElementById('cancelProfileBtn');
+            if (cancelProfileBtn) {
+                cancelProfileBtn.addEventListener('click', () => {
+                    loadUserInfo(); // Recargar datos originales
+                    showProfileSaveMessage('Cambios cancelados', 'info');
+                });
             }
 
             // Event listeners para modal
@@ -1872,7 +1999,6 @@
                         <!-- Información del Usuario -->
                         <div class="flex-1">
                             <h1 class="text-2xl font-bold text-gray-800 mb-2" id="profileUserName">Usuario</h1>
-                            <p class="text-gray-600 mb-2" id="profileUserEmail">usuario@ejemplo.com</p>
                             <p class="text-sm text-gray-500">Miembro desde <span id="profileJoinDate">Enero 2024</span></p>
                         </div>
                         
@@ -1889,7 +2015,10 @@
                 <div class="bg-white rounded-xl shadow-lg mb-6">
                     <div class="border-b border-gray-200">
                         <nav class="flex space-x-8 px-6" aria-label="Tabs">
-                            <button id="profileDashboardTab" class="profile-tab active py-4 px-1 border-b-2 border-orange-500 text-orange-600 font-medium text-sm">
+                            <button id="profilePersonalTab" class="profile-tab active py-4 px-1 border-b-2 border-orange-500 text-orange-600 font-medium text-sm">
+                                👤 Mi Perfil
+                            </button>
+                            <button id="profileDashboardTab" class="profile-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
                                 📊 Dashboard
                             </button>
                             <button id="profileCollectionTab" class="profile-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
@@ -1905,8 +2034,88 @@
                     </div>
                 </div>
 
+                <!-- Contenido de Mi Perfil -->
+                <div id="profilePersonalContent" class="profile-tab-content">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                            <span class="icon mr-2">👤</span> Información Personal
+                        </h3>
+                        
+                        <form id="profilePersonalForm" class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Nombre -->
+                                <div>
+                                    <label for="profileName" class="block text-gray-700 text-sm font-bold mb-2">
+                                        Nombre *
+                                    </label>
+                                    <input type="text" id="profileName" name="name" 
+                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
+                                           placeholder="Tu nombre">
+                                </div>
+                                
+                                <!-- Apellidos -->
+                                <div>
+                                    <label for="profileLastName" class="block text-gray-700 text-sm font-bold mb-2">
+                                        Apellidos *
+                                    </label>
+                                    <input type="text" id="profileLastName" name="lastName" 
+                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
+                                           placeholder="Tus apellidos">
+                                </div>
+                            </div>
+                            
+                            <!-- Dirección -->
+                            <div>
+                                <label for="profileAddress" class="block text-gray-700 text-sm font-bold mb-2">
+                                    Dirección
+                                </label>
+                                <input type="text" id="profileAddress" name="address" 
+                                       class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
+                                       placeholder="Tu dirección completa">
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Fecha de Nacimiento -->
+                                <div>
+                                    <label for="profileBirthDate" class="block text-gray-700 text-sm font-bold mb-2">
+                                        Fecha de Nacimiento
+                                    </label>
+                                    <input type="date" id="profileBirthDate" name="birthDate" 
+                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400">
+                                </div>
+                                
+                                <!-- Correo Electrónico -->
+                                <div>
+                                    <label for="profileEmail" class="block text-gray-700 text-sm font-bold mb-2">
+                                        Correo Electrónico *
+                                    </label>
+                                    <input type="email" id="profileEmail" name="email" 
+                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
+                                           placeholder="tu@email.com" readonly>
+                                    <p class="text-xs text-gray-500 mt-1">El correo no se puede modificar desde aquí</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Botones -->
+                            <div class="flex justify-end space-x-4 pt-4">
+                                <button type="button" id="cancelProfileBtn" class="btn-secondary px-6 py-2 rounded-lg text-sm font-semibold">
+                                    Cancelar
+                                </button>
+                                <button type="submit" id="saveProfileBtn" class="btn-primary px-6 py-2 rounded-lg text-sm font-semibold">
+                                    💾 Guardar Cambios
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <!-- Mensaje de estado -->
+                        <div id="profileSaveMessage" class="mt-4 p-3 rounded-lg hidden">
+                            <p class="text-sm"></p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Contenido del Dashboard -->
-                <div id="profileDashboardContent" class="profile-tab-content">
+                <div id="profileDashboardContent" class="profile-tab-content hidden">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                         <!-- Estadística: Total de Cartas -->
                         <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 stats-card">
