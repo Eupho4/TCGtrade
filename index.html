@@ -2384,22 +2384,56 @@
             font-weight: 500;
             font-size: 14px;
             line-height: 1.5;
+            background-color: #ffffff;
+            color: #374151;
+            border: 2px solid #d1d5db;
         }
 
         #languageFilter option {
             font-weight: 500;
             padding: 8px 12px;
+            background-color: #ffffff;
+            color: #374151;
+        }
+
+        #languageFilter:focus {
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
         }
 
         /* Mejorar visibilidad en modo oscuro */
         .dark-mode #languageFilter {
-            background-color: #374151;
+            background-color: #1f2937;
             color: #f9fafb;
             border-color: #4b5563;
         }
 
         .dark-mode #languageFilter option {
-            background-color: #374151;
+            background-color: #1f2937;
+            color: #f9fafb;
+        }
+
+        /* Estilos para el selector de idioma del header */
+        #languageSelector {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #374151;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        #languageSelector option {
+            background-color: #ffffff;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .dark-mode #languageSelector {
+            background-color: rgba(31, 41, 55, 0.9);
+            color: #f9fafb;
+            border-color: rgba(75, 85, 99, 0.5);
+        }
+
+        .dark-mode #languageSelector option {
+            background-color: #1f2937;
             color: #f9fafb;
         }
 
