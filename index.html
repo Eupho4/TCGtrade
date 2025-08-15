@@ -1627,6 +1627,7 @@
 
             if (applyFiltersBtn) {
                 applyFiltersBtn.addEventListener('click', () => {
+                    console.log('🔍 Aplicando filtros...');
                     if (currentUser) {
                         loadMyCollection(currentUser.uid);
                     } else {
@@ -1634,6 +1635,16 @@
                             noMyCardsMessage.textContent = 'Debes iniciar sesión para aplicar filtros.';
                             noMyCardsMessage.classList.remove('hidden');
                         }
+                    }
+                });
+            }
+
+            // Event listener para el filtro de idioma (actualización automática)
+            if (languageFilter) {
+                languageFilter.addEventListener('change', () => {
+                    console.log('🌍 Idioma seleccionado:', languageFilter.value);
+                    if (currentUser) {
+                        loadMyCollection(currentUser.uid);
                     }
                 });
             }
@@ -2190,6 +2201,31 @@
             background-color: #f8fafc;
         }
 
+        /* Estilos mejorados para el selector de idioma */
+        #languageFilter {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        #languageFilter option {
+            font-weight: 500;
+            padding: 8px 12px;
+        }
+
+        /* Mejorar visibilidad en modo oscuro */
+        .dark-mode #languageFilter {
+            background-color: #374151;
+            color: #f9fafb;
+            border-color: #4b5563;
+        }
+
+        .dark-mode #languageFilter option {
+            background-color: #374151;
+            color: #f9fafb;
+        }
+
         .hero-section {
             background: linear-gradient(to right, var(--color-header-bg), var(--color-footer-bg));
             color: white;
@@ -2373,15 +2409,15 @@
                 </div>
                 <div class="flex-1 min-w-[150px] flex flex-col">
                     <label for="languageFilter" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Filtrar por Idioma:</label>
-                    <select id="languageFilter" class="shadow border rounded w-full py-2 px-3 h-[42px] text-gray-700 dark:text-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline">
-                        <option value="">Todos los Idiomas</option>
-                        <option value="Español">Español</option>
-                        <option value="Inglés">Inglés</option>
-                        <option value="Japonés">Japonés</option>
-                        <option value="Francés">Francés</option>
-                        <option value="Alemán">Alemán</option>
-                        <option value="Chino">Chino</option>
-                        <option value="Italiano">Italiano</option>
+                    <select id="languageFilter" class="shadow border rounded w-full py-2 px-3 h-[42px] text-gray-700 dark:text-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline font-medium text-base">
+                        <option value="">🌍 Todos los Idiomas</option>
+                        <option value="Español">🇪🇸 Español</option>
+                        <option value="Inglés">🇺🇸 Inglés</option>
+                        <option value="Japonés">🇯🇵 Japonés</option>
+                        <option value="Francés">🇫🇷 Francés</option>
+                        <option value="Alemán">🇩🇪 Alemán</option>
+                        <option value="Chino">🇨🇳 Chino</option>
+                        <option value="Italiano">🇮🇹 Italiano</option>
                     </select>
                 </div>
                 <div class="flex items-center self-end p-2 rounded-md bg-gray-50 dark:bg-gray-700 h-[42px]">
