@@ -288,7 +288,7 @@
                     updatedAt: new Date()
                 };
 
-                // Guardar en Firestore
+                // Guardar en Firestore usando la estructura correcta
                 await setDoc(doc(db, 'users', currentUser.uid), profileData, { merge: true });
 
                 // Actualizar el nombre en el header del perfil
@@ -313,7 +313,7 @@
 
             } catch (error) {
                 console.error('❌ Error al guardar datos del perfil:', error);
-                showProfileSaveMessage('❌ Error al guardar los cambios', 'error');
+                showProfileSaveMessage('❌ Error al guardar los cambios: ' + error.message, 'error');
             }
         }
 
@@ -387,7 +387,8 @@
                 await updatePassword(currentUser, newPassword);
 
                 // Limpiar el formulario
-                document.getElementById('passwordChangeForm').reset();
+                const passwordForm = document.getElementById('passwordChangeForm');
+                if (passwordForm) passwordForm.reset();
 
                 showPasswordChangeMessage('✅ Contraseña cambiada correctamente', 'success');
                 console.log('✅ Contraseña cambiada exitosamente');
@@ -402,6 +403,8 @@
                     errorMessage = 'La nueva contraseña es demasiado débil';
                 } else if (error.code === 'auth/requires-recent-login') {
                     errorMessage = 'Por seguridad, debes volver a iniciar sesión para cambiar la contraseña';
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMessage = 'Demasiados intentos. Intenta de nuevo más tarde';
                 }
                 
                 showPasswordChangeMessage(`❌ ${errorMessage}`, 'error');
@@ -422,7 +425,10 @@
                 const joinDateElement = document.getElementById('profileJoinDate');
 
                 if (userNameElement) {
-                    userNameElement.textContent = userData?.displayName || currentUser.displayName || 'Usuario';
+                    const displayName = userData?.name && userData?.lastName 
+                        ? `${userData.name} ${userData.lastName}` 
+                        : userData?.displayName || currentUser.displayName || 'Usuario';
+                    userNameElement.textContent = displayName;
                 }
 
                 if (userEmailElement) {
@@ -441,31 +447,19 @@
                 }
 
                 // Cargar datos en el formulario de perfil personal
-                const profileUsernameInput = document.getElementById('profileUsername');
                 const profileNameInput = document.getElementById('profileName');
                 const profileLastNameInput = document.getElementById('profileLastName');
                 const profileAddressInput = document.getElementById('profileAddress');
                 const profileBirthDateInput = document.getElementById('profileBirthDate');
                 const profileEmailInput = document.getElementById('profileEmail');
 
-                if (profileUsernameInput) {
-                    profileUsernameInput.value = userData?.username || '';
-                }
-                if (profileNameInput) {
-                    profileNameInput.value = userData?.name || '';
-                }
-                if (profileLastNameInput) {
-                    profileLastNameInput.value = userData?.lastName || '';
-                }
-                if (profileAddressInput) {
-                    profileAddressInput.value = userData?.address || '';
-                }
-                if (profileBirthDateInput) {
-                    profileBirthDateInput.value = userData?.birthDate || '';
-                }
-                if (profileEmailInput) {
-                    profileEmailInput.value = currentUser.email || '';
-                }
+                if (profileNameInput) profileNameInput.value = userData?.name || '';
+                if (profileLastNameInput) profileLastNameInput.value = userData?.lastName || '';
+                if (profileAddressInput) profileAddressInput.value = userData?.address || '';
+                if (profileBirthDateInput) profileBirthDateInput.value = userData?.birthDate || '';
+                if (profileEmailInput) profileEmailInput.value = userData?.email || currentUser.email || '';
+
+                console.log('✅ Información del usuario cargada:', userData);
 
             } catch (error) {
                 console.error('❌ Error al cargar información del usuario:', error);
@@ -852,7 +846,7 @@
             showLoadingSpinner();
 
             try {
-                const myCardsCollectionRef = collection(db, `artifacts/${appId}/users/${userId}/my_cards`);
+                const myCardsCollectionRef = collection(db, `users/${userId}/my_cards`);
                 const querySnapshot = await getDocs(myCardsCollectionRef);
                 userCardsCache = [];
 
@@ -986,7 +980,7 @@
             }
 
             try {
-                await deleteDoc(doc(db, `artifacts/${appId}/users/${currentUser.uid}/my_cards/${cardId}`));
+                await deleteDoc(doc(db, `users/${currentUser.uid}/my_cards/${cardId}`));
                 alert('Carta eliminada de tu colección.');
                 await loadMyCollection(currentUser.uid);
             } catch (error) {
@@ -1474,7 +1468,7 @@
 
                         // Crear perfil completo en Firestore
                         await setDoc(doc(db, 'users', user.uid), {
-                            username: username,
+                            name: username,
                             email: user.email,
                             createdAt: new Date(),
                             updatedAt: new Date()
@@ -1578,7 +1572,7 @@
                     addedAt: new Date()
                 };
 
-                await setDoc(doc(db, `artifacts/${appId}/users/${currentUser.uid}/my_cards/${cardId}`), cardData);
+                await setDoc(doc(db, `users/${currentUser.uid}/my_cards/${cardId}`), cardData);
                 alert(`¡Carta "${cardName}" añadida a tu colección!`);
             } catch (error) {
                 console.error('Error al añadir carta:', error);
