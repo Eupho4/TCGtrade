@@ -5,7 +5,105 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TCGtrade - Intercambio Pokémon TCG</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'dark-bg': '#1a1a1a',
+                        'dark-card': '#2d2d2d',
+                        'dark-text': '#ffffff',
+                        'dark-text-secondary': '#a0a0a0'
+                    }
+                }
+            }
+        }
+    </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Estilos para modo oscuro */
+        .dark-mode {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        
+        .dark-mode .bg-white {
+            background-color: #2d2d2d;
+        }
+        
+        .dark-mode .text-gray-800 {
+            color: #ffffff;
+        }
+        
+        .dark-mode .text-gray-600 {
+            color: #a0a0a0;
+        }
+        
+        .dark-mode .text-gray-700 {
+            color: #d1d5db;
+        }
+        
+        .dark-mode .border-gray-200 {
+            border-color: #4b5563;
+        }
+        
+        .dark-mode .shadow-lg {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Transiciones suaves */
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        /* Interruptor de modo oscuro personalizado */
+        .dark-mode-toggle {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .dark-mode-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .dark-mode-toggle .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .dark-mode-toggle .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        .dark-mode-toggle input:checked + .slider {
+            background-color: #f97316;
+        }
+        
+        .dark-mode-toggle input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+    </style>
 
     <script type="module">
         // Importar las funciones necesarias de Firebase
@@ -488,10 +586,54 @@
                 if (profileBirthDateInput) profileBirthDateInput.value = userData?.birthDate || '';
                 if (profileEmailInput) profileEmailInput.value = userData?.email || currentUser.email || '';
 
+                // Cargar preferencia de modo oscuro
+                loadDarkModePreference(userData);
+
                 console.log('✅ Información del usuario cargada:', userData);
 
             } catch (error) {
                 console.error('❌ Error al cargar información del usuario:', error);
+            }
+        }
+
+        // Función para cargar preferencia de modo oscuro
+        function loadDarkModePreference(userData) {
+            const darkMode = userData?.darkMode || false;
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            
+            if (darkModeToggle) {
+                darkModeToggle.checked = darkMode;
+                applyDarkMode(darkMode);
+            }
+        }
+
+        // Función para aplicar modo oscuro
+        function applyDarkMode(isDark) {
+            const html = document.documentElement;
+            
+            if (isDark) {
+                html.classList.add('dark');
+                document.body.classList.add('dark-mode');
+            } else {
+                html.classList.remove('dark');
+                document.body.classList.remove('dark-mode');
+            }
+        }
+
+        // Función para guardar preferencia de modo oscuro
+        async function saveDarkModePreference(isDark) {
+            if (!currentUser) return;
+
+            try {
+                await setDoc(doc(db, 'users', currentUser.uid), {
+                    darkMode: isDark,
+                    updatedAt: new Date()
+                }, { merge: true });
+
+                applyDarkMode(isDark);
+                console.log('✅ Preferencia de modo oscuro guardada:', isDark);
+            } catch (error) {
+                console.error('❌ Error al guardar preferencia de modo oscuro:', error);
             }
         }
 
@@ -2068,7 +2210,7 @@
 
             <div class="w-full md:w-1/2 lg:w-1/3 mt-4 md:mt-0 relative flex items-center h-12">
                 <input type="text" id="searchInput" placeholder="Buscar cartas, sets, usuarios..."
-                       class="w-full p-3 rounded-l-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-800 h-full">
+                       class="w-full p-3 rounded-l-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-800 dark:text-white dark:bg-gray-700 h-full">
                 <button type="button" onclick="quickSearch()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-3 rounded-r-lg font-semibold text-xs h-full transition-all" title="Búsqueda rápida (10 resultados)">
                     🚀
                 </button>
@@ -2099,35 +2241,35 @@
         </section>
 
         <section id="searchResults" class="mb-12 hidden">
-            <h2 class="text-3xl font-bold mb-6 text-gray-700 flex items-center">
+            <h2 class="text-3xl font-bold mb-6 text-gray-700 dark:text-white flex items-center">
                 <span class="icon">✨</span> Resultados de Búsqueda
             </h2>
             <div id="cardsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 </div>
-            <p id="noResultsMessage" class="text-center text-gray-600 mt-8 hidden">No se encontraron resultados para tu búsqueda.</p>
+            <p id="noResultsMessage" class="text-center text-gray-600 dark:text-gray-400 mt-8 hidden">No se encontraron resultados para tu búsqueda.</p>
             <p id="errorMessage" class="text-center text-red-500 mt-8 hidden">Ha ocurrido un error al cargar las cartas.</p>
         </section>
 
         <section id="myCardsSection" class="mb-12 hidden">
-            <h2 class="text-3xl font-bold mb-6 text-gray-700 flex items-center">
+            <h2 class="text-3xl font-bold mb-6 text-gray-700 dark:text-white flex items-center">
                 <span class="icon">📦</span> Mi Colección de Cartas
             </h2>
             <div class="flex flex-wrap gap-4 mb-6 items-end">
                 <div class="flex-1 min-w-[150px] flex flex-col">
-                    <label for="seriesFilter" class="block text-gray-700 text-sm font-bold mb-2">Filtrar por Serie:</label>
-                    <select id="seriesFilter" class="shadow border rounded w-full py-2 px-3 h-[42px] text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <label for="seriesFilter" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Filtrar por Serie:</label>
+                    <select id="seriesFilter" class="shadow border rounded w-full py-2 px-3 h-[42px] text-gray-700 dark:text-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline">
                         <option value="">Todas las Series</option>
                     </select>
                 </div>
                 <div class="flex-1 min-w-[150px] flex flex-col">
-                    <label for="setFilter" class="block text-gray-700 text-sm font-bold mb-2">Filtrar por Expansión (Set):</label>
-                    <select id="setFilter" class="shadow border rounded w-full py-2 px-3 h-[42px] text-gray-700 leading-tight focus:outline-none focus:shadow-outline" disabled>
+                    <label for="setFilter" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Filtrar por Expansión (Set):</label>
+                    <select id="setFilter" class="shadow border rounded w-full py-2 px-3 h-[42px] text-gray-700 dark:text-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline" disabled>
                         <option value="">Todas las Expansiones</option>
                     </select>
                 </div>
                 <div class="flex-1 min-w-[150px] flex flex-col">
-                    <label for="languageFilter" class="block text-gray-700 text-sm font-bold mb-2">Filtrar por Idioma:</label>
-                    <select id="languageFilter" class="shadow border rounded w-full py-2 px-3 h-[42px] text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    <label for="languageFilter" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Filtrar por Idioma:</label>
+                    <select id="languageFilter" class="shadow border rounded w-full py-2 px-3 h-[42px] text-gray-700 dark:text-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline">
                         <option value="">Todos los Idiomas</option>
                         <option value="Español">Español</option>
                         <option value="Inglés">Inglés</option>
@@ -2138,9 +2280,9 @@
                         <option value="Italiano">Italiano</option>
                     </select>
                 </div>
-                <div class="flex items-center self-end p-2 rounded-md bg-gray-50 h-[42px]">
-                    <input type="checkbox" id="showAllSetCardsToggle" class="mr-2 h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 rounded cursor-pointer" disabled>
-                    <label for="showAllSetCardsToggle" class="text-gray-700 text-sm font-bold cursor-pointer">Ver todas las cartas del set (incluidas las faltantes)</label>
+                <div class="flex items-center self-end p-2 rounded-md bg-gray-50 dark:bg-gray-700 h-[42px]">
+                    <input type="checkbox" id="showAllSetCardsToggle" class="mr-2 h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 dark:border-gray-600 rounded cursor-pointer" disabled>
+                    <label for="showAllSetCardsToggle" class="text-gray-700 dark:text-gray-300 text-sm font-bold cursor-pointer">Ver todas las cartas del set (incluidas las faltantes)</label>
                 </div>
                 <button id="applyFiltersBtn" class="btn-primary px-6 py-2 rounded-lg text-sm font-semibold h-[42px]">
                     Aplicar Filtros
@@ -2148,12 +2290,12 @@
             </div>
             <div id="myCardsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
                 </div>
-            <p id="noMyCardsMessage" class="text-center text-gray-600 mt-8 hidden">Aún no tienes cartas en tu colección. ¡Busca y añade algunas!</p>
+            <p id="noMyCardsMessage" class="text-center text-gray-600 dark:text-gray-400 mt-8 hidden">Aún no tienes cartas en tu colección. ¡Busca y añade algunas!</p>
             <p id="myCardsErrorMessage" class="text-center text-red-500 mt-8 hidden">Error al cargar tu colección. Por favor, inténtalo de nuevo.</p>
         </section>
 
         <section id="howItWorks" class="mb-12 text-center">
-            <h2 class="text-3xl font-bold mb-6 text-gray-700 flex items-center justify-center">
+            <h2 class="text-3xl font-bold mb-6 text-gray-700 dark:text-white flex items-center justify-center">
                 <span class="icon">⚙️</span> ¿Cómo funciona TCGtrade?
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -2414,39 +2556,65 @@
                 <!-- Contenido de Configuración (oculto por defecto) -->
                 <div id="profileSettingsContent" class="profile-tab-content hidden">
                     <div class="space-y-6">
+                        <!-- Sección de Apariencia -->
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
+                                <span class="icon mr-2">🎨</span> Apariencia
+                            </h3>
+                            
+                            <!-- Interruptor de Modo Oscuro -->
+                            <div class="flex items-center justify-between py-4 border-b border-gray-200 dark:border-gray-700">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <span class="text-2xl mr-3">🌙</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-lg font-semibold text-gray-800 dark:text-white">Modo Oscuro</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">Cambia entre tema claro y oscuro</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center">
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="darkModeToggle" class="sr-only" onchange="saveDarkModePreference(this.checked)">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 dark:peer-focus:ring-orange-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-orange-600"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- Sección de Seguridad -->
-                        <div class="bg-white rounded-xl shadow-lg p-6">
-                            <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
                                 <span class="icon mr-2">🔒</span> Seguridad
                             </h3>
                             
                             <form id="passwordChangeForm" class="space-y-6">
                                 <div class="mb-4">
-                                    <label for="currentPassword" class="block text-gray-700 text-sm font-bold mb-2">
+                                    <label for="currentPassword" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                                         Contraseña Actual *
                                     </label>
                                     <input type="password" id="currentPassword" name="currentPassword" 
-                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
+                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 dark:text-white bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
                                            placeholder="Tu contraseña actual" required>
                                 </div>
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <div>
-                                        <label for="newPassword" class="block text-gray-700 text-sm font-bold mb-2">
+                                        <label for="newPassword" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                                             Nueva Contraseña *
                                         </label>
                                         <input type="password" id="newPassword" name="newPassword" 
-                                               class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
+                                               class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 dark:text-white bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
                                                placeholder="Nueva contraseña" required>
-                                        <p class="text-xs text-gray-500 mt-1">Mínimo 6 caracteres</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Mínimo 6 caracteres</p>
                                     </div>
                                     
                                     <div>
-                                        <label for="confirmNewPassword" class="block text-gray-700 text-sm font-bold mb-2">
+                                        <label for="confirmNewPassword" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                                             Confirmar Nueva Contraseña *
                                         </label>
                                         <input type="password" id="confirmNewPassword" name="confirmNewPassword" 
-                                               class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
+                                               class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 dark:text-white bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
                                                placeholder="Confirmar nueva contraseña" required>
                                     </div>
                                 </div>
