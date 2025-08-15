@@ -510,126 +510,7 @@
             }, 5000);
         }
 
-        // Función para probar la conexión con Firebase
-        async function testFirebaseConnection() {
-            console.log('🔧 Probando conexión con Firebase...');
-            
-            try {
-                // Verificar configuración
-                console.log('🔧 Configuración Firebase:', {
-                    apiKey: firebaseConfig.apiKey ? 'Configurado' : 'No configurado',
-                    authDomain: firebaseConfig.authDomain,
-                    projectId: firebaseConfig.projectId,
-                    storageBucket: firebaseConfig.storageBucket,
-                    messagingSenderId: firebaseConfig.messagingSenderId,
-                    appId: firebaseConfig.appId
-                });
 
-                // Verificar inicialización
-                console.log('🔧 Firebase App inicializado:', !!app);
-                console.log('🔧 Firebase Auth inicializado:', !!auth);
-                console.log('🔧 Firebase Firestore inicializado:', !!db);
-
-                // Probar Firestore
-                console.log('🔧 Probando Firestore...');
-                const testDoc = doc(db, 'test', 'connection-test');
-                await setDoc(testDoc, { 
-                    timestamp: new Date(),
-                    test: true,
-                    message: 'Prueba de conexión exitosa'
-                });
-                console.log('✅ Firestore funciona correctamente');
-                
-                // Leer el documento de prueba
-                const testDocRead = await getDoc(testDoc);
-                console.log('✅ Lectura de Firestore exitosa:', testDocRead.data());
-                
-                // Limpiar documento de prueba
-                await deleteDoc(testDoc);
-                console.log('✅ Documento de prueba eliminado');
-                
-                // Probar Auth
-                console.log('🔧 Probando Auth...');
-                if (auth) {
-                    console.log('✅ Firebase Auth está disponible');
-                    console.log('🔧 Usuario actual:', currentUser ? {
-                        uid: currentUser.uid,
-                        email: currentUser.email,
-                        displayName: currentUser.displayName
-                    } : 'No hay usuario autenticado');
-                } else {
-                    console.error('❌ Firebase Auth no está disponible');
-                }
-
-                // Mostrar información sobre el almacenamiento de datos
-                console.log('📊 INFORMACIÓN SOBRE ALMACENAMIENTO DE DATOS:');
-                console.log('📊 1. CREDENCIALES DE ACCESO:');
-                console.log('   - Se almacenan en Firebase Authentication');
-                console.log('   - Incluye: email, contraseña (hasheada), UID único');
-                console.log('   - Ubicación: Firebase Console > Authentication > Users');
-                
-                console.log('📊 2. DATOS DEL PERFIL:');
-                console.log('   - Se almacenan en Firestore Database');
-                console.log('   - Colección: "users"');
-                console.log('   - Documento ID: UID del usuario');
-                console.log('   - Campos: username, name, lastName, address, birthDate, email, createdAt, updatedAt');
-                console.log('   - Ubicación: Firebase Console > Firestore Database > users/{uid}');
-                
-                console.log('📊 3. COLECCIÓN DE CARTAS:');
-                console.log('   - Se almacenan en Firestore Database');
-                console.log('   - Colección: "users/{uid}/cards"');
-                console.log('   - Documento ID: ID de la carta de la API');
-                console.log('   - Campos: id, name, number, imageUrl, set, series, language, addedAt');
-                console.log('   - Ubicación: Firebase Console > Firestore Database > users/{uid}/cards');
-                
-                console.log('📊 4. INTERCAMBIOS (futuro):');
-                console.log('   - Se almacenarán en Firestore Database');
-                console.log('   - Colección: "trades" o "users/{uid}/trades"');
-                console.log('   - Campos: participantes, cartas ofrecidas, cartas solicitadas, estado, fecha');
-
-                // Mostrar mensaje de éxito
-                alert(`✅ CONEXIÓN EXITOSA CON FIREBASE
-
-📊 INFORMACIÓN DEL ALMACENAMIENTO:
-
-🔐 CREDENCIALES:
-- Firebase Authentication
-- Email y contraseña (seguras)
-
-👤 PERFIL DE USUARIO:
-- Firestore: users/{uid}
-- Datos personales y configuración
-
-🃏 COLECCIÓN DE CARTAS:
-- Firestore: users/{uid}/cards
-- Cartas que posee el usuario
-
-📈 ESTADÍSTICAS:
-- Calculadas en tiempo real
-- Basadas en la colección de cartas
-
-🔧 Estado actual: ${currentUser ? 'Usuario autenticado' : 'No autenticado'}
-📧 Email: ${currentUser?.email || 'N/A'}
-🆔 UID: ${currentUser?.uid || 'N/A'}`);
-
-            } catch (error) {
-                console.error('❌ Error en la conexión con Firebase:', error);
-                alert(`❌ ERROR EN LA CONEXIÓN CON FIREBASE:
-
-🔍 Detalles del error:
-- Tipo: ${error.name || 'Error'}
-- Mensaje: ${error.message}
-- Código: ${error.code || 'N/A'}
-
-🔧 Posibles soluciones:
-1. Verificar configuración de Firebase
-2. Comprobar reglas de Firestore
-3. Verificar conexión a internet
-4. Revisar consola del navegador
-
-📞 Si el problema persiste, contacta al administrador.`);
-            }
-        }
 
         // Función para cambiar contraseña
         async function changePassword() {
@@ -1638,16 +1519,7 @@
                 });
             }
 
-            // Language selector in header
-            const languageSelector = document.getElementById('languageSelector');
-            if (languageSelector) {
-                languageSelector.addEventListener('change', (e) => {
-                    console.log('🌍 Language changed to:', e.target.value);
-                    // Aquí puedes implementar la lógica de cambio de idioma
-                    // Por ahora solo recargamos la página
-                    window.location.reload();
-                });
-            }
+
 
             console.log('✅ Event listeners configurados correctamente');
         }
@@ -2413,29 +2285,7 @@
             color: #f9fafb;
         }
 
-        /* Estilos para el selector de idioma del header */
-        #languageSelector {
-            background-color: rgba(255, 255, 255, 0.9);
-            color: #374151;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
 
-        #languageSelector option {
-            background-color: #ffffff;
-            color: #374151;
-            font-weight: 500;
-        }
-
-        .dark-mode #languageSelector {
-            background-color: rgba(31, 41, 55, 0.9);
-            color: #f9fafb;
-            border-color: rgba(75, 85, 99, 0.5);
-        }
-
-        .dark-mode #languageSelector option {
-            background-color: #1f2937;
-            color: #f9fafb;
-        }
 
         .hero-section {
             background: linear-gradient(to right, var(--color-header-bg), var(--color-footer-bg));
@@ -2579,23 +2429,6 @@
                     <li id="logoutNavLink" class="hidden"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="logoutLink"><span class="icon">👋</span> <span data-i18n="nav.logout">Cerrar Sesión</span></a></li>
                 </ul>
             </nav>
-            
-            <!-- Selector de Idioma -->
-            <div class="mt-4 md:mt-0 ml-4">
-                <label for="languageSelector" class="sr-only" data-i18n="nav.language">Idioma</label>
-                <select id="languageSelector" class="bg-white/10 backdrop-blur-sm border border-white/20 rounded px-3 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-400 hover:bg-white/20 transition-colors">
-                    <option value="es">🇪🇸 Español</option>
-                    <option value="en">🇺🇸 English</option>
-                    <option value="fr">🇫🇷 Français</option>
-                    <option value="de">🇩🇪 Deutsch</option>
-                    <option value="it">🇮🇹 Italiano</option>
-                    <option value="pt">🇵🇹 Português</option>
-                    <option value="ja">🇯🇵 日本語</option>
-                    <option value="ko">🇰🇷 한국어</option>
-                    <option value="zh">🇨🇳 中文</option>
-                    <option value="ru">🇷🇺 Русский</option>
-                </select>
-            </div>
         </div>
     </header>
 
@@ -2825,13 +2658,7 @@
                             <p class="text-sm"></p>
                         </div>
                         
-                        <!-- Botón de prueba de conexión -->
-                        <div class="mt-6 pt-4 border-t border-gray-200">
-                            <button type="button" onclick="testFirebaseConnection()" class="btn-secondary px-4 py-2 rounded-lg text-sm font-semibold">
-                                🔧 Probar Conexión Firebase
-                            </button>
-                            <p class="text-xs text-gray-500 mt-2">Haz clic para verificar la conexión con la base de datos</p>
-                        </div>
+
                     </div>
                 </div>
 
@@ -3011,13 +2838,7 @@
                                 <p class="text-sm"></p>
                             </div>
                             
-                            <!-- Botón de prueba de conexión -->
-                            <div class="mt-6 pt-4 border-t border-gray-200">
-                                <button type="button" onclick="testFirebaseConnection()" class="btn-secondary px-4 py-2 rounded-lg text-sm font-semibold">
-                                    🔧 Probar Conexión Firebase
-                                </button>
-                                <p class="text-xs text-gray-500 mt-2">Haz clic para verificar la conexión con la base de datos</p>
-                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -3089,9 +2910,7 @@
         </div>
     </footer>
 
-    <!-- Scripts de Internacionalización -->
-    <script src="js/translations.js"></script>
-    <script src="js/i18n.js"></script>
+
 
 </body>
 </html>
