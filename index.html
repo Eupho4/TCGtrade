@@ -173,8 +173,7 @@
             if (interchangesSection) interchangesSection.classList.add('hidden');
         }
 
-        // Hacer funciones disponibles globalmente
-        window.showInitialSections = showInitialSections;
+
 
         function showSearchResults() {
             // Ocultar secciones iniciales
@@ -211,9 +210,6 @@
             }
         }
 
-        // Hacer funciones disponibles globalmente
-        window.showMyCardsSection = showMyCardsSection;
-
         function showInterchangesSection() {
             // Ocultar otras secciones
             if (heroSection) heroSection.classList.add('hidden');
@@ -225,9 +221,6 @@
             // Mostrar sección de intercambios
             if (interchangesSection) interchangesSection.classList.remove('hidden');
         }
-
-        // Hacer funciones disponibles globalmente
-        window.showInterchangesSection = showInterchangesSection;
 
         function showProfileSection() {
             // Ocultar otras secciones
@@ -248,9 +241,6 @@
                 showMyCardsSection();
             }
         }
-
-        // Hacer funciones disponibles globalmente
-        window.showProfileSection = showProfileSection;
 
         // Función para cambiar entre tabs del perfil
         function switchProfileTab(tabName) {
@@ -2136,7 +2126,6 @@
         window.showMyCardsSection = showMyCardsSection;
         window.showInterchangesSection = showInterchangesSection;
         window.showProfileSection = showProfileSection;
-        window.showInitialSections = showInitialSections;
         window.fetchCards = fetchCards;
     </script>
 
