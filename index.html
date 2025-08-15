@@ -893,7 +893,7 @@
 
         // --- Configuración de Event Listeners ---
         document.addEventListener('DOMContentLoaded', () => {
-            console.log('DOM cargado, configurando eventos...');
+            console.log('🚀 DOM cargado, configurando eventos...');
 
             // Asignar referencias a elementos del DOM
             searchInput = document.getElementById('searchInput');
@@ -904,6 +904,13 @@
             loadingSpinner = document.getElementById('loadingSpinner');
             noResultsMessage = document.getElementById('noResultsMessage');
             errorMessage = document.getElementById('errorMessage');
+            
+            console.log('🔍 Elementos principales:', {
+                searchInput: !!searchInput,
+                searchResultsSection: !!searchResultsSection,
+                heroSection: !!heroSection,
+                cardsContainer: !!cardsContainer
+            });
 
             authModal = document.getElementById('authModal');
             loginForm = document.getElementById('loginForm');
@@ -925,6 +932,13 @@
             registerNavLink = document.getElementById('registerNavLink');
             profileNavLink = document.getElementById('profileNavLink');
             logoutNavLink = document.getElementById('logoutNavLink');
+            
+            console.log('🔍 Elementos de autenticación:', {
+                authModal: !!authModal,
+                loginNavLink: !!loginNavLink,
+                registerNavLink: !!registerNavLink,
+                profileNavLink: !!profileNavLink
+            });
 
             myCardsNavLink = document.getElementById('myCardsNavLink');
             myCardsLink = document.getElementById('myCardsLink');
@@ -947,10 +961,20 @@
 
             // Event listeners para navegación
             const homeLink = document.getElementById('homeLink');
-            if (homeLink) homeLink.addEventListener('click', (e) => { e.preventDefault(); showInitialSections(); });
+            if (homeLink) {
+                console.log('🔧 Home link found');
+                homeLink.addEventListener('click', (e) => { e.preventDefault(); showInitialSections(); });
+            } else {
+                console.error('❌ Home link not found!');
+            }
 
             const startTradingBtn = document.getElementById('startTradingBtn');
-            if (startTradingBtn) startTradingBtn.addEventListener('click', (e) => { e.preventDefault(); showAuthModal('register'); });
+            if (startTradingBtn) {
+                console.log('🔧 Start trading button found');
+                startTradingBtn.addEventListener('click', (e) => { e.preventDefault(); showAuthModal('register'); });
+            } else {
+                console.error('❌ Start trading button not found!');
+            }
 
             const loginLink = document.getElementById('loginLink');
             if (loginLink) {
@@ -965,15 +989,35 @@
             }
 
             const registerLink = document.getElementById('registerLink');
-            if (registerLink) registerLink.addEventListener('click', (e) => { e.preventDefault(); showAuthModal('register'); });
+            if (registerLink) {
+                console.log('🔧 Register link found');
+                registerLink.addEventListener('click', (e) => { e.preventDefault(); showAuthModal('register'); });
+            } else {
+                console.error('❌ Register link not found!');
+            }
 
             const logoutLink = document.getElementById('logoutLink');
-            if (logoutLink) logoutLink.addEventListener('click', (e) => { e.preventDefault(); logoutUser(); });
+            if (logoutLink) {
+                console.log('🔧 Logout link found');
+                logoutLink.addEventListener('click', (e) => { e.preventDefault(); logoutUser(); });
+            } else {
+                console.error('❌ Logout link not found!');
+            }
 
-            if (myCardsLink) myCardsLink.addEventListener('click', (e) => { e.preventDefault(); showMyCardsSection(); });
+            if (myCardsLink) {
+                console.log('🔧 My cards link found');
+                myCardsLink.addEventListener('click', (e) => { e.preventDefault(); showMyCardsSection(); });
+            } else {
+                console.error('❌ My cards link not found!');
+            }
 
             const interchangesLink = document.getElementById('interchangesLink');
-            if (interchangesLink) interchangesLink.addEventListener('click', (e) => { e.preventDefault(); showInterchangesSection(); });
+            if (interchangesLink) {
+                console.log('🔧 Interchanges link found');
+                interchangesLink.addEventListener('click', (e) => { e.preventDefault(); showInterchangesSection(); });
+            } else {
+                console.error('❌ Interchanges link not found!');
+            }
 
             // Event listener para Mi Perfil (debe funcionar como login si no está conectado)
             const profileLink = document.getElementById('profileLink');
