@@ -1020,15 +1020,19 @@
             }
 
             // Event listener para Mi Perfil (debe funcionar como login si no está conectado)
-            const profileLink = document.getElementById('profileLink');
-            if (profileLink) profileLink.addEventListener('click', (e) => { 
-                e.preventDefault(); 
-                if (currentUser) {
-                    showProfileSection(); 
-                } else {
-                    showAuthModal('login');
-                }
-            });
+            if (profileLink) {
+                console.log('🔧 Profile link found');
+                profileLink.addEventListener('click', (e) => { 
+                    e.preventDefault(); 
+                    if (currentUser) {
+                        showProfileSection(); 
+                    } else {
+                        showAuthModal('login');
+                    }
+                });
+            } else {
+                console.error('❌ Profile link not found!');
+            }
 
             // Event listener para Explorar (volver a inicio)
             const exploreLinks = document.querySelectorAll('a[href="#"]:not([id])');
