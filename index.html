@@ -251,6 +251,12 @@
             }
 
             try {
+                // Verificar que el usuario esté autenticado correctamente
+                if (!currentUser.uid) {
+                    showProfileSaveMessage('Error de autenticación. Por favor, vuelve a iniciar sesión.', 'error');
+                    return;
+                }
+
                 const name = document.getElementById('profileName')?.value?.trim();
                 const lastName = document.getElementById('profileLastName')?.value?.trim();
                 const address = document.getElementById('profileAddress')?.value?.trim();
@@ -288,6 +294,9 @@
                     updatedAt: new Date()
                 };
 
+                console.log('🔧 Intentando guardar datos para usuario:', currentUser.uid);
+                console.log('📋 Datos a guardar:', profileData);
+
                 // Guardar en Firestore usando la estructura correcta
                 await setDoc(doc(db, 'users', currentUser.uid), profileData, { merge: true });
 
@@ -309,11 +318,19 @@
                 }
 
                 showProfileSaveMessage('✅ Perfil actualizado correctamente', 'success');
-                console.log('✅ Datos del perfil guardados:', profileData);
+                console.log('✅ Datos del perfil guardados exitosamente');
 
             } catch (error) {
                 console.error('❌ Error al guardar datos del perfil:', error);
-                showProfileSaveMessage('❌ Error al guardar los cambios: ' + error.message, 'error');
+                
+                // Manejo específico de errores de permisos
+                if (error.code === 'permission-denied') {
+                    showProfileSaveMessage('❌ Error de permisos. Verifica que las reglas de Firestore estén configuradas correctamente.', 'error');
+                } else if (error.code === 'unauthenticated') {
+                    showProfileSaveMessage('❌ Error de autenticación. Por favor, vuelve a iniciar sesión.', 'error');
+                } else {
+                    showProfileSaveMessage('❌ Error al guardar los cambios: ' + error.message, 'error');
+                }
             }
         }
 
@@ -353,6 +370,12 @@
             }
 
             try {
+                // Verificar que el usuario esté autenticado correctamente
+                if (!currentUser.uid || !currentUser.email) {
+                    showPasswordChangeMessage('Error de autenticación. Por favor, vuelve a iniciar sesión.', 'error');
+                    return;
+                }
+
                 const currentPassword = document.getElementById('currentPassword')?.value;
                 const newPassword = document.getElementById('newPassword')?.value;
                 const confirmNewPassword = document.getElementById('confirmNewPassword')?.value;
@@ -378,6 +401,8 @@
                     showPasswordChangeMessage('La nueva contraseña debe ser diferente a la actual', 'error');
                     return;
                 }
+
+                console.log('🔧 Intentando cambiar contraseña para usuario:', currentUser.email);
 
                 // Reautenticar al usuario antes de cambiar la contraseña
                 const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
@@ -405,6 +430,10 @@
                     errorMessage = 'Por seguridad, debes volver a iniciar sesión para cambiar la contraseña';
                 } else if (error.code === 'auth/too-many-requests') {
                     errorMessage = 'Demasiados intentos. Intenta de nuevo más tarde';
+                } else if (error.code === 'auth/user-mismatch') {
+                    errorMessage = 'Error de autenticación. Por favor, vuelve a iniciar sesión.';
+                } else if (error.code === 'auth/invalid-credential') {
+                    errorMessage = 'Credenciales inválidas. Verifica tu contraseña actual.';
                 }
                 
                 showPasswordChangeMessage(`❌ ${errorMessage}`, 'error');
