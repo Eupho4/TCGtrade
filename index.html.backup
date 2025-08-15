@@ -364,7 +364,16 @@
             }
 
             try {
+<<<<<<< HEAD
+                // Verificar que el usuario esté autenticado correctamente
+                if (!currentUser.uid) {
+                    showProfileSaveMessage('Error de autenticación. Por favor, vuelve a iniciar sesión.', 'error');
+                    return;
+                }
+
+=======
                 console.log('🔧 Obteniendo valores del formulario...');
+>>>>>>> 21bb2d32ba3180536b814aae3c5632a817bbc691
                 const name = document.getElementById('profileName')?.value?.trim();
                 const lastName = document.getElementById('profileLastName')?.value?.trim();
                 const address = document.getElementById('profileAddress')?.value?.trim();
@@ -408,11 +417,18 @@
                     updatedAt: new Date()
                 };
 
+<<<<<<< HEAD
+                console.log('🔧 Intentando guardar datos para usuario:', currentUser.uid);
+                console.log('📋 Datos a guardar:', profileData);
+
+                // Guardar en Firestore usando la estructura correcta
+=======
                 console.log('🔧 Datos a guardar:', profileData);
                 console.log('🔧 Usuario UID:', currentUser.uid);
 
                 // Guardar en Firestore
                 console.log('🔧 Guardando en Firestore...');
+>>>>>>> 21bb2d32ba3180536b814aae3c5632a817bbc691
                 await setDoc(doc(db, 'users', currentUser.uid), profileData, { merge: true });
                 console.log('✅ Datos guardados en Firestore');
 
@@ -436,6 +452,7 @@
                 }
 
                 showProfileSaveMessage('✅ Perfil actualizado correctamente', 'success');
+<<<<<<< HEAD
                 console.log('✅ Datos del perfil guardados exitosamente');
 
             } catch (error) {
@@ -449,6 +466,13 @@
                 } else {
                     showProfileSaveMessage('❌ Error al guardar los cambios: ' + error.message, 'error');
                 }
+=======
+                console.log('✅ Proceso completado exitosamente');
+
+            } catch (error) {
+                console.error('❌ Error al guardar datos del perfil:', error);
+                showProfileSaveMessage(`❌ Error al guardar los cambios: ${error.message}`, 'error');
+>>>>>>> 21bb2d32ba3180536b814aae3c5632a817bbc691
             }
         }
 
@@ -491,7 +515,16 @@
             }
 
             try {
+<<<<<<< HEAD
+                // Verificar que el usuario esté autenticado correctamente
+                if (!currentUser.uid || !currentUser.email) {
+                    showPasswordChangeMessage('Error de autenticación. Por favor, vuelve a iniciar sesión.', 'error');
+                    return;
+                }
+
+=======
                 console.log('🔧 Obteniendo valores del formulario...');
+>>>>>>> 21bb2d32ba3180536b814aae3c5632a817bbc691
                 const currentPassword = document.getElementById('currentPassword')?.value;
                 const newPassword = document.getElementById('newPassword')?.value;
                 const confirmNewPassword = document.getElementById('confirmNewPassword')?.value;
@@ -529,8 +562,12 @@
                     return;
                 }
 
+<<<<<<< HEAD
+                console.log('🔧 Intentando cambiar contraseña para usuario:', currentUser.email);
+=======
                 console.log('🔧 Validaciones pasadas, reautenticando...');
                 console.log('🔧 Email del usuario:', currentUser.email);
+>>>>>>> 21bb2d32ba3180536b814aae3c5632a817bbc691
 
                 // Reautenticar al usuario antes de cambiar la contraseña
                 const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
@@ -543,8 +580,13 @@
                 console.log('✅ Contraseña cambiada exitosamente');
 
                 // Limpiar el formulario
+<<<<<<< HEAD
+                const passwordForm = document.getElementById('passwordChangeForm');
+                if (passwordForm) passwordForm.reset();
+=======
                 document.getElementById('passwordChangeForm').reset();
                 console.log('✅ Formulario limpiado');
+>>>>>>> 21bb2d32ba3180536b814aae3c5632a817bbc691
 
                 showPasswordChangeMessage('✅ Contraseña cambiada correctamente', 'success');
 
@@ -558,12 +600,17 @@
                     errorMessage = 'La nueva contraseña es demasiado débil';
                 } else if (error.code === 'auth/requires-recent-login') {
                     errorMessage = 'Por seguridad, debes volver a iniciar sesión para cambiar la contraseña';
+<<<<<<< HEAD
                 } else if (error.code === 'auth/too-many-requests') {
                     errorMessage = 'Demasiados intentos. Intenta de nuevo más tarde';
                 } else if (error.code === 'auth/user-mismatch') {
                     errorMessage = 'Error de autenticación. Por favor, vuelve a iniciar sesión.';
                 } else if (error.code === 'auth/invalid-credential') {
                     errorMessage = 'Credenciales inválidas. Verifica tu contraseña actual.';
+=======
+                } else if (error.code === 'auth/user-mismatch') {
+                    errorMessage = 'Error de autenticación. Intenta iniciar sesión nuevamente.';
+>>>>>>> 21bb2d32ba3180536b814aae3c5632a817bbc691
                 }
                 
                 showPasswordChangeMessage(`❌ ${errorMessage}`, 'error');
