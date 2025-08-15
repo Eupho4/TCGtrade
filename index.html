@@ -510,103 +510,7 @@
             }, 5000);
         }
 
-        // Función para probar la conexión con Firebase
-        async function testFirebaseConnection() {
-            console.log('🔧 Probando conexión con Firebase...');
-            
-            try {
-                // Verificar configuración
-                console.log('🔧 Configuración Firebase:', {
-                    apiKey: firebaseConfig.apiKey ? 'Configurado' : 'No configurado',
-                    authDomain: firebaseConfig.authDomain,
-                    projectId: firebaseConfig.projectId,
-                    storageBucket: firebaseConfig.storageBucket,
-                    messagingSenderId: firebaseConfig.messagingSenderId,
-                    appId: firebaseConfig.appId
-                });
 
-                // Verificar inicialización
-                console.log('🔧 Firebase App inicializado:', !!app);
-                console.log('🔧 Firebase Auth inicializado:', !!auth);
-                console.log('🔧 Firebase Firestore inicializado:', !!db);
-
-                // Probar Firestore
-                console.log('🔧 Probando Firestore...');
-                const testDoc = doc(db, 'test', 'connection-test');
-                await setDoc(testDoc, { 
-                    timestamp: new Date(),
-                    test: true,
-                    message: 'Prueba de conexión exitosa'
-                });
-                console.log('✅ Firestore funciona correctamente');
-                
-                // Leer el documento de prueba
-                const testDocRead = await getDoc(testDoc);
-                console.log('✅ Lectura de Firestore exitosa:', testDocRead.data());
-                
-                // Limpiar documento de prueba
-                await deleteDoc(testDoc);
-                console.log('✅ Documento de prueba eliminado');
-                
-                // Probar Auth
-                console.log('🔧 Probando Auth...');
-                if (auth) {
-                    console.log('✅ Firebase Auth está disponible');
-                    console.log('🔧 Usuario actual:', currentUser ? {
-                        uid: currentUser.uid,
-                        email: currentUser.email,
-                        displayName: currentUser.displayName
-                    } : 'No hay usuario autenticado');
-                } else {
-                    console.error('❌ Firebase Auth no está disponible');
-                }
-
-                // Mostrar información sobre el almacenamiento de datos
-                console.log('📊 INFORMACIÓN SOBRE ALMACENAMIENTO DE DATOS:');
-                console.log('📊 1. CREDENCIALES DE ACCESO:');
-                console.log('   - Se almacenan en Firebase Authentication');
-                console.log('   - Incluye: email, contraseña (hasheada), UID único');
-                console.log('   - Ubicación: Firebase Console > Authentication > Users');
-                
-                console.log('📊 2. DATOS DEL PERFIL:');
-                console.log('   - Se almacenan en Firestore Database');
-                console.log('   - Colección: "users"');
-                console.log('   - Documento ID: UID del usuario');
-                console.log('   - Campos: username, name, lastName, address, birthDate, email, createdAt, updatedAt');
-                console.log('   - Ubicación: Firebase Console > Firestore Database > users/{uid}');
-                
-                console.log('📊 3. COLECCIÓN DE CARTAS:');
-                console.log('   - Se almacenan en Firestore Database');
-                console.log('   - Colección: "users/{uid}/cards"');
-                console.log('   - Documento ID: ID de la carta de la API');
-                console.log('   - Campos: id, name, number, imageUrl, set, series, language, addedAt');
-                console.log('   - Ubicación: Firebase Console > Firestore Database > users/{uid}/cards');
-                
-                console.log('📊 4. INTERCAMBIOS (futuro):');
-                console.log('   - Se almacenarán en Firestore Database');
-                console.log('   - Colección: "trades" o "users/{uid}/trades"');
-                console.log('   - Campos: participantes, cartas ofrecidas, cartas solicitadas, estado, fecha');
-
-                // Mostrar mensaje de éxito
-                alert(`✅ CONEXIÓN EXITOSA CON FIREBASE
-
-📊 INFORMACIÓN DEL ALMACENAMIENTO:
-
-🔐 CREDENCIALES:
-- Firebase Authentication
-- Email y contraseña (seguras)
-
-👤 PERFIL DE USUARIO:
-- Firestore: users/{uid}
-- Datos personales y configuración
-
-🃏 COLECCIÓN DE CARTAS:
-- Firestore: users/{uid}/cards
-- Cartas que posee el usuario
-
-📈 ESTADÍSTICAS:
-- Calculadas en tiempo real
-- Basadas en la colección de cartas
 
 🔧 Estado actual: ${currentUser ? 'Usuario autenticado' : 'No autenticado'}
 📧 Email: ${currentUser?.email || 'N/A'}
@@ -840,151 +744,7 @@
         window.applyDarkMode = applyDarkMode;
         window.loadDarkModePreference = loadDarkModePreference;
 
-        // Sistema de internacionalización (i18n)
-        const translations = {
-            es: {
-                // Navegación
-                'nav.explore': 'Explorar',
-                'nav.myCards': 'Mis Cartas',
-                'nav.interchanges': 'Intercambios',
-                'nav.login': 'Iniciar Sesión',
-                'nav.register': 'Registrarse',
-                'nav.profile': 'Mi Perfil',
-                'nav.logout': 'Cerrar Sesión',
-                'nav.language': 'Idioma',
-                
-                // Header
-                'header.searchPlaceholder': 'Buscar cartas, sets, usuarios...',
-                
-                // Hero
-                'hero.title': 'Tu Centro de Intercambio de Pokémon TCG',
-                'hero.subtitle': 'Conecta con coleccionistas de todo el mundo, encuentra las cartas que te faltan y completa tu colección de forma segura y sencilla.',
-                'hero.startButton': '¡Empieza a Intercambiar Ahora!',
-                
-                // Filtros
-                'filter.series': 'Filtrar por Serie:',
-                'filter.set': 'Filtrar por Expansión (Set):',
-                'filter.language': 'Filtrar por Idioma:',
-                'filter.allSeries': 'Todas las Series',
-                'filter.allSets': 'Todas las Expansiones',
-                'filter.allLanguages': '🌍 Todos los Idiomas',
-                'filter.apply': 'Aplicar Filtros',
-                
-                // Secciones
-                'section.myCollection': 'Mi Colección de Cartas',
-                'section.interchanges': 'Intercambios',
-                'section.howItWorks': '¿Cómo funciona TCGtrade?',
-                'section.step1': '1. Crea tu Colección',
-                'section.step2': '2. Encuentra Intercambios',
-                'section.step3': '3. Intercambia y Disfruta',
-                'section.step1Desc': 'Añade las cartas que tienes y las que buscas a tu perfil.',
-                'section.step2Desc': 'Nuestro sistema te conectará con usuarios que tengan lo que necesitas.',
-                'section.step3Desc': 'Acuerda el intercambio de forma segura y completa tu colección.',
-                
-                // Mensajes
-                'message.noCards': 'Aún no tienes cartas en tu colección. ¡Busca y añade algunas!',
-                'message.error': 'Ha ocurrido un error al cargar las cartas.',
-                'message.noResults': 'No se encontraron resultados para tu búsqueda.',
-                'message.interchangesComing': 'Aquí podrás ver y gestionar tus intercambios de cartas.'
-            },
-            en: {
-                // Navigation
-                'nav.explore': 'Explore',
-                'nav.myCards': 'My Cards',
-                'nav.interchanges': 'Interchanges',
-                'nav.login': 'Login',
-                'nav.register': 'Register',
-                'nav.profile': 'My Profile',
-                'nav.logout': 'Logout',
-                'nav.language': 'Language',
-                
-                // Header
-                'header.searchPlaceholder': 'Search cards, sets, users...',
-                
-                // Hero
-                'hero.title': 'Your Pokémon TCG Trading Center',
-                'hero.subtitle': 'Connect with collectors worldwide, find the cards you need and complete your collection safely and easily.',
-                'hero.startButton': 'Start Trading Now!',
-                
-                // Filters
-                'filter.series': 'Filter by Series:',
-                'filter.set': 'Filter by Expansion (Set):',
-                'filter.language': 'Filter by Language:',
-                'filter.allSeries': 'All Series',
-                'filter.allSets': 'All Expansions',
-                'filter.allLanguages': '🌍 All Languages',
-                'filter.apply': 'Apply Filters',
-                
-                // Sections
-                'section.myCollection': 'My Card Collection',
-                'section.interchanges': 'Interchanges',
-                'section.howItWorks': 'How does TCGtrade work?',
-                'section.step1': '1. Create your Collection',
-                'section.step2': '2. Find Interchanges',
-                'section.step3': '3. Trade and Enjoy',
-                'section.step1Desc': 'Add the cards you have and the ones you\'re looking for to your profile.',
-                'section.step2Desc': 'Our system will connect you with users who have what you need.',
-                'section.step3Desc': 'Agree on the exchange safely and complete your collection.',
-                
-                // Messages
-                'message.noCards': 'You don\'t have any cards in your collection yet. Search and add some!',
-                'message.error': 'An error occurred while loading the cards.',
-                'message.noResults': 'No results found for your search.',
-                'message.interchangesComing': 'Here you will be able to view and manage your card exchanges.'
-            }
-        };
 
-        // Función para aplicar idioma
-        function applyLanguage(language) {
-            console.log('🌍 Applying language:', language);
-            
-            const currentTranslations = translations[language] || translations.es;
-            
-            // Traducir elementos con data-i18n
-            document.querySelectorAll('[data-i18n]').forEach(element => {
-                const key = element.getAttribute('data-i18n');
-                const translation = currentTranslations[key];
-                if (translation) {
-                    element.textContent = translation;
-                }
-            });
-            
-            // Traducir placeholders
-            document.querySelectorAll('[data-i18n-placeholder]').forEach(element => {
-                const key = element.getAttribute('data-i18n-placeholder');
-                const translation = currentTranslations[key];
-                if (translation) {
-                    element.placeholder = translation;
-                }
-            });
-            
-            // Traducir elementos específicos que no usan data-i18n
-            const specificElements = {
-                'searchInput': 'header.searchPlaceholder',
-                'noMyCardsMessage': 'message.noCards',
-                'myCardsErrorMessage': 'message.error',
-                'noResultsMessage': 'message.noResults',
-                'interchangesSection p': 'message.interchangesComing'
-            };
-            
-            Object.entries(specificElements).forEach(([selector, key]) => {
-                const element = document.querySelector(selector);
-                if (element) {
-                    const translation = currentTranslations[key];
-                    if (translation) {
-                        element.textContent = translation;
-                    }
-                }
-            });
-            
-            console.log('✅ Language applied successfully');
-        }
-
-        // Aplicar idioma al cargar la página
-        document.addEventListener('DOMContentLoaded', () => {
-            const savedLanguage = localStorage.getItem('selectedLanguage') || 'es';
-            applyLanguage(savedLanguage);
-        });
 
         // Función de prueba para verificar que todo funciona
         window.testNavigation = function() {
@@ -1784,24 +1544,7 @@
                 });
             }
 
-            // Language selector in header
-            const languageSelector = document.getElementById('languageSelector');
-            if (languageSelector) {
-                // Cargar idioma guardado
-                const savedLanguage = localStorage.getItem('selectedLanguage') || 'es';
-                languageSelector.value = savedLanguage;
-                
-                languageSelector.addEventListener('change', (e) => {
-                    const newLanguage = e.target.value;
-                    console.log('🌍 Language changed to:', newLanguage);
-                    
-                    // Guardar preferencia en localStorage
-                    localStorage.setItem('selectedLanguage', newLanguage);
-                    
-                    // Aplicar el idioma
-                    applyLanguage(newLanguage);
-                });
-            }
+
 
             console.log('✅ Event listeners configurados correctamente');
         }
@@ -2724,40 +2467,23 @@
 
             <nav class="mt-4 md:mt-0">
                 <ul class="flex space-x-4 text-white" id="authNavLinks">
-                    <li><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap"><span class="icon">🔍</span> <span data-i18n="nav.explore">Explorar</span></a></li>
-                    <li id="myCardsNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="myCardsLink"><span class="icon">📦</span> <span data-i18n="nav.myCards">Mis Cartas</span></a></li>
-                    <li id="interchangesNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="interchangesLink"><span class="icon">🤝</span> <span data-i18n="nav.interchanges">Intercambios</span></a></li>
-                    <li id="loginNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="loginLink"><span class="icon">🚪</span> <span data-i18n="nav.login">Iniciar Sesión</span></a></li>
-                    <li id="registerNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="registerLink"><span class="icon">📝</span> <span data-i18n="nav.register">Registrarse</span></a></li>
-                    <li id="profileNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center text-sm h-12 whitespace-nowrap" id="profileLink"><span class="icon">👤</span> <span data-i18n="nav.profile">Mi Perfil</span></a></li>
-                    <li id="logoutNavLink" class="hidden"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="logoutLink"><span class="icon">👋</span> <span data-i18n="nav.logout">Cerrar Sesión</span></a></li>
+                    <li><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap"><span class="icon">🔍</span> Explorar</a></li>
+                    <li id="myCardsNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="myCardsLink"><span class="icon">📦</span> Mis Cartas</a></li>
+                    <li id="interchangesNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="interchangesLink"><span class="icon">🤝</span> Intercambios</a></li>
+                    <li id="loginNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="loginLink"><span class="icon">🚪</span> Iniciar Sesión</a></li>
+                    <li id="registerNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="registerLink"><span class="icon">📝</span> Registrarse</a></li>
+                    <li id="profileNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center text-sm h-12 whitespace-nowrap" id="profileLink"><span class="icon">👤</span> Mi Perfil</a></li>
+                    <li id="logoutNavLink" class="hidden"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="logoutLink"><span class="icon">👋</span> Cerrar Sesión</a></li>
                 </ul>
             </nav>
-            
-            <!-- Selector de Idioma -->
-            <div class="mt-4 md:mt-0 ml-4">
-                <label for="languageSelector" class="sr-only" data-i18n="nav.language">Idioma</label>
-                <select id="languageSelector" class="bg-white/10 backdrop-blur-sm border border-white/20 rounded px-3 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-orange-400 hover:bg-white/20 transition-colors">
-                    <option value="es">🇪🇸 Español</option>
-                    <option value="en">🇺🇸 English</option>
-                    <option value="fr">🇫🇷 Français</option>
-                    <option value="de">🇩🇪 Deutsch</option>
-                    <option value="it">🇮🇹 Italiano</option>
-                    <option value="pt">🇵🇹 Português</option>
-                    <option value="ja">🇯🇵 日本語</option>
-                    <option value="ko">🇰🇷 한국어</option>
-                    <option value="zh">🇨🇳 中文</option>
-                    <option value="ru">🇷🇺 Русский</option>
-                </select>
-            </div>
         </div>
     </header>
 
     <main class="flex-grow container mx-auto p-6 md:p-10">
         <section class="hero-section" id="heroSection">
-            <h1 data-i18n="hero.title">Tu Centro de Intercambio de Pokémon TCG</h1>
-            <p class="text-xl" data-i18n="hero.subtitle">Conecta con coleccionistas de todo el mundo, encuentra las cartas que te faltan y completa tu colección de forma segura y sencilla.</p>
-            <button id="startTradingBtn" class="btn-primary text-xl px-8 py-4 rounded-full font-semibold" data-i18n="hero.startButton">
+            <h1>Tu Centro de Intercambio de Pokémon TCG</h1>
+            <p class="text-xl">Conecta con coleccionistas de todo el mundo, encuentra las cartas que te faltan y completa tu colección de forma segura y sencilla.</p>
+            <button id="startTradingBtn" class="btn-primary text-xl px-8 py-4 rounded-full font-semibold">
                 ¡Empieza a Intercambiar Ahora!
             </button>
         </section>
@@ -2979,13 +2705,7 @@
                             <p class="text-sm"></p>
                         </div>
                         
-                        <!-- Botón de prueba de conexión -->
-                        <div class="mt-6 pt-4 border-t border-gray-200">
-                            <button type="button" onclick="testFirebaseConnection()" class="btn-secondary px-4 py-2 rounded-lg text-sm font-semibold">
-                                🔧 Probar Conexión Firebase
-                            </button>
-                            <p class="text-xs text-gray-500 mt-2">Haz clic para verificar la conexión con la base de datos</p>
-                        </div>
+
                     </div>
                 </div>
 
@@ -3165,13 +2885,7 @@
                                 <p class="text-sm"></p>
                             </div>
                             
-                            <!-- Botón de prueba de conexión -->
-                            <div class="mt-6 pt-4 border-t border-gray-200">
-                                <button type="button" onclick="testFirebaseConnection()" class="btn-secondary px-4 py-2 rounded-lg text-sm font-semibold">
-                                    🔧 Probar Conexión Firebase
-                                </button>
-                                <p class="text-xs text-gray-500 mt-2">Haz clic para verificar la conexión con la base de datos</p>
-                            </div>
+
                         </div>
                     </div>
                 </div>
@@ -3238,14 +2952,12 @@
 
     <footer class="footer-bg text-white py-8 px-6 md:px-10">
         <div class="container mx-auto text-center">
-            <p data-i18n="footer.copyright">&copy; 2024 TCGtrade. Todos los derechos reservados.</p>
-            <p class="text-sm mt-2" data-i18n="footer.tagline">Conectando coleccionistas de Pokémon TCG en todo el mundo.</p>
+            <p>&copy; 2024 TCGtrade. Todos los derechos reservados.</p>
+            <p class="text-sm mt-2">Conectando coleccionistas de Pokémon TCG en todo el mundo.</p>
         </div>
     </footer>
 
-    <!-- Scripts de Internacionalización -->
-    <script src="js/translations.js"></script>
-    <script src="js/i18n.js"></script>
+
 
 </body>
 </html>
