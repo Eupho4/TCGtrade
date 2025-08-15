@@ -224,6 +224,38 @@
 
             // Mostrar sección de intercambios
             if (interchangesSection) interchangesSection.classList.remove('hidden');
+
+            // Cargar datos de intercambios si hay usuario autenticado
+            if (currentUser) {
+                loadUserTrades();
+                loadAvailableTrades();
+            } else {
+                // Mostrar mensaje para usuarios no autenticados
+                const myTradesContainer = document.getElementById('myTradesContainer');
+                const availableTradesContainer = document.getElementById('availableTradesContainer');
+                
+                if (myTradesContainer) {
+                    myTradesContainer.innerHTML = `
+                        <div class="text-center text-gray-500 py-8">
+                            <p>Debes iniciar sesión para ver tus intercambios</p>
+                            <button class="btn-primary mt-4 px-4 py-2 rounded-lg text-sm font-semibold" onclick="showAuthModal('login')">
+                                Iniciar Sesión
+                            </button>
+                        </div>
+                    `;
+                }
+                
+                if (availableTradesContainer) {
+                    availableTradesContainer.innerHTML = `
+                        <div class="text-center text-gray-500 py-8">
+                            <p>Debes iniciar sesión para ver intercambios disponibles</p>
+                            <button class="btn-primary mt-4 px-4 py-2 rounded-lg text-sm font-semibold" onclick="showAuthModal('login')">
+                                Iniciar Sesión
+                            </button>
+                        </div>
+                    `;
+                }
+            }
         }
 
         // Hacer funciones disponibles globalmente
@@ -290,6 +322,53 @@
                 case 'settings':
                     targetContent = document.getElementById('profileSettingsContent');
                     targetTab = document.getElementById('profileSettingsTab');
+                    break;
+            }
+
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
+            }
+
+            if (targetTab) {
+                targetTab.classList.add('active', 'border-orange-500', 'text-orange-600');
+                targetTab.classList.remove('border-transparent', 'text-gray-500');
+            }
+        }
+
+        // Función para cambiar entre tabs de intercambios
+        function switchTradeTab(tabName) {
+            // Ocultar todos los contenidos de tabs
+            const tabContents = document.querySelectorAll('.trade-tab-content');
+            tabContents.forEach(content => content.classList.add('hidden'));
+
+            // Remover clase active de todos los tabs
+            const tabs = document.querySelectorAll('.trade-tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+                tab.classList.remove('border-orange-500', 'text-orange-600');
+                tab.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            // Mostrar el contenido del tab seleccionado
+            let targetContent;
+            let targetTab;
+
+            switch(tabName) {
+                case 'active':
+                    targetContent = document.getElementById('tradesActiveContent');
+                    targetTab = document.getElementById('tradesActiveTab');
+                    break;
+                case 'pending':
+                    targetContent = document.getElementById('tradesPendingContent');
+                    targetTab = document.getElementById('tradesPendingTab');
+                    break;
+                case 'completed':
+                    targetContent = document.getElementById('tradesCompletedContent');
+                    targetTab = document.getElementById('tradesCompletedTab');
+                    break;
+                case 'received':
+                    targetContent = document.getElementById('tradesReceivedContent');
+                    targetTab = document.getElementById('tradesReceivedTab');
                     break;
             }
 
@@ -776,6 +855,188 @@
             } catch (error) {
                 console.error('❌ Error al cargar estadísticas:', error);
             }
+        }
+
+        // --- Funciones de Intercambios ---
+        
+        // Función para cargar intercambios del usuario
+        async function loadUserTrades() {
+            if (!currentUser) return;
+
+            try {
+                console.log('🤝 Cargando intercambios del usuario...');
+
+                // Por ahora, mostrar datos de ejemplo
+                // En el futuro, esto cargará desde Firestore
+                const exampleTrades = [
+                    {
+                        id: 'trade1',
+                        type: 'created',
+                        status: 'active',
+                        title: 'Intercambio Pikachu por Charizard',
+                        description: 'Busco un Charizard en buen estado',
+                        offeredCards: ['Pikachu VMAX', 'Pikachu GX'],
+                        wantedCards: ['Charizard VMAX'],
+                        createdAt: new Date(),
+                        user: 'coleccionista123'
+                    }
+                ];
+
+                displayTrades(exampleTrades, 'myTradesContainer');
+
+            } catch (error) {
+                console.error('❌ Error al cargar intercambios:', error);
+            }
+        }
+
+        // Función para cargar intercambios disponibles
+        async function loadAvailableTrades() {
+            if (!currentUser) return;
+
+            try {
+                console.log('🎯 Cargando intercambios disponibles...');
+
+                // Por ahora, mostrar datos de ejemplo
+                const exampleAvailableTrades = [
+                    {
+                        id: 'trade2',
+                        type: 'available',
+                        status: 'active',
+                        title: 'Intercambio Mewtwo por Lugia',
+                        description: 'Tengo un Mewtwo en perfecto estado, busco un Lugia',
+                        offeredCards: ['Mewtwo VMAX'],
+                        wantedCards: ['Lugia VMAX', 'Lugia GX'],
+                        createdAt: new Date(),
+                        user: 'pokemon_master'
+                    },
+                    {
+                        id: 'trade3',
+                        type: 'available',
+                        status: 'active',
+                        title: 'Intercambio Blastoise por Venusaur',
+                        description: 'Busco completar mi colección de starters',
+                        offeredCards: ['Blastoise VMAX', 'Blastoise GX'],
+                        wantedCards: ['Venusaur VMAX'],
+                        createdAt: new Date(),
+                        user: 'starter_collector'
+                    }
+                ];
+
+                displayTrades(exampleAvailableTrades, 'availableTradesContainer');
+
+            } catch (error) {
+                console.error('❌ Error al cargar intercambios disponibles:', error);
+            }
+        }
+
+        // Función para mostrar intercambios en un contenedor
+        function displayTrades(trades, containerId) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+
+            if (trades.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <p>No hay intercambios disponibles</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let tradesHTML = '';
+            trades.forEach(trade => {
+                tradesHTML += `
+                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-orange-300 transition-colors">
+                        <div class="flex justify-between items-start mb-3">
+                            <div>
+                                <h4 class="font-semibold text-gray-800">${trade.title}</h4>
+                                <p class="text-sm text-gray-600">${trade.description}</p>
+                            </div>
+                            <span class="text-xs text-gray-500">${formatDate(trade.createdAt)}</span>
+                        </div>
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <h5 class="text-sm font-medium text-gray-700 mb-2">📤 Ofrezco:</h5>
+                                <div class="space-y-1">
+                                    ${trade.offeredCards.map(card => `
+                                        <div class="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
+                                            ${card}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                            <div>
+                                <h5 class="text-sm font-medium text-gray-700 mb-2">📥 Busco:</h5>
+                                <div class="space-y-1">
+                                    ${trade.wantedCards.map(card => `
+                                        <div class="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
+                                            ${card}
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs text-gray-500">Por: ${trade.user}</span>
+                            <div class="flex space-x-2">
+                                ${trade.type === 'created' ? `
+                                    <button class="btn-secondary px-3 py-1 rounded text-xs" onclick="editTrade('${trade.id}')">
+                                        ✏️ Editar
+                                    </button>
+                                    <button class="btn-secondary px-3 py-1 rounded text-xs" onclick="cancelTrade('${trade.id}')">
+                                        ❌ Cancelar
+                                    </button>
+                                ` : `
+                                    <button class="btn-primary px-3 py-1 rounded text-xs" onclick="proposeTrade('${trade.id}')">
+                                        💬 Proponer
+                                    </button>
+                                    <button class="btn-secondary px-3 py-1 rounded text-xs" onclick="viewTradeDetails('${trade.id}')">
+                                        👁️ Ver
+                                    </button>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = tradesHTML;
+        }
+
+        // Función para formatear fechas
+        function formatDate(date) {
+            return new Intl.DateTimeFormat('es-ES', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            }).format(date);
+        }
+
+        // Funciones de acción para intercambios
+        function editTrade(tradeId) {
+            console.log('✏️ Editando intercambio:', tradeId);
+            alert('Función de edición en desarrollo');
+        }
+
+        function cancelTrade(tradeId) {
+            console.log('❌ Cancelando intercambio:', tradeId);
+            if (confirm('¿Estás seguro de que quieres cancelar este intercambio?')) {
+                alert('Intercambio cancelado');
+            }
+        }
+
+        function proposeTrade(tradeId) {
+            console.log('💬 Proponiendo intercambio:', tradeId);
+            alert('Función de propuesta en desarrollo');
+        }
+
+        function viewTradeDetails(tradeId) {
+            console.log('👁️ Viendo detalles del intercambio:', tradeId);
+            alert('Función de detalles en desarrollo');
         }
 
         // Función para actualizar estadísticas en la UI
@@ -1607,6 +1868,43 @@
                 profileSettingsTab.addEventListener('click', () => switchProfileTab('settings'));
             }
 
+            // Event listeners para tabs de intercambios
+            const tradesActiveTab = document.getElementById('tradesActiveTab');
+            const tradesPendingTab = document.getElementById('tradesPendingTab');
+            const tradesCompletedTab = document.getElementById('tradesCompletedTab');
+            const tradesReceivedTab = document.getElementById('tradesReceivedTab');
+
+            if (tradesActiveTab) {
+                tradesActiveTab.addEventListener('click', () => switchTradeTab('active'));
+            }
+            if (tradesPendingTab) {
+                tradesPendingTab.addEventListener('click', () => switchTradeTab('pending'));
+            }
+            if (tradesCompletedTab) {
+                tradesCompletedTab.addEventListener('click', () => switchTradeTab('completed'));
+            }
+            if (tradesReceivedTab) {
+                tradesReceivedTab.addEventListener('click', () => switchTradeTab('received'));
+            }
+
+            // Event listeners para botones de intercambios
+            const createTradeBtn = document.getElementById('createTradeBtn');
+            const findTradesBtn = document.getElementById('findTradesBtn');
+
+            if (createTradeBtn) {
+                createTradeBtn.addEventListener('click', () => {
+                    console.log('➕ Crear intercambio clicked');
+                    alert('Función de crear intercambio en desarrollo');
+                });
+            }
+
+            if (findTradesBtn) {
+                findTradesBtn.addEventListener('click', () => {
+                    console.log('🔍 Buscar intercambios clicked');
+                    alert('Función de búsqueda en desarrollo');
+                });
+            }
+
             // Event listener para el formulario de perfil personal
             const profilePersonalForm = document.getElementById('profilePersonalForm');
             if (profilePersonalForm) {
@@ -2105,6 +2403,10 @@
         window.showProfileSection = showProfileSection;
         window.showInitialSections = showInitialSections;
         window.fetchCards = fetchCards;
+        window.editTrade = editTrade;
+        window.cancelTrade = cancelTrade;
+        window.proposeTrade = proposeTrade;
+        window.viewTradeDetails = viewTradeDetails;
     </script>
 
     <style>
@@ -2227,6 +2529,31 @@
         }
         
         .profile-tab-content.hidden {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        /* Estilos para los tabs de intercambios */
+        .trade-tab {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .trade-tab:hover {
+            color: #f97316;
+        }
+        
+        .trade-tab.active {
+            color: #f97316;
+            border-bottom-color: #f97316;
+        }
+        
+        .trade-tab-content {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .trade-tab-content.hidden {
             opacity: 0;
             transform: translateY(10px);
         }
@@ -2516,12 +2843,126 @@
         </section>
 
         <section id="interchangesSection" class="mb-12 hidden">
-            <h2 class="text-3xl font-bold mb-6 text-gray-700 flex items-center">
-                <span class="icon">🤝</span> Intercambios
-            </h2>
-            <div class="bg-white p-6 rounded-xl shadow-lg">
-                <p class="text-gray-700">Aquí podrás ver y gestionar tus intercambios de cartas.</p>
+            <div class="max-w-7xl mx-auto">
+                <!-- Header de Intercambios -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-3xl font-bold text-gray-800 mb-2 flex items-center">
+                                <span class="icon mr-3">🤝</span> Intercambios
+                            </h2>
+                            <p class="text-gray-600">Gestiona tus intercambios de cartas y encuentra nuevos coleccionistas</p>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button id="createTradeBtn" class="btn-primary px-6 py-3 rounded-lg text-sm font-semibold flex items-center">
+                                <span class="icon mr-2">➕</span> Crear Intercambio
+                            </button>
+                            <button id="findTradesBtn" class="btn-secondary px-6 py-3 rounded-lg text-sm font-semibold flex items-center">
+                                <span class="icon mr-2">🔍</span> Buscar Intercambios
+                            </button>
+                        </div>
+                    </div>
                 </div>
+
+                <!-- Tabs de Intercambios -->
+                <div class="bg-white rounded-xl shadow-lg mb-6">
+                    <div class="border-b border-gray-200">
+                        <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                            <button id="tradesActiveTab" class="trade-tab active py-4 px-1 border-b-2 border-orange-500 text-orange-600 font-medium text-sm">
+                                🔄 Activos
+                            </button>
+                            <button id="tradesPendingTab" class="trade-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                                ⏳ Pendientes
+                            </button>
+                            <button id="tradesCompletedTab" class="trade-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                                ✅ Completados
+                            </button>
+                            <button id="tradesReceivedTab" class="trade-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                                📥 Recibidos
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Contenido de Intercambios Activos -->
+                <div id="tradesActiveContent" class="trade-tab-content">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <!-- Intercambios que he creado -->
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                                <span class="icon mr-2">📤</span> Mis Ofertas
+                            </h3>
+                            <div id="myTradesContainer" class="space-y-4">
+                                <!-- Los intercambios se cargarán dinámicamente aquí -->
+                                <div class="text-center text-gray-500 py-8">
+                                    <p>No tienes intercambios activos</p>
+                                    <button class="btn-primary mt-4 px-4 py-2 rounded-lg text-sm font-semibold">
+                                        Crear mi primer intercambio
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Intercambios disponibles -->
+                        <div class="bg-white rounded-xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                                <span class="icon mr-2">🎯</span> Intercambios Disponibles
+                            </h3>
+                            <div id="availableTradesContainer" class="space-y-4">
+                                <!-- Los intercambios disponibles se cargarán dinámicamente aquí -->
+                                <div class="text-center text-gray-500 py-8">
+                                    <p>No hay intercambios disponibles en este momento</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido de Intercambios Pendientes -->
+                <div id="tradesPendingContent" class="trade-tab-content hidden">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <span class="icon mr-2">⏳</span> Intercambios Pendientes
+                        </h3>
+                        <div id="pendingTradesContainer" class="space-y-4">
+                            <!-- Los intercambios pendientes se cargarán dinámicamente aquí -->
+                            <div class="text-center text-gray-500 py-8">
+                                <p>No tienes intercambios pendientes</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido de Intercambios Completados -->
+                <div id="tradesCompletedContent" class="trade-tab-content hidden">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <span class="icon mr-2">✅</span> Intercambios Completados
+                        </h3>
+                        <div id="completedTradesContainer" class="space-y-4">
+                            <!-- Los intercambios completados se cargarán dinámicamente aquí -->
+                            <div class="text-center text-gray-500 py-8">
+                                <p>No tienes intercambios completados</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido de Intercambios Recibidos -->
+                <div id="tradesReceivedContent" class="trade-tab-content hidden">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <span class="icon mr-2">📥</span> Intercambios Recibidos
+                        </h3>
+                        <div id="receivedTradesContainer" class="space-y-4">
+                            <!-- Los intercambios recibidos se cargarán dinámicamente aquí -->
+                            <div class="text-center text-gray-500 py-8">
+                                <p>No has recibido propuestas de intercambio</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </section>
 
         <!-- Sección Mi Perfil -->
