@@ -1542,16 +1542,6 @@
                 });
             }
 
-            // Quick search button
-            const quickSearchBtn = document.getElementById('quickSearchBtn');
-            if (quickSearchBtn) {
-                quickSearchBtn.addEventListener('click', (e) => {
-                    e.preventDefault();
-                    console.log('🚀 Quick search button clicked');
-                    quickSearch();
-                });
-            }
-
 
 
             console.log('✅ Event listeners configurados correctamente');
@@ -2466,7 +2456,7 @@
             <div class="w-full md:w-1/2 lg:w-1/3 mt-4 md:mt-0 relative flex items-center h-12">
                 <input type="text" id="searchInput" placeholder="Buscar cartas, sets, usuarios..."
                        class="w-full p-3 rounded-l-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-800 dark:text-white dark:bg-gray-700 h-full">
-                <button type="button" id="quickSearchBtn" class="bg-green-500 hover:bg-green-600 text-white px-3 py-3 rounded-r-lg font-semibold text-xs h-full transition-all" title="Búsqueda rápida (10 resultados)">
+                <button type="button" onclick="quickSearch()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-3 rounded-r-lg font-semibold text-xs h-full transition-all" title="Búsqueda rápida (10 resultados)">
                     🚀
                 </button>
                 <div id="loadingSpinner" class="loader absolute right-12 top-1/2 -translate-y-1/2"></div>
