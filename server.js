@@ -665,6 +665,7 @@ app.listen(PORT, () => {
           console.log(`📅 Deploy timestamp: ${new Date().toISOString()}`);
         console.log(`🔧 Profile section fix applied`);
         console.log(`🚀 FORCING NEW DEPLOY - Profile section should be available`);
+        console.log(`🔧 Login button debug logs added`);
 });
 
 // Manejar errores no capturados
