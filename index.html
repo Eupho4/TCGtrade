@@ -355,8 +355,13 @@
 
         // --- Funciones del Modal de Autenticación ---
         function showAuthModal(mode) {
-            if (!authModal) return;
+            console.log('🔧 showAuthModal called with mode:', mode);
+            if (!authModal) {
+                console.error('❌ authModal not found!');
+                return;
+            }
 
+            console.log('🔧 Adding show class to authModal');
             authModal.classList.add('show');
 
             if (mode === 'login') {
@@ -948,7 +953,16 @@
             if (startTradingBtn) startTradingBtn.addEventListener('click', (e) => { e.preventDefault(); showAuthModal('register'); });
 
             const loginLink = document.getElementById('loginLink');
-            if (loginLink) loginLink.addEventListener('click', (e) => { e.preventDefault(); showAuthModal('login'); });
+            if (loginLink) {
+                console.log('🔧 Login link found and event listener added');
+                loginLink.addEventListener('click', (e) => { 
+                    e.preventDefault(); 
+                    console.log('🔧 Login link clicked, showing auth modal');
+                    showAuthModal('login'); 
+                });
+            } else {
+                console.error('❌ Login link not found!');
+            }
 
             const registerLink = document.getElementById('registerLink');
             if (registerLink) registerLink.addEventListener('click', (e) => { e.preventDefault(); showAuthModal('register'); });
