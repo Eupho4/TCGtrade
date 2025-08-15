@@ -245,28 +245,37 @@
 
         // Función para guardar datos del perfil
         async function saveProfileData() {
+            console.log('🔧 saveProfileData iniciada');
+            
             if (!currentUser) {
+                console.error('❌ No hay usuario conectado');
                 showProfileSaveMessage('Debes iniciar sesión para guardar cambios', 'error');
                 return;
             }
 
             try {
+                console.log('🔧 Obteniendo valores del formulario...');
                 const name = document.getElementById('profileName')?.value?.trim();
                 const lastName = document.getElementById('profileLastName')?.value?.trim();
                 const address = document.getElementById('profileAddress')?.value?.trim();
                 const birthDate = document.getElementById('profileBirthDate')?.value;
                 const email = document.getElementById('profileEmail')?.value?.trim();
 
+                console.log('🔧 Valores obtenidos:', { name, lastName, address, birthDate, email });
+
                 // Validaciones básicas
                 if (!name) {
+                    console.error('❌ Nombre vacío');
                     showProfileSaveMessage('El nombre es obligatorio', 'error');
                     return;
                 }
                 if (!lastName) {
+                    console.error('❌ Apellidos vacíos');
                     showProfileSaveMessage('Los apellidos son obligatorios', 'error');
                     return;
                 }
                 if (!email) {
+                    console.error('❌ Email vacío');
                     showProfileSaveMessage('El correo electrónico es obligatorio', 'error');
                     return;
                 }
@@ -274,6 +283,7 @@
                 // Validar formato de email
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(email)) {
+                    console.error('❌ Formato de email inválido');
                     showProfileSaveMessage('El formato del correo electrónico no es válido', 'error');
                     return;
                 }
@@ -288,17 +298,24 @@
                     updatedAt: new Date()
                 };
 
+                console.log('🔧 Datos a guardar:', profileData);
+                console.log('🔧 Usuario UID:', currentUser.uid);
+
                 // Guardar en Firestore
+                console.log('🔧 Guardando en Firestore...');
                 await setDoc(doc(db, 'users', currentUser.uid), profileData, { merge: true });
+                console.log('✅ Datos guardados en Firestore');
 
                 // Actualizar el nombre en el header del perfil
                 const userNameElement = document.getElementById('profileUserName');
                 if (userNameElement) {
                     userNameElement.textContent = `${name} ${lastName}`;
+                    console.log('✅ Nombre actualizado en header');
                 }
 
                 // Actualizar email en Firebase Auth si ha cambiado
                 if (email !== currentUser.email) {
+                    console.log('🔧 Email ha cambiado, actualizando en Auth...');
                     try {
                         await updateEmail(currentUser, email);
                         console.log('✅ Email actualizado en Firebase Auth');
@@ -309,11 +326,11 @@
                 }
 
                 showProfileSaveMessage('✅ Perfil actualizado correctamente', 'success');
-                console.log('✅ Datos del perfil guardados:', profileData);
+                console.log('✅ Proceso completado exitosamente');
 
             } catch (error) {
                 console.error('❌ Error al guardar datos del perfil:', error);
-                showProfileSaveMessage('❌ Error al guardar los cambios', 'error');
+                showProfileSaveMessage(`❌ Error al guardar los cambios: ${error.message}`, 'error');
             }
         }
 
@@ -347,50 +364,71 @@
 
         // Función para cambiar contraseña
         async function changePassword() {
+            console.log('🔧 changePassword iniciada');
+            
             if (!currentUser) {
+                console.error('❌ No hay usuario conectado');
                 showPasswordChangeMessage('Debes iniciar sesión para cambiar la contraseña', 'error');
                 return;
             }
 
             try {
+                console.log('🔧 Obteniendo valores del formulario...');
                 const currentPassword = document.getElementById('currentPassword')?.value;
                 const newPassword = document.getElementById('newPassword')?.value;
                 const confirmNewPassword = document.getElementById('confirmNewPassword')?.value;
 
+                console.log('🔧 Valores obtenidos:', { 
+                    hasCurrentPassword: !!currentPassword, 
+                    hasNewPassword: !!newPassword, 
+                    hasConfirmPassword: !!confirmNewPassword 
+                });
+
                 // Validaciones
                 if (!currentPassword) {
+                    console.error('❌ Contraseña actual vacía');
                     showPasswordChangeMessage('Debes ingresar tu contraseña actual', 'error');
                     return;
                 }
                 if (!newPassword) {
+                    console.error('❌ Nueva contraseña vacía');
                     showPasswordChangeMessage('Debes ingresar una nueva contraseña', 'error');
                     return;
                 }
                 if (newPassword.length < 6) {
+                    console.error('❌ Nueva contraseña muy corta');
                     showPasswordChangeMessage('La nueva contraseña debe tener al menos 6 caracteres', 'error');
                     return;
                 }
                 if (newPassword !== confirmNewPassword) {
+                    console.error('❌ Contraseñas no coinciden');
                     showPasswordChangeMessage('Las contraseñas nuevas no coinciden', 'error');
                     return;
                 }
                 if (newPassword === currentPassword) {
+                    console.error('❌ Nueva contraseña igual a la actual');
                     showPasswordChangeMessage('La nueva contraseña debe ser diferente a la actual', 'error');
                     return;
                 }
 
+                console.log('🔧 Validaciones pasadas, reautenticando...');
+                console.log('🔧 Email del usuario:', currentUser.email);
+
                 // Reautenticar al usuario antes de cambiar la contraseña
                 const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
                 await reauthenticateWithCredential(currentUser, credential);
+                console.log('✅ Reautenticación exitosa');
 
                 // Cambiar la contraseña
+                console.log('🔧 Cambiando contraseña...');
                 await updatePassword(currentUser, newPassword);
+                console.log('✅ Contraseña cambiada exitosamente');
 
                 // Limpiar el formulario
                 document.getElementById('passwordChangeForm').reset();
+                console.log('✅ Formulario limpiado');
 
                 showPasswordChangeMessage('✅ Contraseña cambiada correctamente', 'success');
-                console.log('✅ Contraseña cambiada exitosamente');
 
             } catch (error) {
                 console.error('❌ Error al cambiar contraseña:', error);
@@ -402,6 +440,8 @@
                     errorMessage = 'La nueva contraseña es demasiado débil';
                 } else if (error.code === 'auth/requires-recent-login') {
                     errorMessage = 'Por seguridad, debes volver a iniciar sesión para cambiar la contraseña';
+                } else if (error.code === 'auth/user-mismatch') {
+                    errorMessage = 'Error de autenticación. Intenta iniciar sesión nuevamente.';
                 }
                 
                 showPasswordChangeMessage(`❌ ${errorMessage}`, 'error');
