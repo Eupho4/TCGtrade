@@ -768,6 +768,14 @@
             }
         };
 
+        // Hacer las funciones disponibles globalmente
+        window.showInitialSections = showInitialSections;
+        window.showAuthModal = showAuthModal;
+        window.showMyCardsSection = showMyCardsSection;
+        window.showInterchangesSection = showInterchangesSection;
+        window.showProfileSection = showProfileSection;
+        window.logoutUser = logoutUser;
+
         // Función para cargar estadísticas del perfil
         async function loadProfileStats() {
             if (!currentUser) return;
