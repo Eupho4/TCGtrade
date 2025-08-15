@@ -173,6 +173,9 @@
             if (interchangesSection) interchangesSection.classList.add('hidden');
         }
 
+        // Hacer funciones disponibles globalmente
+        window.showInitialSections = showInitialSections;
+
         function showSearchResults() {
             // Ocultar secciones iniciales
             if (heroSection) heroSection.classList.add('hidden');
@@ -208,6 +211,9 @@
             }
         }
 
+        // Hacer funciones disponibles globalmente
+        window.showMyCardsSection = showMyCardsSection;
+
         function showInterchangesSection() {
             // Ocultar otras secciones
             if (heroSection) heroSection.classList.add('hidden');
@@ -219,6 +225,9 @@
             // Mostrar sección de intercambios
             if (interchangesSection) interchangesSection.classList.remove('hidden');
         }
+
+        // Hacer funciones disponibles globalmente
+        window.showInterchangesSection = showInterchangesSection;
 
         function showProfileSection() {
             // Ocultar otras secciones
@@ -239,6 +248,9 @@
                 showMyCardsSection();
             }
         }
+
+        // Hacer funciones disponibles globalmente
+        window.showProfileSection = showProfileSection;
 
         // Función para cambiar entre tabs del perfil
         function switchProfileTab(tabName) {
@@ -850,6 +862,9 @@
                 if (registerForm) registerForm.classList.remove('hidden');
             }
         }
+
+        // Hacer funciones disponibles globalmente
+        window.showAuthModal = showAuthModal;
 
         function hideAuthModal() {
             if (authModal) authModal.classList.remove('show');
@@ -2467,7 +2482,7 @@
 
     <header class="header-bg shadow-lg py-4 px-6 md:px-10">
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
-            <a href="#" class="text-white text-3xl font-bold rounded-md px-3 py-1 flex items-center h-12" id="homeLink">
+            <a href="#" class="text-white text-3xl font-bold rounded-md px-3 py-1 flex items-center h-12" id="homeLink" onclick="showInitialSections(); return false;">
                 TCGtrade
             </a>
 
@@ -2482,13 +2497,13 @@
 
             <nav class="mt-4 md:mt-0">
                 <ul class="flex space-x-4 text-white" id="authNavLinks">
-                    <li><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap"><span class="icon">🔍</span> Explorar</a></li>
-                    <li id="myCardsNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="myCardsLink"><span class="icon">📦</span> Mis Cartas</a></li>
-                    <li id="interchangesNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="interchangesLink"><span class="icon">🤝</span> Intercambios</a></li>
-                    <li id="loginNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="loginLink"><span class="icon">🚪</span> Iniciar Sesión</a></li>
-                    <li id="registerNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="registerLink"><span class="icon">📝</span> Registrarse</a></li>
-                    <li id="profileNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center text-sm h-12 whitespace-nowrap" id="profileLink"><span class="icon">👤</span> Mi Perfil</a></li>
-                    <li id="logoutNavLink" class="hidden"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="logoutLink"><span class="icon">👋</span> Cerrar Sesión</a></li>
+                    <li><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" onclick="showInitialSections(); return false;"><span class="icon">🔍</span> Explorar</a></li>
+                    <li id="myCardsNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="myCardsLink" onclick="showMyCardsSection(); return false;"><span class="icon">📦</span> Mis Cartas</a></li>
+                    <li id="interchangesNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="interchangesLink" onclick="showInterchangesSection(); return false;"><span class="icon">🤝</span> Intercambios</a></li>
+                    <li id="loginNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="loginLink" onclick="showAuthModal('login'); return false;"><span class="icon">🚪</span> Iniciar Sesión</a></li>
+                    <li id="registerNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="registerLink" onclick="showAuthModal('register'); return false;"><span class="icon">📝</span> Registrarse</a></li>
+                    <li id="profileNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center text-sm h-12 whitespace-nowrap" id="profileLink" onclick="if(currentUser){showProfileSection();}else{showAuthModal('login');} return false;"><span class="icon">👤</span> Mi Perfil</a></li>
+                    <li id="logoutNavLink" class="hidden"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="logoutLink" onclick="logoutUser(); return false;"><span class="icon">👋</span> Cerrar Sesión</a></li>
                 </ul>
             </nav>
         </div>
@@ -2498,7 +2513,7 @@
         <section class="hero-section" id="heroSection">
             <h1>Tu Centro de Intercambio de Pokémon TCG</h1>
             <p class="text-xl">Conecta con coleccionistas de todo el mundo, encuentra las cartas que te faltan y completa tu colección de forma segura y sencilla.</p>
-            <button id="startTradingBtn" class="btn-primary text-xl px-8 py-4 rounded-full font-semibold">
+            <button id="startTradingBtn" class="btn-primary text-xl px-8 py-4 rounded-full font-semibold" onclick="showAuthModal('register'); return false;">
                 ¡Empieza a Intercambiar Ahora!
             </button>
         </section>
