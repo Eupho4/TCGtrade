@@ -1338,7 +1338,7 @@
         };
 
         // --- Configuración de Event Listeners ---
-        function initializeApp() {
+        function setupNavigationEvents() {
             console.log('🚀 Inicializando aplicación...');
             
             // Verificar que las funciones estén disponibles
@@ -1516,7 +1516,7 @@
 
             // Inicializar la aplicación después de un pequeño delay
             setTimeout(() => {
-                initializeApp();
+                setupNavigationEvents();
             }, 100);
 
 
