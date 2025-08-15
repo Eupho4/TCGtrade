@@ -1415,37 +1415,35 @@
         // --- Configuración de Event Listeners ---
         function setupNavigationEvents() {
             console.log('🚀 Inicializando aplicación...');
+            console.log('🔍 Verificando funciones disponibles...');
             
             // Verificar que las funciones estén disponibles
-            if (typeof showInitialSections === 'undefined') {
-                console.error('❌ showInitialSections no está definida');
-                return;
-            }
-            if (typeof showAuthModal === 'undefined') {
-                console.error('❌ showAuthModal no está definida');
-                return;
-            }
-            if (typeof showMyCardsSection === 'undefined') {
-                console.error('❌ showMyCardsSection no está definida');
-                return;
-            }
-            if (typeof showInterchangesSection === 'undefined') {
-                console.error('❌ showInterchangesSection no está definida');
-                return;
-            }
-            if (typeof showProfileSection === 'undefined') {
-                console.error('❌ showProfileSection no está definida');
-                return;
-            }
-            if (typeof logoutUser === 'undefined') {
-                console.error('❌ logoutUser no está definida');
-                return;
+            const functions = {
+                showInitialSections: typeof showInitialSections,
+                showAuthModal: typeof showAuthModal,
+                showMyCardsSection: typeof showMyCardsSection,
+                showInterchangesSection: typeof showInterchangesSection,
+                showProfileSection: typeof showProfileSection,
+                logoutUser: typeof logoutUser,
+                quickSearch: typeof quickSearch
+            };
+            
+            console.log('📋 Funciones disponibles:', functions);
+            
+            for (const [name, type] of Object.entries(functions)) {
+                if (type === 'undefined') {
+                    console.error(`❌ ${name} no está definida`);
+                    return;
+                }
             }
 
             console.log('✅ Todas las funciones están disponibles');
 
             // Configurar event listeners simples y directos
+            console.log('🔍 Buscando elementos del DOM...');
+            
             const homeLink = document.getElementById('homeLink');
+            console.log('🏠 homeLink encontrado:', !!homeLink);
             if (homeLink) {
                 homeLink.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -1455,6 +1453,7 @@
             }
 
             const startTradingBtn = document.getElementById('startTradingBtn');
+            console.log('🚀 startTradingBtn encontrado:', !!startTradingBtn);
             if (startTradingBtn) {
                 startTradingBtn.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -1464,6 +1463,7 @@
             }
 
             const loginLink = document.getElementById('loginLink');
+            console.log('🚪 loginLink encontrado:', !!loginLink);
             if (loginLink) {
                 loginLink.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -1473,6 +1473,7 @@
             }
 
             const registerLink = document.getElementById('registerLink');
+            console.log('📝 registerLink encontrado:', !!registerLink);
             if (registerLink) {
                 registerLink.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -1482,6 +1483,7 @@
             }
 
             const logoutLink = document.getElementById('logoutLink');
+            console.log('👋 logoutLink encontrado:', !!logoutLink);
             if (logoutLink) {
                 logoutLink.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -1491,6 +1493,7 @@
             }
 
             const myCardsLink = document.getElementById('myCardsLink');
+            console.log('📦 myCardsLink encontrado:', !!myCardsLink);
             if (myCardsLink) {
                 myCardsLink.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -1500,6 +1503,7 @@
             }
 
             const interchangesLink = document.getElementById('interchangesLink');
+            console.log('🤝 interchangesLink encontrado:', !!interchangesLink);
             if (interchangesLink) {
                 interchangesLink.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -1509,6 +1513,7 @@
             }
 
             const profileLink = document.getElementById('profileLink');
+            console.log('👤 profileLink encontrado:', !!profileLink);
             if (profileLink) {
                 profileLink.addEventListener('click', (e) => {
                     e.preventDefault();
