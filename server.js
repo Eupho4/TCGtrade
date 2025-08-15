@@ -365,7 +365,8 @@ app.get('/api/test', (req, res) => {
     message: '✅ Railway server funcionando correctamente',
     timestamp: new Date().toISOString(),
     platform: 'Railway',
-    hasApiKey: !!process.env.POKEMON_TCG_API_KEY
+    hasApiKey: !!process.env.POKEMON_TCG_API_KEY,
+    deployVersion: 'Profile Section v2.0'
   });
 });
 
@@ -663,6 +664,7 @@ app.listen(PORT, () => {
   console.log(`🌐 Servidor listo para recibir peticiones`);
           console.log(`📅 Deploy timestamp: ${new Date().toISOString()}`);
         console.log(`🔧 Profile section fix applied`);
+        console.log(`🚀 FORCING NEW DEPLOY - Profile section should be available`);
 });
 
 // Manejar errores no capturados
