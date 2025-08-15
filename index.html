@@ -133,10 +133,223 @@
             // Mostrar sección de perfil
             if (profileSection) {
                 profileSection.classList.remove('hidden');
+                // Cargar datos del usuario y estadísticas
+                loadProfileData();
             } else {
                 // Si no existe la sección de perfil, mostrar mensaje
                 alert('Sección de perfil en desarrollo. Por ahora puedes usar "Mis Cartas" para gestionar tu colección.');
                 showMyCardsSection();
+            }
+        }
+
+        // Función para cambiar entre tabs del perfil
+        function switchProfileTab(tabName) {
+            // Ocultar todos los contenidos de tabs
+            const tabContents = document.querySelectorAll('.profile-tab-content');
+            tabContents.forEach(content => content.classList.add('hidden'));
+
+            // Remover clase active de todos los tabs
+            const tabs = document.querySelectorAll('.profile-tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+                tab.classList.remove('border-orange-500', 'text-orange-600');
+                tab.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            // Mostrar el contenido del tab seleccionado
+            let targetContent;
+            let targetTab;
+
+            switch(tabName) {
+                case 'dashboard':
+                    targetContent = document.getElementById('profileDashboardContent');
+                    targetTab = document.getElementById('profileDashboardTab');
+                    break;
+                case 'collection':
+                    targetContent = document.getElementById('profileCollectionContent');
+                    targetTab = document.getElementById('profileCollectionTab');
+                    break;
+                case 'trades':
+                    targetContent = document.getElementById('profileTradesContent');
+                    targetTab = document.getElementById('profileTradesTab');
+                    break;
+                case 'settings':
+                    targetContent = document.getElementById('profileSettingsContent');
+                    targetTab = document.getElementById('profileSettingsTab');
+                    break;
+            }
+
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
+            }
+
+            if (targetTab) {
+                targetTab.classList.add('active', 'border-orange-500', 'text-orange-600');
+                targetTab.classList.remove('border-transparent', 'text-gray-500');
+            }
+        }
+
+        // Función para cargar datos del perfil
+        async function loadProfileData() {
+            if (!currentUser) {
+                console.log('❌ No hay usuario conectado');
+                return;
+            }
+
+            try {
+                console.log('🔄 Cargando datos del perfil...');
+                
+                // Cargar información del usuario
+                await loadUserInfo();
+                
+                // Cargar estadísticas
+                await loadProfileStats();
+                
+                console.log('✅ Datos del perfil cargados correctamente');
+            } catch (error) {
+                console.error('❌ Error al cargar datos del perfil:', error);
+            }
+        }
+
+        // Función para cargar información del usuario
+        async function loadUserInfo() {
+            if (!currentUser) return;
+
+            try {
+                const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+                const userData = userDoc.data();
+
+                // Actualizar información del usuario en la UI
+                const userNameElement = document.getElementById('profileUserName');
+                const userEmailElement = document.getElementById('profileUserEmail');
+                const joinDateElement = document.getElementById('profileJoinDate');
+
+                if (userNameElement) {
+                    userNameElement.textContent = userData?.displayName || currentUser.displayName || 'Usuario';
+                }
+
+                if (userEmailElement) {
+                    userEmailElement.textContent = currentUser.email || 'usuario@ejemplo.com';
+                }
+
+                if (joinDateElement) {
+                    const joinDate = userData?.createdAt?.toDate() || currentUser.metadata?.creationTime;
+                    if (joinDate) {
+                        const date = new Date(joinDate);
+                        joinDateElement.textContent = date.toLocaleDateString('es-ES', { 
+                            year: 'numeric', 
+                            month: 'long' 
+                        });
+                    }
+                }
+
+            } catch (error) {
+                console.error('❌ Error al cargar información del usuario:', error);
+            }
+        }
+
+        // Función para cargar estadísticas del perfil
+        async function loadProfileStats() {
+            if (!currentUser) return;
+
+            try {
+                console.log('📊 Cargando estadísticas del perfil...');
+
+                // Obtener colección del usuario
+                const userCardsRef = collection(db, 'users', currentUser.uid, 'cards');
+                const userCardsSnapshot = await getDocs(userCardsRef);
+                
+                const cards = [];
+                userCardsSnapshot.forEach(doc => {
+                    cards.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Calcular estadísticas
+                const totalCards = cards.length;
+                const uniqueCards = new Set(cards.map(card => card.id)).size;
+                const uniqueSets = new Set(cards.map(card => card.set?.name).filter(Boolean)).size;
+                
+                // Por ahora, intercambios completados = 0 (se implementará más adelante)
+                const completedTrades = 0;
+
+                // Actualizar UI con las estadísticas
+                updateProfileStats(totalCards, uniqueCards, uniqueSets, completedTrades);
+
+                // Cargar desglose por sets
+                await loadSetsBreakdown(cards);
+
+            } catch (error) {
+                console.error('❌ Error al cargar estadísticas:', error);
+            }
+        }
+
+        // Función para actualizar estadísticas en la UI
+        function updateProfileStats(totalCards, uniqueCards, uniqueSets, completedTrades) {
+            const totalCardsElement = document.getElementById('totalCardsCount');
+            const uniqueCardsElement = document.getElementById('uniqueCardsCount');
+            const uniqueSetsElement = document.getElementById('uniqueSetsCount');
+            const completedTradesElement = document.getElementById('completedTradesCount');
+
+            if (totalCardsElement) totalCardsElement.textContent = totalCards;
+            if (uniqueCardsElement) uniqueCardsElement.textContent = uniqueCards;
+            if (uniqueSetsElement) uniqueSetsElement.textContent = uniqueSets;
+            if (completedTradesElement) completedTradesElement.textContent = completedTrades;
+        }
+
+        // Función para cargar desglose por sets
+        async function loadSetsBreakdown(cards) {
+            const setsBreakdownElement = document.getElementById('setsBreakdown');
+            if (!setsBreakdownElement) return;
+
+            try {
+                // Agrupar cartas por set
+                const setsMap = new Map();
+                cards.forEach(card => {
+                    const setName = card.set?.name || 'Sin Set';
+                    if (!setsMap.has(setName)) {
+                        setsMap.set(setName, []);
+                    }
+                    setsMap.get(setName).push(card);
+                });
+
+                // Crear HTML para el desglose
+                if (setsMap.size === 0) {
+                    setsBreakdownElement.innerHTML = `
+                        <div class="text-center text-gray-500 py-8">
+                            <p>No hay cartas en tu colección</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let setsHTML = '';
+                setsMap.forEach((cardsInSet, setName) => {
+                    setsHTML += `
+                        <div class="set-item bg-gray-50 rounded-lg p-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">${setName}</h4>
+                                    <p class="text-sm text-gray-600">${cardsInSet.length} cartas</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                        <div class="h-full bg-orange-500 rounded-full" style="width: ${Math.min(100, (cardsInSet.length / 10) * 100)}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                setsBreakdownElement.innerHTML = setsHTML;
+
+            } catch (error) {
+                console.error('❌ Error al cargar desglose por sets:', error);
+                setsBreakdownElement.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <p>Error al cargar el desglose por sets</p>
+                    </div>
+                `;
             }
         }
 
@@ -763,6 +976,25 @@
                 }
             });
 
+            // Event listeners para tabs del perfil
+            const profileDashboardTab = document.getElementById('profileDashboardTab');
+            const profileCollectionTab = document.getElementById('profileCollectionTab');
+            const profileTradesTab = document.getElementById('profileTradesTab');
+            const profileSettingsTab = document.getElementById('profileSettingsTab');
+
+            if (profileDashboardTab) {
+                profileDashboardTab.addEventListener('click', () => switchProfileTab('dashboard'));
+            }
+            if (profileCollectionTab) {
+                profileCollectionTab.addEventListener('click', () => switchProfileTab('collection'));
+            }
+            if (profileTradesTab) {
+                profileTradesTab.addEventListener('click', () => switchProfileTab('trades'));
+            }
+            if (profileSettingsTab) {
+                profileSettingsTab.addEventListener('click', () => switchProfileTab('settings'));
+            }
+
             // Event listeners para modal
             if (closeAuthModalBtn) closeAuthModalBtn.addEventListener('click', hideAuthModal);
             if (toggleToRegister) toggleToRegister.addEventListener('click', (e) => { e.preventDefault(); showAuthModal('register'); });
@@ -1277,6 +1509,50 @@
             100% { transform: rotate(360deg); }
         }
 
+        /* Estilos para los tabs del perfil */
+        .profile-tab {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .profile-tab:hover {
+            color: #f97316;
+        }
+        
+        .profile-tab.active {
+            color: #f97316;
+            border-bottom-color: #f97316;
+        }
+        
+        .profile-tab-content {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .profile-tab-content.hidden {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        
+        /* Estilos para las estadísticas */
+        .stats-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Estilos para el desglose de sets */
+        .set-item {
+            transition: background-color 0.3s ease;
+        }
+        
+        .set-item:hover {
+            background-color: #f8fafc;
+        }
+
         .hero-section {
             background: linear-gradient(to right, var(--color-header-bg), var(--color-footer-bg));
             color: white;
@@ -1512,6 +1788,159 @@
             <div class="bg-white p-6 rounded-xl shadow-lg">
                 <p class="text-gray-700">Aquí podrás ver y gestionar tus intercambios de cartas.</p>
                 </div>
+        </section>
+
+        <!-- Sección Mi Perfil -->
+        <section id="profileSection" class="mb-12 hidden">
+            <div class="max-w-6xl mx-auto">
+                <!-- Header del Perfil -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flex flex-col md:flex-row items-start md:items-center gap-6">
+                        <!-- Avatar del Usuario -->
+                        <div class="flex-shrink-0">
+                            <div class="w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                                👤
+                            </div>
+                        </div>
+                        
+                        <!-- Información del Usuario -->
+                        <div class="flex-1">
+                            <h1 class="text-2xl font-bold text-gray-800 mb-2" id="profileUserName">Usuario</h1>
+                            <p class="text-gray-600 mb-2" id="profileUserEmail">usuario@ejemplo.com</p>
+                            <p class="text-sm text-gray-500">Miembro desde <span id="profileJoinDate">Enero 2024</span></p>
+                        </div>
+                        
+                        <!-- Botón de Editar Perfil -->
+                        <div class="flex-shrink-0">
+                            <button class="btn-secondary px-4 py-2 rounded-lg text-sm font-semibold">
+                                ✏️ Editar Perfil
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs de Navegación -->
+                <div class="bg-white rounded-xl shadow-lg mb-6">
+                    <div class="border-b border-gray-200">
+                        <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                            <button id="profileDashboardTab" class="profile-tab active py-4 px-1 border-b-2 border-orange-500 text-orange-600 font-medium text-sm">
+                                📊 Dashboard
+                            </button>
+                            <button id="profileCollectionTab" class="profile-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                                🎴 Mi Colección
+                            </button>
+                            <button id="profileTradesTab" class="profile-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                                🤝 Mis Intercambios
+                            </button>
+                            <button id="profileSettingsTab" class="profile-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                                ⚙️ Configuración
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Contenido del Dashboard -->
+                <div id="profileDashboardContent" class="profile-tab-content">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <!-- Estadística: Total de Cartas -->
+                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 stats-card">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-2xl">🎴</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-500">Total de Cartas</p>
+                                    <p class="text-2xl font-bold text-gray-900" id="totalCardsCount">0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estadística: Cartas por Sets -->
+                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 stats-card">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-2xl">📦</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-500">Sets Diferentes</p>
+                                    <p class="text-2xl font-bold text-gray-900" id="uniqueSetsCount">0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estadística: Intercambios Completados -->
+                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500 stats-card">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-2xl">🤝</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-500">Intercambios</p>
+                                    <p class="text-2xl font-bold text-gray-900" id="completedTradesCount">0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estadística: Cartas Únicas -->
+                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500 stats-card">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-2xl">⭐</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-500">Cartas Únicas</p>
+                                    <p class="text-2xl font-bold text-gray-900" id="uniqueCardsCount">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Desglose por Sets -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <span class="icon mr-2">📊</span> Desglose por Sets
+                        </h3>
+                        <div id="setsBreakdown" class="space-y-4">
+                            <!-- Los sets se cargarán dinámicamente aquí -->
+                            <div class="text-center text-gray-500 py-8">
+                                <p>No hay datos de sets disponibles</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido de Mi Colección (oculto por defecto) -->
+                <div id="profileCollectionContent" class="profile-tab-content hidden">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">🎴 Mi Colección</h3>
+                        <p class="text-gray-600">Aquí podrás ver y gestionar tu colección de cartas.</p>
+                    </div>
+                </div>
+
+                <!-- Contenido de Mis Intercambios (oculto por defecto) -->
+                <div id="profileTradesContent" class="profile-tab-content hidden">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">🤝 Mis Intercambios</h3>
+                        <p class="text-gray-600">Aquí podrás ver el historial de tus intercambios.</p>
+                    </div>
+                </div>
+
+                <!-- Contenido de Configuración (oculto por defecto) -->
+                <div id="profileSettingsContent" class="profile-tab-content hidden">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">⚙️ Configuración</h3>
+                        <p class="text-gray-600">Aquí podrás configurar tu perfil y preferencias.</p>
+                    </div>
+                </div>
+            </div>
         </section>
     </main>
 
