@@ -857,6 +857,59 @@
             }
         }
 
+        // --- Constantes de Condiciones de Cartas (CardMarket) ---
+        const CARD_CONDITIONS = {
+            M: {
+                code: 'M',
+                name: 'Mint (M)',
+                description: 'Perfectas condiciones, sin excusas. Carta como recién salida del sobre.',
+                color: '#10B981', // Verde
+                icon: '💎'
+            },
+            NM: {
+                code: 'NM',
+                name: 'Near Mint (NM)',
+                description: 'Aspecto de no haber sido jugada sin fundas. Marcas mínimas permitidas.',
+                color: '#059669', // Verde oscuro
+                icon: '✨'
+            },
+            EX: {
+                code: 'EX',
+                name: 'Excellent (EX)',
+                description: 'Como si se hubiera usado poco sin fundas. Daño visible pero menor.',
+                color: '#3B82F6', // Azul
+                icon: '⭐'
+            },
+            GD: {
+                code: 'GD',
+                name: 'Good (GD)',
+                description: 'Aspecto de mucho uso en torneo sin fundas. Deterioro notable.',
+                color: '#F59E0B', // Amarillo
+                icon: '🟡'
+            },
+            LP: {
+                code: 'LP',
+                name: 'Light Played (LP)',
+                description: 'Uso prolongado sin fundas. Válida para torneos con fundas.',
+                color: '#F97316', // Naranja
+                icon: '🟠'
+            },
+            PL: {
+                code: 'PL',
+                name: 'Played (PL)',
+                description: 'Aspecto muy deteriorado. Dudoso para torneos incluso con fundas.',
+                color: '#DC2626', // Rojo
+                icon: '🔴'
+            },
+            PO: {
+                code: 'PO',
+                name: 'Poor (PO)',
+                description: 'Literalmente destrozada o alterada. No válida para torneos.',
+                color: '#7F1D1D', // Rojo oscuro
+                icon: '💀'
+            }
+        };
+
         // --- Funciones de Intercambios ---
         
         // Función para cargar intercambios del usuario
@@ -875,8 +928,13 @@
                         status: 'active',
                         title: 'Intercambio Pikachu por Charizard',
                         description: 'Busco un Charizard en buen estado',
-                        offeredCards: ['Pikachu VMAX', 'Pikachu GX'],
-                        wantedCards: ['Charizard VMAX'],
+                        offeredCards: [
+                            { name: 'Pikachu VMAX', condition: 'NM', language: 'Español' },
+                            { name: 'Pikachu GX', condition: 'EX', language: 'Español' }
+                        ],
+                        wantedCards: [
+                            { name: 'Charizard VMAX', condition: 'NM', language: 'Español' }
+                        ],
                         createdAt: new Date(),
                         user: 'coleccionista123'
                     }
@@ -904,8 +962,13 @@
                         status: 'active',
                         title: 'Intercambio Mewtwo por Lugia',
                         description: 'Tengo un Mewtwo en perfecto estado, busco un Lugia',
-                        offeredCards: ['Mewtwo VMAX'],
-                        wantedCards: ['Lugia VMAX', 'Lugia GX'],
+                        offeredCards: [
+                            { name: 'Mewtwo VMAX', condition: 'M', language: 'Español' }
+                        ],
+                        wantedCards: [
+                            { name: 'Lugia VMAX', condition: 'NM', language: 'Español' },
+                            { name: 'Lugia GX', condition: 'EX', language: 'Español' }
+                        ],
                         createdAt: new Date(),
                         user: 'pokemon_master'
                     },
@@ -915,8 +978,13 @@
                         status: 'active',
                         title: 'Intercambio Blastoise por Venusaur',
                         description: 'Busco completar mi colección de starters',
-                        offeredCards: ['Blastoise VMAX', 'Blastoise GX'],
-                        wantedCards: ['Venusaur VMAX'],
+                        offeredCards: [
+                            { name: 'Blastoise VMAX', condition: 'NM', language: 'Español' },
+                            { name: 'Blastoise GX', condition: 'GD', language: 'Español' }
+                        ],
+                        wantedCards: [
+                            { name: 'Venusaur VMAX', condition: 'NM', language: 'Español' }
+                        ],
                         createdAt: new Date(),
                         user: 'starter_collector'
                     }
@@ -958,20 +1026,34 @@
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div>
                                 <h5 class="text-sm font-medium text-gray-700 mb-2">📤 Ofrezco:</h5>
-                                <div class="space-y-1">
+                                <div class="space-y-2">
                                     ${trade.offeredCards.map(card => `
-                                        <div class="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
-                                            ${card}
+                                        <div class="flex items-center justify-between bg-white px-3 py-2 rounded border">
+                                            <span class="text-sm text-gray-700">${card.name || card}</span>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-xs px-2 py-1 rounded-full text-white font-medium" 
+                                                      style="background-color: ${CARD_CONDITIONS[card.condition || 'NM'].color}">
+                                                    ${CARD_CONDITIONS[card.condition || 'NM'].icon} ${card.condition || 'NM'}
+                                                </span>
+                                                <span class="text-xs text-gray-500">${card.language || 'Español'}</span>
+                                            </div>
                                         </div>
                                     `).join('')}
                                 </div>
                             </div>
                             <div>
                                 <h5 class="text-sm font-medium text-gray-700 mb-2">📥 Busco:</h5>
-                                <div class="space-y-1">
+                                <div class="space-y-2">
                                     ${trade.wantedCards.map(card => `
-                                        <div class="text-sm text-gray-600 bg-white px-2 py-1 rounded border">
-                                            ${card}
+                                        <div class="flex items-center justify-between bg-white px-3 py-2 rounded border">
+                                            <span class="text-sm text-gray-700">${card.name || card}</span>
+                                            <div class="flex items-center space-x-2">
+                                                <span class="text-xs px-2 py-1 rounded-full text-white font-medium" 
+                                                      style="background-color: ${CARD_CONDITIONS[card.condition || 'NM'].color}">
+                                                    ${CARD_CONDITIONS[card.condition || 'NM'].icon} ${card.condition || 'NM'}
+                                                </span>
+                                                <span class="text-xs text-gray-500">${card.language || 'Español'}</span>
+                                            </div>
                                         </div>
                                     `).join('')}
                                 </div>
@@ -1037,6 +1119,59 @@
         function viewTradeDetails(tradeId) {
             console.log('👁️ Viendo detalles del intercambio:', tradeId);
             alert('Función de detalles en desarrollo');
+        }
+
+        // Función para generar selector de condición de carta
+        function createConditionSelector(selectedCondition = 'NM', onChangeCallback = null) {
+            const select = document.createElement('select');
+            select.className = 'condition-selector text-xs px-2 py-1 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-orange-400';
+            
+            Object.values(CARD_CONDITIONS).forEach(condition => {
+                const option = document.createElement('option');
+                option.value = condition.code;
+                option.textContent = `${condition.icon} ${condition.name}`;
+                option.style.backgroundColor = condition.color;
+                option.style.color = 'white';
+                
+                if (condition.code === selectedCondition) {
+                    option.selected = true;
+                }
+                
+                select.appendChild(option);
+            });
+
+            if (onChangeCallback) {
+                select.addEventListener('change', (e) => {
+                    onChangeCallback(e.target.value);
+                });
+            }
+
+            return select;
+        }
+
+        // Función para mostrar información de condición al hacer hover
+        function showConditionInfo(conditionCode) {
+            const condition = CARD_CONDITIONS[conditionCode];
+            if (!condition) return;
+
+            const tooltip = document.createElement('div');
+            tooltip.className = 'condition-tooltip absolute z-50 bg-gray-900 text-white text-xs rounded-lg p-2 max-w-xs shadow-lg';
+            tooltip.innerHTML = `
+                <div class="font-semibold mb-1">${condition.icon} ${condition.name}</div>
+                <div class="text-gray-300">${condition.description}</div>
+            `;
+
+            return tooltip;
+        }
+
+        // Función para obtener el color de una condición
+        function getConditionColor(conditionCode) {
+            return CARD_CONDITIONS[conditionCode]?.color || '#6B7280';
+        }
+
+        // Función para obtener el icono de una condición
+        function getConditionIcon(conditionCode) {
+            return CARD_CONDITIONS[conditionCode]?.icon || '❓';
         }
 
         // Función para actualizar estadísticas en la UI
@@ -2407,6 +2542,10 @@
         window.cancelTrade = cancelTrade;
         window.proposeTrade = proposeTrade;
         window.viewTradeDetails = viewTradeDetails;
+        window.createConditionSelector = createConditionSelector;
+        window.showConditionInfo = showConditionInfo;
+        window.getConditionColor = getConditionColor;
+        window.getConditionIcon = getConditionIcon;
     </script>
 
     <style>
@@ -2725,7 +2864,64 @@
         body.dark-mode #howItWorks .card-bg p,
         body.dark-mode #howItWorks .card-bg h3 { color: white; }
         body.dark-mode #myCardsSection h2 { color: white; }
-        body.dark-mode #interchangesSection h2 { color: white; }
+        body        .dark-mode #interchangesSection h2 { color: white; }
+
+        /* Estilos para selectores de condición de cartas */
+        .condition-selector {
+            background-color: #ffffff;
+            color: #374151;
+            border: 2px solid #d1d5db;
+            transition: all 0.2s ease;
+        }
+
+        .condition-selector:focus {
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+        }
+
+        .condition-selector option {
+            padding: 8px 12px;
+            font-weight: 500;
+        }
+
+        .condition-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: white;
+            transition: all 0.2s ease;
+        }
+
+        .condition-badge:hover {
+            transform: scale(1.05);
+            cursor: help;
+        }
+
+        .condition-tooltip {
+            pointer-events: none;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Modo oscuro para selectores de condición */
+        .dark-mode .condition-selector {
+            background-color: #1f2937;
+            color: #f9fafb;
+            border-color: #4b5563;
+        }
+
+        .dark-mode .condition-selector:focus {
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+        }
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
