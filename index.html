@@ -907,7 +907,7 @@
                 const completedTrades = 0;
 
                 // Actualizar UI con las estadísticas
-                updateProfileStats(totalCards, uniqueCards, uniqueSets, completedTrades);
+                updateProfileStats(totalCards, uniqueCards, uniqueSets, completedTrades, cards);
 
                 // Cargar desglose por sets
                 await loadSetsBreakdown(cards);
@@ -1258,16 +1258,128 @@
         }
 
         // Función para actualizar estadísticas en la UI
-        function updateProfileStats(totalCards, uniqueCards, uniqueSets, completedTrades) {
+        function updateProfileStats(totalCards, uniqueCards, uniqueSets, completedTrades, cards = []) {
             const totalCardsElement = document.getElementById('totalCardsCount');
             const uniqueCardsElement = document.getElementById('uniqueCardsCount');
             const uniqueSetsElement = document.getElementById('uniqueSetsCount');
             const completedTradesElement = document.getElementById('completedTradesCount');
+            const totalValueElement = document.getElementById('totalCollectionValue');
 
             if (totalCardsElement) totalCardsElement.textContent = totalCards;
             if (uniqueCardsElement) uniqueCardsElement.textContent = uniqueCards;
             if (uniqueSetsElement) uniqueSetsElement.textContent = uniqueSets;
             if (completedTradesElement) completedTradesElement.textContent = completedTrades;
+
+            // Calcular valor total de la colección
+            if (totalValueElement && cards.length > 0) {
+                const totalValue = calculateCollectionValue(cards);
+                totalValueElement.textContent = formatCurrency(totalValue);
+            } else if (totalValueElement) {
+                totalValueElement.textContent = '€0.00';
+            }
+        }
+
+        // Función para calcular el valor total de la colección
+        function calculateCollectionValue(cards) {
+            let totalValue = 0;
+            
+            cards.forEach(card => {
+                // Obtener el precio base de la carta según su rareza
+                const basePrice = getCardBasePrice(card.rarity || 'Common');
+                
+                // Aplicar multiplicadores según la condición
+                const conditionMultiplier = getConditionMultiplier(card.condition || 'NM');
+                
+                // Aplicar multiplicador según el idioma (cartas en inglés suelen valer más)
+                const languageMultiplier = getLanguageMultiplier(card.language || 'Español');
+                
+                // Calcular precio final de la carta
+                const cardValue = basePrice * conditionMultiplier * languageMultiplier;
+                
+                totalValue += cardValue;
+            });
+            
+            return totalValue;
+        }
+
+        // Función para obtener el precio base según la rareza
+        function getCardBasePrice(rarity) {
+            const basePrices = {
+                'Common': 0.10,
+                'Uncommon': 0.25,
+                'Rare': 1.00,
+                'Rare Holo': 3.00,
+                'Rare Ultra': 5.00,
+                'Rare Secret': 10.00,
+                'Rare Rainbow': 15.00,
+                'Rare Gold': 20.00,
+                'Rare Shiny': 8.00,
+                'Rare Shiny GX': 25.00,
+                'Rare Shiny V': 30.00,
+                'Rare Shiny VMAX': 50.00,
+                'Rare Shiny GX Rainbow': 100.00,
+                'Rare Shiny V Rainbow': 120.00,
+                'Rare Shiny VMAX Rainbow': 200.00,
+                'Rare Shiny Gold': 150.00,
+                'Rare Shiny Gold GX': 300.00,
+                'Rare Shiny Gold V': 400.00,
+                'Rare Shiny Gold VMAX': 600.00,
+                'Rare Shiny Gold Rainbow': 800.00,
+                'Rare Shiny Gold Rainbow GX': 1000.00,
+                'Rare Shiny Gold Rainbow V': 1200.00,
+                'Rare Shiny Gold Rainbow VMAX': 1500.00,
+                'Rare Shiny Gold Rainbow GX Rainbow': 2000.00,
+                'Rare Shiny Gold Rainbow V Rainbow': 2500.00,
+                'Rare Shiny Gold Rainbow VMAX Rainbow': 3000.00,
+                'Rare Shiny Gold Rainbow GX Rainbow Gold': 5000.00,
+                'Rare Shiny Gold Rainbow V Rainbow Gold': 7500.00,
+                'Rare Shiny Gold Rainbow VMAX Rainbow Gold': 10000.00
+            };
+            
+            return basePrices[rarity] || 0.50; // Precio por defecto
+        }
+
+        // Función para obtener el multiplicador según la condición
+        function getConditionMultiplier(condition) {
+            const conditionMultipliers = {
+                'M': 1.5,    // Mint - 50% más
+                'NM': 1.0,   // Near Mint - precio base
+                'EX': 0.8,   // Excellent - 20% menos
+                'GD': 0.6,   // Good - 40% menos
+                'LP': 0.4,   // Light Played - 60% menos
+                'PL': 0.2,   // Played - 80% menos
+                'PO': 0.1    // Poor - 90% menos
+            };
+            
+            return conditionMultipliers[condition] || 1.0;
+        }
+
+        // Función para obtener el multiplicador según el idioma
+        function getLanguageMultiplier(language) {
+            const languageMultipliers = {
+                'English': 1.2,    // Inglés - 20% más
+                'Español': 1.0,    // Español - precio base
+                'Français': 0.9,   // Francés - 10% menos
+                'Deutsch': 0.9,    // Alemán - 10% menos
+                'Italiano': 0.9,   // Italiano - 10% menos
+                'Português': 0.9,  // Portugués - 10% menos
+                '日本語': 1.1,      // Japonés - 10% más
+                '한국어': 1.0,      // Coreano - precio base
+                '中文': 1.0,        // Chino - precio base
+                'Русский': 0.8     // Ruso - 20% menos
+            };
+            
+            return languageMultipliers[language] || 1.0;
+        }
+
+        // Función para formatear moneda
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('es-ES', {
+                style: 'currency',
+                currency: 'EUR',
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }).format(amount);
         }
 
         // Función para cargar desglose por sets
@@ -2682,6 +2794,8 @@
         window.showConditionInfo = showConditionInfo;
         window.getConditionColor = getConditionColor;
         window.getConditionIcon = getConditionIcon;
+        window.calculateCollectionValue = calculateCollectionValue;
+        window.formatCurrency = formatCurrency;
     </script>
 
     <style>
@@ -3860,7 +3974,7 @@
 
                 <!-- Contenido del Dashboard -->
                 <div id="profileDashboardContent" class="profile-tab-content hidden">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
                         <!-- Estadística: Total de Cartas -->
                         <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 stats-card">
                             <div class="flex items-center">
@@ -3917,6 +4031,22 @@
                                 <div class="ml-4">
                                     <p class="text-sm font-medium text-gray-500">Cartas Únicas</p>
                                     <p class="text-2xl font-bold text-gray-900" id="uniqueCardsCount">0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estadística: Valor Total de la Colección -->
+                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-emerald-500 stats-card">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-2xl">💰</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-500">Valor Total</p>
+                                    <p class="text-2xl font-bold text-gray-900" id="totalCollectionValue">€0.00</p>
+                                    <p class="text-xs text-gray-500" id="valueEstimateNote">Estimado</p>
                                 </div>
                             </div>
                         </div>
