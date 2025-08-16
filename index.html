@@ -214,6 +214,23 @@
         // Hacer funciones disponibles globalmente
         window.showMyCardsSection = showMyCardsSection;
 
+        function showHelpSection() {
+            // Ocultar otras secciones
+            if (heroSection) heroSection.classList.add('hidden');
+            if (howItWorksSection) howItWorksSection.classList.add('hidden');
+            if (searchResultsSection) searchResultsSection.classList.add('hidden');
+            if (myCardsSection) myCardsSection.classList.add('hidden');
+            if (profileSection) profileSection.classList.add('hidden');
+            if (interchangesSection) interchangesSection.classList.add('hidden');
+
+            // Mostrar sección de ayuda
+            const helpSection = document.getElementById('helpSection');
+            if (helpSection) helpSection.classList.remove('hidden');
+
+            // Inicializar FAQ
+            initializeFAQ();
+        }
+
         function showInterchangesSection() {
             // Ocultar otras secciones
             if (heroSection) heroSection.classList.add('hidden');
@@ -322,6 +339,57 @@
                 case 'settings':
                     targetContent = document.getElementById('profileSettingsContent');
                     targetTab = document.getElementById('profileSettingsTab');
+                    break;
+            }
+
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
+            }
+
+            if (targetTab) {
+                targetTab.classList.add('active', 'border-orange-500', 'text-orange-600');
+                targetTab.classList.remove('border-transparent', 'text-gray-500');
+            }
+        }
+
+        // Función para cambiar entre tabs de ayuda
+        function switchHelpTab(tabName) {
+            // Ocultar todos los contenidos de tabs
+            const tabContents = document.querySelectorAll('.help-tab-content');
+            tabContents.forEach(content => content.classList.add('hidden'));
+
+            // Remover clase active de todos los tabs
+            const tabs = document.querySelectorAll('.help-tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+                tab.classList.remove('border-orange-500', 'text-orange-600');
+                tab.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            // Mostrar el contenido del tab seleccionado
+            let targetContent;
+            let targetTab;
+
+            switch(tabName) {
+                case 'getting-started':
+                    targetContent = document.getElementById('helpGettingStartedContent');
+                    targetTab = document.getElementById('helpGettingStartedTab');
+                    break;
+                case 'trading':
+                    targetContent = document.getElementById('helpTradingContent');
+                    targetTab = document.getElementById('helpTradingTab');
+                    break;
+                case 'card-conditions':
+                    targetContent = document.getElementById('helpCardConditionsContent');
+                    targetTab = document.getElementById('helpCardConditionsTab');
+                    break;
+                case 'account':
+                    targetContent = document.getElementById('helpAccountContent');
+                    targetTab = document.getElementById('helpAccountTab');
+                    break;
+                case 'faq':
+                    targetContent = document.getElementById('helpFAQContent');
+                    targetTab = document.getElementById('helpFAQTab');
                     break;
             }
 
@@ -1174,6 +1242,29 @@
             return CARD_CONDITIONS[conditionCode]?.icon || '❓';
         }
 
+        // Función para inicializar FAQ
+        function initializeFAQ() {
+            const faqQuestions = document.querySelectorAll('.faq-question');
+            
+            faqQuestions.forEach(question => {
+                question.addEventListener('click', () => {
+                    const answer = question.nextElementSibling;
+                    const icon = question.querySelector('span:last-child');
+                    
+                    // Toggle respuesta
+                    if (answer.classList.contains('hidden')) {
+                        answer.classList.remove('hidden');
+                        answer.classList.add('show');
+                        icon.textContent = '−';
+                    } else {
+                        answer.classList.add('hidden');
+                        answer.classList.remove('show');
+                        icon.textContent = '+';
+                    }
+                });
+            });
+        }
+
         // Función para actualizar estadísticas en la UI
         function updateProfileStats(totalCards, uniqueCards, uniqueSets, completedTrades) {
             const totalCardsElement = document.getElementById('totalCardsCount');
@@ -1894,6 +1985,15 @@
                 });
             }
 
+            const helpLink = document.getElementById('helpLink');
+            if (helpLink) {
+                helpLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('❓ Help link clicked');
+                    showHelpSection();
+                });
+            }
+
             // Explorar link (sin ID específico)
             const exploreLinks = document.querySelectorAll('a[href="#"]');
             exploreLinks.forEach(link => {
@@ -2003,6 +2103,29 @@
                 profileSettingsTab.addEventListener('click', () => switchProfileTab('settings'));
             }
 
+            // Event listeners para tabs de ayuda
+            const helpGettingStartedTab = document.getElementById('helpGettingStartedTab');
+            const helpTradingTab = document.getElementById('helpTradingTab');
+            const helpCardConditionsTab = document.getElementById('helpCardConditionsTab');
+            const helpAccountTab = document.getElementById('helpAccountTab');
+            const helpFAQTab = document.getElementById('helpFAQTab');
+
+            if (helpGettingStartedTab) {
+                helpGettingStartedTab.addEventListener('click', () => switchHelpTab('getting-started'));
+            }
+            if (helpTradingTab) {
+                helpTradingTab.addEventListener('click', () => switchHelpTab('trading'));
+            }
+            if (helpCardConditionsTab) {
+                helpCardConditionsTab.addEventListener('click', () => switchHelpTab('card-conditions'));
+            }
+            if (helpAccountTab) {
+                helpAccountTab.addEventListener('click', () => switchHelpTab('account'));
+            }
+            if (helpFAQTab) {
+                helpFAQTab.addEventListener('click', () => switchHelpTab('faq'));
+            }
+
             // Event listeners para tabs de intercambios
             const tradesActiveTab = document.getElementById('tradesActiveTab');
             const tradesPendingTab = document.getElementById('tradesPendingTab');
@@ -2020,6 +2143,24 @@
             }
             if (tradesReceivedTab) {
                 tradesReceivedTab.addEventListener('click', () => switchTradeTab('received'));
+            }
+
+            // Event listeners para botones de ayuda
+            const searchHelpBtn = document.getElementById('searchHelpBtn');
+            const contactSupportBtn = document.getElementById('contactSupportBtn');
+
+            if (searchHelpBtn) {
+                searchHelpBtn.addEventListener('click', () => {
+                    console.log('🔍 Buscar ayuda clicked');
+                    alert('Función de búsqueda de ayuda en desarrollo');
+                });
+            }
+
+            if (contactSupportBtn) {
+                contactSupportBtn.addEventListener('click', () => {
+                    console.log('📧 Contactar soporte clicked');
+                    alert('Función de contacto con soporte en desarrollo');
+                });
             }
 
             // Event listeners para botones de intercambios
@@ -2534,6 +2675,7 @@
         window.showAuthModal = showAuthModal;
         window.hideAuthModal = hideAuthModal;
         window.showMyCardsSection = showMyCardsSection;
+        window.showHelpSection = showHelpSection;
         window.showInterchangesSection = showInterchangesSection;
         window.showProfileSection = showProfileSection;
         window.showInitialSections = showInitialSections;
@@ -2695,6 +2837,48 @@
         .trade-tab-content.hidden {
             opacity: 0;
             transform: translateY(10px);
+        }
+
+        /* Estilos para los tabs de ayuda */
+        .help-tab {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .help-tab:hover {
+            color: #f97316;
+        }
+        
+        .help-tab.active {
+            color: #f97316;
+            border-bottom-color: #f97316;
+        }
+        
+        .help-tab-content {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .help-tab-content.hidden {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        /* Estilos para FAQ */
+        .faq-question {
+            transition: all 0.3s ease;
+        }
+        
+        .faq-question:hover {
+            background-color: #f3f4f6;
+        }
+        
+        .faq-answer {
+            transition: all 0.3s ease;
+        }
+        
+        .faq-answer.show {
+            display: block;
         }
         
         /* Estilos para las estadísticas */
@@ -2950,6 +3134,7 @@
                     <li id="registerNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="registerLink"><span class="icon">📝</span> <span data-i18n="nav.register">Registrarse</span></a></li>
                     <li id="profileNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center text-sm h-12 whitespace-nowrap" id="profileLink"><span class="icon">👤</span> <span data-i18n="nav.profile">Mi Perfil</span></a></li>
                     <li id="logoutNavLink" class="hidden"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="logoutLink"><span class="icon">👋</span> <span data-i18n="nav.logout">Cerrar Sesión</span></a></li>
+                    <li><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="helpLink"><span class="icon">❓</span> <span>Ayuda</span></a></li>
                 </ul>
             </nav>
         </div>
@@ -3034,6 +3219,386 @@
                 <div class="card-bg p-6 rounded-xl shadow-md">
                     <h3 class="text-2xl font-semibold mb-3 text-gray-800 flex items-center justify-center"><span class="icon">🎉</span> 3. Intercambia y Disfruta</h3>
                     <p class="text-gray-600">Acuerda el intercambio de forma segura y completa tu colección.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sección de Ayuda -->
+        <section id="helpSection" class="mb-12 hidden">
+            <div class="max-w-6xl mx-auto">
+                <!-- Header de Ayuda -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                        <div>
+                            <h2 class="text-3xl font-bold text-gray-800 mb-2 flex items-center">
+                                <span class="icon mr-3">❓</span> Centro de Ayuda
+                            </h2>
+                            <p class="text-gray-600">Encuentra respuestas a todas tus preguntas sobre TCGtrade</p>
+                        </div>
+                        <div class="flex space-x-3">
+                            <button id="searchHelpBtn" class="btn-primary px-6 py-3 rounded-lg text-sm font-semibold flex items-center">
+                                <span class="icon mr-2">🔍</span> Buscar Ayuda
+                            </button>
+                            <button id="contactSupportBtn" class="btn-secondary px-6 py-3 rounded-lg text-sm font-semibold flex items-center">
+                                <span class="icon mr-2">📧</span> Contactar Soporte
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs de Ayuda -->
+                <div class="bg-white rounded-xl shadow-lg mb-6">
+                    <div class="border-b border-gray-200">
+                        <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                            <button id="helpGettingStartedTab" class="help-tab active py-4 px-1 border-b-2 border-orange-500 text-orange-600 font-medium text-sm">
+                                🚀 Primeros Pasos
+                            </button>
+                            <button id="helpTradingTab" class="help-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                                🤝 Intercambios
+                            </button>
+                            <button id="helpCardConditionsTab" class="help-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                                🎴 Condiciones de Cartas
+                            </button>
+                            <button id="helpAccountTab" class="help-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                                👤 Cuenta y Perfil
+                            </button>
+                            <button id="helpFAQTab" class="help-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                                ❓ FAQ
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Contenido de Primeros Pasos -->
+                <div id="helpGettingStartedContent" class="help-tab-content">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                            <span class="icon mr-2">🚀</span> Primeros Pasos en TCGtrade
+                        </h3>
+                        
+                        <div class="space-y-6">
+                            <div class="border-l-4 border-orange-500 pl-4">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-2">1. Crear tu Cuenta</h4>
+                                <p class="text-gray-600 mb-3">Regístrate con tu email y crea un nombre de usuario único. Este será tu identificador en la plataforma.</p>
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <p class="text-sm text-gray-700"><strong>💡 Consejo:</strong> Elige un nombre de usuario que refleje tu pasión por Pokémon TCG.</p>
+                                </div>
+                            </div>
+
+                            <div class="border-l-4 border-blue-500 pl-4">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-2">2. Construir tu Colección</h4>
+                                <p class="text-gray-600 mb-3">Busca cartas en nuestra base de datos y añádelas a tu colección personal. Especifica la condición y el idioma de cada carta.</p>
+                                <div class="bg-blue-50 p-3 rounded-lg">
+                                    <p class="text-sm text-blue-700"><strong>📝 Nota:</strong> Cuanto más detallada sea tu colección, mejores intercambios podrás encontrar.</p>
+                                </div>
+                            </div>
+
+                            <div class="border-l-4 border-green-500 pl-4">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-2">3. Crear tu Primer Intercambio</h4>
+                                <p class="text-gray-600 mb-3">Selecciona las cartas que quieres ofrecer y las que buscas. Especifica las condiciones deseadas.</p>
+                                <div class="bg-green-50 p-3 rounded-lg">
+                                    <p class="text-sm text-green-700"><strong>🤝 Consejo:</strong> Sé específico sobre las condiciones que aceptas para evitar malentendidos.</p>
+                                </div>
+                            </div>
+
+                            <div class="border-l-4 border-purple-500 pl-4">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-2">4. Conectar con Otros Coleccionistas</h4>
+                                <p class="text-gray-600 mb-3">Explora los intercambios disponibles y propón ofertas. Comunícate de forma respetuosa con otros usuarios.</p>
+                                <div class="bg-purple-50 p-3 rounded-lg">
+                                    <p class="text-sm text-purple-700"><strong>🌟 Recordatorio:</strong> La comunidad se basa en la confianza y el respeto mutuo.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido de Intercambios -->
+                <div id="helpTradingContent" class="help-tab-content hidden">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                            <span class="icon mr-2">🤝</span> Guía de Intercambios
+                        </h3>
+                        
+                        <div class="space-y-6">
+                            <div class="bg-gray-50 p-4 rounded-lg">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-3">¿Cómo Funcionan los Intercambios?</h4>
+                                <p class="text-gray-600 mb-3">Los intercambios en TCGtrade te permiten intercambiar cartas con otros coleccionistas de forma segura y transparente.</p>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                                    <div class="bg-white p-3 rounded border">
+                                        <h5 class="font-semibold text-gray-800 mb-2">📤 Crear un Intercambio</h5>
+                                        <ul class="text-sm text-gray-600 space-y-1">
+                                            <li>• Selecciona las cartas que ofreces</li>
+                                            <li>• Especifica las cartas que buscas</li>
+                                            <li>• Define las condiciones aceptables</li>
+                                            <li>• Añade una descripción clara</li>
+                                        </ul>
+                                    </div>
+                                    <div class="bg-white p-3 rounded border">
+                                        <h5 class="font-semibold text-gray-800 mb-2">📥 Responder a Intercambios</h5>
+                                        <ul class="text-sm text-gray-600 space-y-1">
+                                            <li>• Revisa las condiciones detalladamente</li>
+                                            <li>• Propón una oferta específica</li>
+                                            <li>• Comunícate con el creador</li>
+                                            <li>• Acuerda los detalles del envío</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-orange-50 p-4 rounded-lg">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-3">🛡️ Consejos de Seguridad</h4>
+                                <ul class="text-gray-600 space-y-2">
+                                    <li><strong>📸 Fotos detalladas:</strong> Siempre incluye fotos claras de las cartas que ofreces</li>
+                                    <li><strong>📋 Descripción completa:</strong> Describe cualquier defecto o característica especial</li>
+                                    <li><strong>📞 Comunicación:</strong> Mantén una comunicación clara y respetuosa</li>
+                                    <li><strong>📦 Envío seguro:</strong> Usa métodos de envío con seguimiento</li>
+                                    <li><strong>⏰ Paciencia:</strong> Los intercambios pueden tomar tiempo, sé paciente</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido de Condiciones de Cartas -->
+                <div id="helpCardConditionsContent" class="help-tab-content hidden">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                            <span class="icon mr-2">🎴</span> Guía de Condiciones de Cartas
+                        </h3>
+                        
+                        <div class="mb-6">
+                            <p class="text-gray-600 mb-4">En TCGtrade utilizamos el sistema de condiciones de <strong>CardMarket</strong>, el estándar europeo más reconocido para la evaluación de cartas Pokémon TCG.</p>
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <p class="text-sm text-blue-700"><strong>💡 Importante:</strong> La condición de una carta es fundamental para determinar su valor y aceptabilidad en intercambios.</p>
+                            </div>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="border border-gray-200 rounded-lg overflow-hidden">
+                                <div class="bg-gray-50 px-4 py-3 border-b">
+                                    <h4 class="font-semibold text-gray-800">Condiciones de Mejor a Peor</h4>
+                                </div>
+                                <div class="p-4">
+                                    <div class="space-y-3">
+                                        <div class="flex items-center justify-between p-3 rounded-lg" style="background-color: #10B981;">
+                                            <div class="flex items-center space-x-3">
+                                                <span class="text-2xl">💎</span>
+                                                <div>
+                                                    <h5 class="font-semibold text-white">Mint (M)</h5>
+                                                    <p class="text-green-100 text-sm">Perfectas condiciones, sin excusas</p>
+                                                </div>
+                                            </div>
+                                            <span class="text-white font-medium">M</span>
+                                        </div>
+
+                                        <div class="flex items-center justify-between p-3 rounded-lg" style="background-color: #059669;">
+                                            <div class="flex items-center space-x-3">
+                                                <span class="text-2xl">✨</span>
+                                                <div>
+                                                    <h5 class="font-semibold text-white">Near Mint (NM)</h5>
+                                                    <p class="text-green-100 text-sm">Aspecto de no haber sido jugada sin fundas</p>
+                                                </div>
+                                            </div>
+                                            <span class="text-white font-medium">NM</span>
+                                        </div>
+
+                                        <div class="flex items-center justify-between p-3 rounded-lg" style="background-color: #3B82F6;">
+                                            <div class="flex items-center space-x-3">
+                                                <span class="text-2xl">⭐</span>
+                                                <div>
+                                                    <h5 class="font-semibold text-white">Excellent (EX)</h5>
+                                                    <p class="text-blue-100 text-sm">Como si se hubiera usado poco sin fundas</p>
+                                                </div>
+                                            </div>
+                                            <span class="text-white font-medium">EX</span>
+                                        </div>
+
+                                        <div class="flex items-center justify-between p-3 rounded-lg" style="background-color: #F59E0B;">
+                                            <div class="flex items-center space-x-3">
+                                                <span class="text-2xl">🟡</span>
+                                                <div>
+                                                    <h5 class="font-semibold text-white">Good (GD)</h5>
+                                                    <p class="text-yellow-100 text-sm">Aspecto de mucho uso en torneo sin fundas</p>
+                                                </div>
+                                            </div>
+                                            <span class="text-white font-medium">GD</span>
+                                        </div>
+
+                                        <div class="flex items-center justify-between p-3 rounded-lg" style="background-color: #F97316;">
+                                            <div class="flex items-center space-x-3">
+                                                <span class="text-2xl">🟠</span>
+                                                <div>
+                                                    <h5 class="font-semibold text-white">Light Played (LP)</h5>
+                                                    <p class="text-orange-100 text-sm">Uso prolongado sin fundas, válida para torneos</p>
+                                                </div>
+                                            </div>
+                                            <span class="text-white font-medium">LP</span>
+                                        </div>
+
+                                        <div class="flex items-center justify-between p-3 rounded-lg" style="background-color: #DC2626;">
+                                            <div class="flex items-center space-x-3">
+                                                <span class="text-2xl">🔴</span>
+                                                <div>
+                                                    <h5 class="font-semibold text-white">Played (PL)</h5>
+                                                    <p class="text-red-100 text-sm">Aspecto muy deteriorado, dudoso para torneos</p>
+                                                </div>
+                                            </div>
+                                            <span class="text-white font-medium">PL</span>
+                                        </div>
+
+                                        <div class="flex items-center justify-between p-3 rounded-lg" style="background-color: #7F1D1D;">
+                                            <div class="flex items-center space-x-3">
+                                                <span class="text-2xl">💀</span>
+                                                <div>
+                                                    <h5 class="font-semibold text-white">Poor (PO)</h5>
+                                                    <p class="text-red-100 text-sm">Literalmente destrozada o alterada</p>
+                                                </div>
+                                            </div>
+                                            <span class="text-white font-medium">PO</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-yellow-50 p-4 rounded-lg">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-3">⚠️ Consejos Importantes</h4>
+                                <ul class="text-gray-600 space-y-2">
+                                    <li><strong>🔍 Inspección detallada:</strong> Examina las cartas bajo buena luz antes de evaluar</li>
+                                    <li><strong>📸 Fotos claras:</strong> Incluye fotos de frente y reverso en tus intercambios</li>
+                                    <li><strong>📋 Descripción honesta:</strong> Sé transparente sobre cualquier defecto</li>
+                                    <li><strong>🎯 Condiciones específicas:</strong> Especifica qué condiciones aceptas en tus intercambios</li>
+                                    <li><strong>🤝 Comunicación:</strong> Si tienes dudas, pregunta antes de intercambiar</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido de Cuenta y Perfil -->
+                <div id="helpAccountContent" class="help-tab-content hidden">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                            <span class="icon mr-2">👤</span> Gestión de Cuenta y Perfil
+                        </h3>
+                        
+                        <div class="space-y-6">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <h4 class="text-lg font-semibold text-gray-800 mb-3">🔐 Seguridad de la Cuenta</h4>
+                                    <ul class="text-gray-600 space-y-2">
+                                        <li>• Usa una contraseña fuerte y única</li>
+                                        <li>• No compartas tus credenciales</li>
+                                        <li>• Cambia tu contraseña regularmente</li>
+                                        <li>• Activa la verificación en dos pasos si está disponible</li>
+                                    </ul>
+                                </div>
+                                <div class="bg-gray-50 p-4 rounded-lg">
+                                    <h4 class="text-lg font-semibold text-gray-800 mb-3">📊 Tu Perfil</h4>
+                                    <ul class="text-gray-600 space-y-2">
+                                        <li>• Mantén tu información actualizada</li>
+                                        <li>• Añade una foto de perfil</li>
+                                        <li>• Completa tu información de contacto</li>
+                                        <li>• Revisa tu historial de intercambios</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="bg-blue-50 p-4 rounded-lg">
+                                <h4 class="text-lg font-semibold text-gray-800 mb-3">📈 Estadísticas de tu Colección</h4>
+                                <p class="text-gray-600 mb-3">En tu perfil puedes ver estadísticas detalladas de tu colección:</p>
+                                <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold text-blue-600">🎴</div>
+                                        <div class="text-sm text-gray-600">Total de Cartas</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold text-green-600">📦</div>
+                                        <div class="text-sm text-gray-600">Sets Diferentes</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold text-purple-600">🤝</div>
+                                        <div class="text-sm text-gray-600">Intercambios</div>
+                                    </div>
+                                    <div class="text-center">
+                                        <div class="text-2xl font-bold text-orange-600">⭐</div>
+                                        <div class="text-sm text-gray-600">Cartas Únicas</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido de FAQ -->
+                <div id="helpFAQContent" class="help-tab-content hidden">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                            <span class="icon mr-2">❓</span> Preguntas Frecuentes (FAQ)
+                        </h3>
+                        
+                        <div class="space-y-4">
+                            <div class="border border-gray-200 rounded-lg">
+                                <button class="faq-question w-full px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-lg">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-semibold text-gray-800">¿Cómo puedo empezar a intercambiar cartas?</span>
+                                        <span class="text-gray-500">+</span>
+                                    </div>
+                                </button>
+                                <div class="faq-answer hidden px-4 py-3 border-t">
+                                    <p class="text-gray-600">Primero crea tu cuenta, luego busca cartas y añádelas a tu colección. Una vez que tengas cartas, puedes crear intercambios o responder a los de otros usuarios.</p>
+                                </div>
+                            </div>
+
+                            <div class="border border-gray-200 rounded-lg">
+                                <button class="faq-question w-full px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-lg">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-semibold text-gray-800">¿Qué significa NM, EX, GD en las condiciones?</span>
+                                        <span class="text-gray-500">+</span>
+                                    </div>
+                                </button>
+                                <div class="faq-answer hidden px-4 py-3 border-t">
+                                    <p class="text-gray-600">Son las siglas del sistema de condiciones de CardMarket: NM = Near Mint, EX = Excellent, GD = Good. Puedes ver la guía completa en la sección "Condiciones de Cartas".</p>
+                                </div>
+                            </div>
+
+                            <div class="border border-gray-200 rounded-lg">
+                                <button class="faq-question w-full px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-lg">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-semibold text-gray-800">¿Es seguro intercambiar cartas aquí?</span>
+                                        <span class="text-gray-500">+</span>
+                                    </div>
+                                </button>
+                                <div class="faq-answer hidden px-4 py-3 border-t">
+                                    <p class="text-gray-600">Sí, pero siempre toma precauciones: usa fotos detalladas, comunícate claramente, y usa métodos de envío con seguimiento. La comunidad se basa en la confianza mutua.</p>
+                                </div>
+                            </div>
+
+                            <div class="border border-gray-200 rounded-lg">
+                                <button class="faq-question w-full px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-lg">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-semibold text-gray-800">¿Puedo cambiar mi nombre de usuario?</span>
+                                        <span class="text-gray-500">+</span>
+                                    </div>
+                                </button>
+                                <div class="faq-answer hidden px-4 py-3 border-t">
+                                    <p class="text-gray-600">Por el momento, el nombre de usuario no se puede cambiar una vez creado. Elige cuidadosamente al registrarte.</p>
+                                </div>
+                            </div>
+
+                            <div class="border border-gray-200 rounded-lg">
+                                <button class="faq-question w-full px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-lg">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-semibold text-gray-800">¿Qué hago si tengo un problema con un intercambio?</span>
+                                        <span class="text-gray-500">+</span>
+                                    </div>
+                                </button>
+                                <div class="faq-answer hidden px-4 py-3 border-t">
+                                    <p class="text-gray-600">Primero intenta resolverlo directamente con el otro usuario. Si no es posible, contacta con nuestro soporte técnico usando el botón "Contactar Soporte".</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </section>
