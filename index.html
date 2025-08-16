@@ -174,9 +174,6 @@
             if (helpSection) helpSection.classList.add('hidden');
         }
 
-        // Hacer funciones disponibles globalmente
-        window.showInitialSections = showInitialSections;
-
         function showSearchResults() {
             // Ocultar secciones iniciales
             if (heroSection) heroSection.classList.add('hidden');
@@ -213,9 +210,6 @@
                 }
             }
         }
-
-        // Hacer funciones disponibles globalmente
-        window.showMyCardsSection = showMyCardsSection;
 
         function showHelpSection() {
             // Ocultar otras secciones
@@ -278,9 +272,6 @@
             }
         }
 
-        // Hacer funciones disponibles globalmente
-        window.showInterchangesSection = showInterchangesSection;
-
         function showProfileSection() {
             // Ocultar otras secciones
             if (heroSection) heroSection.classList.add('hidden');
@@ -301,9 +292,6 @@
                 showMyCardsSection();
             }
         }
-
-        // Hacer funciones disponibles globalmente
-        window.showProfileSection = showProfileSection;
 
         // Función para cambiar entre tabs del perfil
         function switchProfileTab(tabName) {
@@ -2676,6 +2664,7 @@
             }
         };
 
+        // Hacer funciones disponibles globalmente
         // Hacer funciones disponibles globalmente
         window.showAuthModal = showAuthModal;
         window.hideAuthModal = hideAuthModal;
