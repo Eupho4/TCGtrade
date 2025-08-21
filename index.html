@@ -178,6 +178,7 @@
             // Ocultar secciones iniciales
             if (heroSection) heroSection.classList.add('hidden');
             if (howItWorksSection) howItWorksSection.classList.add('hidden');
+            if (searchResultsSection) searchResultsSection.classList.add('hidden');
             if (myCardsSection) myCardsSection.classList.add('hidden');
             if (profileSection) profileSection.classList.add('hidden');
             if (interchangesSection) interchangesSection.classList.add('hidden');
@@ -341,6 +342,15 @@
             if (targetTab) {
                 targetTab.classList.add('active', 'border-orange-500', 'text-orange-600');
                 targetTab.classList.remove('border-transparent', 'text-gray-500');
+            }
+
+            // Cargar estadísticas al abrir el Dashboard
+            if (tabName === 'dashboard' && typeof loadProfileStats === 'function' && currentUser) {
+                try {
+                    loadProfileStats();
+                } catch (e) {
+                    console.error('Error al cargar estadísticas al abrir Dashboard:', e);
+                }
             }
         }
 
@@ -890,7 +900,7 @@
                 console.log('📊 Cargando estadísticas del perfil...');
 
                 // Obtener colección del usuario
-                const userCardsRef = collection(db, 'users', currentUser.uid, 'cards');
+                const userCardsRef = collection(db, 'users', currentUser.uid, 'my_cards');
                 const userCardsSnapshot = await getDocs(userCardsRef);
                 
                 const cards = [];
@@ -901,7 +911,7 @@
                 // Calcular estadísticas
                 const totalCards = cards.length;
                 const uniqueCards = new Set(cards.map(card => card.id)).size;
-                const uniqueSets = new Set(cards.map(card => card.set?.name).filter(Boolean)).size;
+                const uniqueSets = new Set(cards.map(card => (typeof card.set === 'string' ? card.set : card.set?.name)).filter(Boolean)).size;
                 
                 // Por ahora, intercambios completados = 0 (se implementará más adelante)
                 const completedTrades = 0;
@@ -1391,7 +1401,7 @@
                 // Agrupar cartas por set
                 const setsMap = new Map();
                 cards.forEach(card => {
-                    const setName = card.set?.name || 'Sin Set';
+                    const setName = (typeof card.set === 'string' ? card.set : card.set?.name) || 'Sin Set';
                     if (!setsMap.has(setName)) {
                         setsMap.set(setName, []);
                     }
