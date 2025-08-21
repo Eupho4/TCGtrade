@@ -352,6 +352,11 @@
                     console.error('Error al cargar estadísticas al abrir Dashboard:', e);
                 }
             }
+
+            // Cargar colección al abrir la pestaña Mi Colección
+            if (tabName === 'collection' && typeof loadUserCollection === 'function') {
+                loadUserCollection();
+            }
         }
 
         // Función para cambiar entre tabs de ayuda
@@ -2573,6 +2578,12 @@
             
             if (confirmed) {
                 addCardToCollection(cardId, cardName, imageUrl, setName, series, number);
+                if (typeof loadUserCollection === 'function') {
+                    loadUserCollection();
+                }
+                if (typeof loadProfileStats === 'function') {
+                    loadProfileStats();
+                }
             }
         };
 
@@ -2806,6 +2817,68 @@
         window.getConditionIcon = getConditionIcon;
         window.calculateCollectionValue = calculateCollectionValue;
         window.formatCurrency = formatCurrency;
+
+        // Cargar y renderizar Mi Colección
+        async function loadUserCollection() {
+            const grid = document.getElementById('myCardsGrid');
+            const status = document.getElementById('myCardsStatus');
+            if (!grid) return;
+            if (!currentUser) {
+                if (status) status.textContent = 'Inicia sesión para ver tu colección';
+                grid.innerHTML = `
+                    <div class="col-span-full text-center text-gray-500 py-8">
+                        <p>No hay cartas en tu colección</p>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                if (status) status.textContent = 'Cargando tu colección...';
+                const cardsRef = collection(db, 'users', currentUser.uid, 'my_cards');
+                const snap = await getDocs(cardsRef);
+                const cards = [];
+                snap.forEach(d => cards.push({ id: d.id, ...d.data() }));
+
+                if (cards.length === 0) {
+                    grid.innerHTML = `
+                        <div class="col-span-full text-center text-gray-500 py-8">
+                            <p>No hay cartas en tu colección</p>
+                        </div>
+                    `;
+                } else {
+                    renderMyCards(cards);
+                }
+                if (status) status.textContent = '';
+            } catch (err) {
+                console.error('Error al cargar colección:', err);
+                if (status) status.textContent = 'Error al cargar tu colección';
+            }
+        }
+
+        function renderMyCards(cards) {
+            const grid = document.getElementById('myCardsGrid');
+            if (!grid) return;
+            const html = cards.map(card => {
+                const imageUrl = card.imageUrl || '';
+                const name = card.name || card.id;
+                const setName = (typeof card.set === 'string' ? card.set : card.set?.name) || 'Set';
+                const number = card.number || '';
+                const language = card.language || 'Español';
+                const condition = card.condition || 'NM';
+                return `
+                    <div class="bg-white rounded-lg shadow p-3 flex flex-col">
+                        <img src="${imageUrl}" alt="${name}" class="w-full h-40 object-contain mb-2 bg-gray-50 rounded" />
+                        <div class="flex-1">
+                            <div class="text-sm font-semibold text-gray-800">${name}</div>
+                            <div class="text-xs text-gray-600">${setName} · #${number}</div>
+                            <div class="text-xs text-gray-600">${language} · ${condition}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            grid.innerHTML = html;
+        }
     </script>
 
     <style>
@@ -4080,7 +4153,12 @@
                 <div id="profileCollectionContent" class="profile-tab-content hidden">
                     <div class="bg-white rounded-xl shadow-lg p-6">
                         <h3 class="text-xl font-bold text-gray-800 mb-4">🎴 Mi Colección</h3>
-                        <p class="text-gray-600">Aquí podrás ver y gestionar tu colección de cartas.</p>
+                        <p id="myCardsStatus" class="text-gray-600 mb-4"></p>
+                        <div id="myCardsGrid" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                            <div class="col-span-full text-center text-gray-500 py-8">
+                                <p>No hay cartas en tu colección</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
