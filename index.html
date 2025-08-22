@@ -1506,12 +1506,11 @@
 
             try {
                 // Construir URL optimizada para Railway (sin límite de timeout)
-                const encodedQuery = encodeURIComponent(query.toLowerCase());
-                // Railway puede manejar búsquedas más grandes sin timeout
-                const searchType = query.length <= 4 ? `name:${encodedQuery}*` : `name:*${encodedQuery}*`;
-                const pageSize = 100; // Railway puede manejar 100 cartas sin problema
-                const withFilters = buildCardsQuery(searchType);
-                const apiUrl = `/api/pokemontcg/cards?q=${withFilters}&pageSize=${pageSize}`;
+                const base = query.length <= 4 ? `name:${query.toLowerCase()}*` : `name:*${query.toLowerCase()}*`;
+                const withFilters = buildCardsQuery(base);
+                const qParam = encodeURIComponent(withFilters);
+                const pageSize = 50; // reducir para evitar timeouts
+                const apiUrl = `/api/pokemontcg/cards?q=${qParam}&pageSize=${pageSize}`;
 
                 console.log('🌐 Fetching from URL:', apiUrl);
 
@@ -2932,9 +2931,9 @@
 
         function buildCardsQuery(baseQuery) {
             const filters = [];
-            if (searchFiltersState.set) filters.push(`set.name:${encodeURIComponent(searchFiltersState.set)}`);
-            if (searchFiltersState.rarity) filters.push(`rarity:${encodeURIComponent(searchFiltersState.rarity)}`);
-            if (searchFiltersState.type) filters.push(`types:${encodeURIComponent(searchFiltersState.type)}`);
+            if (searchFiltersState.set) filters.push(`set.name:"${searchFiltersState.set}"`);
+            if (searchFiltersState.rarity) filters.push(`rarity:"${searchFiltersState.rarity}"`);
+            if (searchFiltersState.type) filters.push(`types:"${searchFiltersState.type}"`);
             // language no está en API oficial; se aplica client-side si existiera
             return filters.length ? `${baseQuery} AND ${filters.join(' AND ')}` : baseQuery;
         }
