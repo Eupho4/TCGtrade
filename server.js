@@ -22,6 +22,11 @@ const RATE_LIMIT_MAX = 50; // 50 requests por minuto (más permisivo)
 const emptyResponseCache = new Map();
 const EMPTY_CACHE_DURATION = 2 * 60 * 1000; // 2 minutos para respuestas vacías
 
+// Configuración específica para cache y coalescing de eBay
+const EBAY_CACHE_TTL_MS = 60 * 1000;        // Fresco durante 1 min
+const EBAY_SWR_TTL_MS = 5 * 60 * 1000;      // Stale-while-revalidate hasta 5 min
+const inflightEbayRequests = new Map();     // cacheKey -> Promise
+
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
@@ -421,22 +426,51 @@ app.get('/api/ebay/search', async (req, res) => {
     const apiUrl = `https://svcs.ebay.com/services/search/FindingService/v1?${params.toString()}`;
 
     const cacheKey = `ebay:${apiUrl}`;
+    const nowMs = Date.now();
     const cached = cache.get(cacheKey);
-    if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
-      return res.json({ ...cached.data, _cached: true });
+    if (cached) {
+      const age = nowMs - cached.timestamp;
+      // Fresh
+      if (age < EBAY_CACHE_TTL_MS) {
+        res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+        return res.json({ ...cached.data, _cached: true, _swr: false, _ageMs: age });
+      }
+      // Stale-while-revalidate: devolver cache y lanzar revalidación en background
+      if (age < EBAY_SWR_TTL_MS) {
+        res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+        revalidateEbay(cacheKey, apiUrl, appId).catch(()=>{});
+        return res.json({ ...cached.data, _cached: true, _swr: true, _ageMs: age });
+      }
     }
 
+    // Coalescing: si ya hay un fetch en curso para este cacheKey, esperar ese
+    if (inflightEbayRequests.has(cacheKey)) {
+      try {
+        const result = await inflightEbayRequests.get(cacheKey);
+        res.set('Cache-Control', 'public, max-age=60, stale-while-revalidate=300');
+        return res.json({ ...result, _cached: true, _coalesced: true });
+      } catch (_) { /* caer a fetch normal */ }
+    }
+
+    // Fetch principal
     const fetch = (await import('node-fetch')).default;
-    const response = await fetch(apiUrl, {
-      method: 'GET',
-      headers: {
-        'Accept': 'application/json',
-        'X-EBAY-SOA-SECURITY-APPNAME': appId,
-        'X-EBAY-SOA-GLOBAL-ID': 'EBAY-ES',
-        'User-Agent': 'TCGtrade-Railway/1.0'
-      },
-      timeout: 15000
-    });
+    const fetchPromise = (async () => {
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        headers: {
+          'Accept': 'application/json',
+          'X-EBAY-SOA-SECURITY-APPNAME': appId,
+          'X-EBAY-SOA-GLOBAL-ID': 'EBAY-ES',
+          'User-Agent': 'TCGtrade-Railway/1.0'
+        },
+        timeout: 15000
+      });
+      return response;
+    })();
+    inflightEbayRequests.set(cacheKey, fetchPromise);
+
+    const response = await fetchPromise;
+    inflightEbayRequests.delete(cacheKey);
 
     const text = await response.text();
     if (!response.ok) {
@@ -884,3 +918,40 @@ process.on('uncaughtException', (error) => {
   console.error('❌ Uncaught Exception:', error);
   process.exit(1);
 });
+
+async function revalidateEbay(cacheKey, apiUrl, appId) {
+  try {
+    const fetch = (await import('node-fetch')).default;
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'X-EBAY-SOA-SECURITY-APPNAME': appId,
+        'X-EBAY-SOA-GLOBAL-ID': 'EBAY-ES',
+        'User-Agent': 'TCGtrade-Railway/1.0'
+      },
+      timeout: 15000
+    });
+    const text = await response.text();
+    if (!response.ok) return;
+    const data = JSON.parse(text);
+    const items = data?.findItemsByKeywordsResponse?.[0]?.searchResult?.[0]?.item || [];
+    const pagination = {
+      totalEntries: Number(data?.findItemsByKeywordsResponse?.[0]?.paginationOutput?.[0]?.totalEntries?.[0] || 0),
+      totalPages: Number(data?.findItemsByKeywordsResponse?.[0]?.paginationOutput?.[0]?.totalPages?.[0] || 0)
+    };
+    const mapped = items.map(it => ({
+      id: it?.itemId?.[0],
+      title: it?.title?.[0],
+      galleryUrl: it?.galleryURL?.[0],
+      viewItemUrl: it?.viewItemURL?.[0],
+      price: Number(it?.sellingStatus?.[0]?.currentPrice?.[0]?.__value__ || 0),
+      currency: it?.sellingStatus?.[0]?.currentPrice?.[0]?.['@currencyId'] || 'USD',
+      condition: it?.condition?.[0]?.conditionDisplayName?.[0] || undefined,
+      location: it?.location?.[0] || undefined,
+      shippingInfo: it?.shippingInfo?.[0] || undefined
+    }));
+    const payload = { pagination, items: mapped, timestamp: new Date().toISOString() };
+    cache.set(cacheKey, { data: payload, timestamp: Date.now() });
+  } catch (_) {}
+}
