@@ -359,6 +359,117 @@ async function pokemonProxy(req, res) {
 // Rutas API
 app.get('/api/pokemontcg/*', pokemonProxy);
 
+// Endpoint de búsqueda en eBay (Finding API)
+app.get('/api/ebay/search', async (req, res) => {
+  try {
+    const clientIP = req.ip || req.connection.remoteAddress;
+    if (!checkRateLimit(clientIP)) {
+      return res.status(429).json({
+        error: 'Rate limit exceeded',
+        message: 'Demasiadas búsquedas en poco tiempo. Intenta de nuevo en 1 minuto.',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    const appId = process.env.EBAY_APP_ID;
+    if (!appId) {
+      return res.status(500).json({
+        error: 'EBAY_APP_ID not configured',
+        message: 'Configura la variable de entorno EBAY_APP_ID en Railway',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    const query = (req.query.q || '').toString().trim();
+    const page = parseInt(req.query.page || '1', 10) || 1;
+    const entriesPerPage = Math.min(parseInt(req.query.pageSize || '24', 10) || 24, 100);
+
+    if (!query) {
+      return res.status(400).json({
+        error: 'Missing query',
+        message: 'Debes especificar un parámetro de búsqueda ?q=',
+        example: '/api/ebay/search?q=pokemon cards',
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    const params = new URLSearchParams({
+      'OPERATION-NAME': 'findItemsByKeywords',
+      'SERVICE-VERSION': '1.13.0',
+      'SECURITY-APPNAME': appId,
+      'RESPONSE-DATA-FORMAT': 'JSON',
+      'REST-PAYLOAD': 'true',
+      keywords: query,
+      'paginationInput.entriesPerPage': String(entriesPerPage),
+      'paginationInput.pageNumber': String(page)
+    });
+
+    const apiUrl = `https://svcs.ebay.com/services/search/FindingService/v1?${params.toString()}`;
+
+    const cacheKey = `ebay:${apiUrl}`;
+    const cached = cache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp) < CACHE_DURATION) {
+      return res.json({ ...cached.data, _cached: true });
+    }
+
+    const fetch = (await import('node-fetch')).default;
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Accept': 'application/json',
+        'X-EBAY-SOA-SECURITY-APPNAME': appId,
+        'User-Agent': 'TCGtrade-Railway/1.0'
+      },
+      timeout: 15000
+    });
+
+    const text = await response.text();
+    if (!response.ok) {
+      return res.status(response.status).json({
+        error: 'eBay API error',
+        status: response.status,
+        preview: text.substring(0, 200)
+      });
+    }
+
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      return res.status(502).json({ error: 'Invalid JSON from eBay', preview: text.substring(0, 200) });
+    }
+
+    const items = data?.findItemsByKeywordsResponse?.[0]?.searchResult?.[0]?.item || [];
+    const pagination = {
+      page,
+      entriesPerPage,
+      totalEntries: Number(data?.findItemsByKeywordsResponse?.[0]?.paginationOutput?.[0]?.totalEntries?.[0] || 0),
+      totalPages: Number(data?.findItemsByKeywordsResponse?.[0]?.paginationOutput?.[0]?.totalPages?.[0] || 0)
+    };
+
+    const mapped = items.map(it => ({
+      id: it?.itemId?.[0],
+      title: it?.title?.[0],
+      galleryUrl: it?.galleryURL?.[0],
+      viewItemUrl: it?.viewItemURL?.[0],
+      price: Number(it?.sellingStatus?.[0]?.currentPrice?.[0]?.__value__ || 0),
+      currency: it?.sellingStatus?.[0]?.currentPrice?.[0]?.['@currencyId'] || 'USD',
+      condition: it?.condition?.[0]?.conditionDisplayName?.[0] || undefined,
+      location: it?.location?.[0] || undefined,
+      shippingInfo: it?.shippingInfo?.[0] || undefined
+    }));
+
+    const payload = { query, pagination, items: mapped, timestamp: new Date().toISOString() };
+
+    cache.set(cacheKey, { data: payload, timestamp: Date.now() });
+
+    res.json(payload);
+  } catch (error) {
+    console.error('❌ eBay search error:', error);
+    res.status(500).json({ error: 'Internal error', message: error.message });
+  }
+});
+
 // Función de prueba
 app.get('/api/test', (req, res) => {
   res.json({

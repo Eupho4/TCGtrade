@@ -49,22 +49,25 @@ La configuración de Firebase ya está incluida en el código para:
 
 ## 🔧 Funciones
 
-### Función Pokemon Proxy (`netlify/functions/pokemon-proxy.js`)
-
-Esta función actúa como proxy entre tu frontend y la API de Pokémon TCG:
+### Proxy Pokémon TCG (`/api/pokemontcg/*`)
 
 - **Endpoint**: `/api/pokemontcg/*`
 - **Métodos**: GET
-- **CORS**: Configurado para permitir todas las peticiones
+- **CORS**: Configurado
 - **API Key**: Se añade automáticamente si está configurada
 
-### Endpoints disponibles:
-
+Endpoints:
 - `/api/pokemontcg/cards` - Buscar cartas
 - `/api/pokemontcg/sets` - Obtener expansiones
 - `/api/pokemontcg/types` - Tipos de cartas
 - `/api/pokemontcg/supertypes` - Supertipos
 - `/api/pokemontcg/subtypes` - Subtipos
+
+### Proxy eBay (`/api/ebay/search`)
+
+- **Variable**: `EBAY_APP_ID` (requerida)
+- **Endpoint**: `/api/ebay/search?q=pokemon%20charizard&page=1&pageSize=24`
+- **Respuesta**: items normalizados con `id`, `title`, `galleryUrl`, `viewItemUrl`, `price`, `currency`, `condition`, `location`
 
 ## 🐛 Solución de Problemas
 

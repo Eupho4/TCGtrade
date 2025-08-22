@@ -12,6 +12,7 @@ En el dashboard de Railway, añade estas variables:
 
 ```
 POKEMON_TCG_API_KEY=tu_api_key_aqui
+EBAY_APP_ID=tu_app_id_ebay
 NODE_ENV=production
 PORT=3000
 ```
