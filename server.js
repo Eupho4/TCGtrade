@@ -506,14 +506,21 @@ app.get('/api/ebay/search', async (req, res) => {
 app.all('/api/ebay/notifications', async (req, res) => {
   try {
     // Verificación de challenge (GET)
-    const challengeCode = req.query?.challenge_code || req.query?.challengeCode;
-    const verificationToken = req.query?.verification_token || req.query?.verificationToken;
-    const endpointParam = req.query?.endpoint;
+    const challengeCode = (req.query?.challenge_code || req.query?.challengeCode || '').toString();
+    const incomingVerificationToken = (req.query?.verification_token || req.query?.verificationToken || '').toString();
+    const endpointParamRaw = (req.query?.endpoint || '').toString();
+
+    // Construir endpoint de fallback considerando proxies
+    const forwardedProto = (req.headers['x-forwarded-proto'] || '').toString();
+    const forwardedHost = (req.headers['x-forwarded-host'] || '').toString();
+    const proto = forwardedProto || req.protocol;
+    const host = forwardedHost || req.get('host');
+    const fallbackEndpoint = `${proto}://${host}${req.path}`;
+
+    const expectedToken = (process.env.EBAY_VERIFICATION_TOKEN || '').toString();
 
     // Si viene challenge, calcular respuesta
-    if (challengeCode && verificationToken && endpointParam) {
-      // Debe coincidir con nuestra variable de entorno configurada
-      const expectedToken = process.env.EBAY_VERIFICATION_TOKEN || '';
+    if (challengeCode) {
       if (!expectedToken) {
         return res.status(500).json({
           error: 'EBAY_VERIFICATION_TOKEN not configured',
@@ -521,17 +528,18 @@ app.all('/api/ebay/notifications', async (req, res) => {
         });
       }
 
-      // eBay requiere SHA-256 de (challengeCode + verificationToken + endpoint)
-      // Donde verificationToken es el token que configuraste en eBay Developer Portal
-      const raw = `${challengeCode}${verificationToken}${endpointParam}`;
-      const challengeResponse = crypto.createHash('sha256').update(raw).digest('hex');
+      // Usar verification_token recibido si viene; si no, usar el del entorno (documentado por eBay)
+      const tokenToUse = incomingVerificationToken || expectedToken;
+      const endpointToUse = endpointParamRaw || fallbackEndpoint;
+
+      const raw = `${challengeCode}${tokenToUse}${endpointToUse}`;
+      const challengeResponse = crypto.createHash('sha256').update(raw, 'utf8').digest('hex');
 
       return res.status(200).json({ challengeResponse });
     }
 
     // Recepción de notificaciones (POST)
     if (req.method === 'POST') {
-      // Aceptar JSON sin rechazar content-type
       let bodyText = '';
       await new Promise(resolve => {
         req.on('data', chunk => { bodyText += chunk; });
