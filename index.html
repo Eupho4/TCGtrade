@@ -1510,7 +1510,8 @@
                 // Railway puede manejar búsquedas más grandes sin timeout
                 const searchType = query.length <= 4 ? `name:${encodedQuery}*` : `name:*${encodedQuery}*`;
                 const pageSize = 100; // Railway puede manejar 100 cartas sin problema
-                const apiUrl = `/api/pokemontcg/cards?q=${searchType}&pageSize=${pageSize}`;
+                const withFilters = buildCardsQuery(searchType);
+                const apiUrl = `/api/pokemontcg/cards?q=${withFilters}&pageSize=${pageSize}`;
 
                 console.log('🌐 Fetching from URL:', apiUrl);
 
@@ -1547,36 +1548,47 @@
                     cards.forEach((card, index) => {
                         console.log(`📋 Processing card ${index + 1}:`, card.name);
                         
-                        const cardElement = document.createElement('div');
-                        cardElement.className = 'card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105';
-                        
-                        // Escapar comillas en los datos para evitar errores de JavaScript
+                        const row = document.createElement('div');
+                        row.className = 'flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700';
+
                         const safeCardId = (card.id || '').replace(/'/g, "\\'");
                         const safeCardName = (card.name || '').replace(/'/g, "\\'");
                         const safeSetName = (card.set?.name || 'N/A').replace(/'/g, "\\'");
                         const safeSeries = (card.set?.series || 'N/A').replace(/'/g, "\\'");
                         const safeNumber = (card.number || 'N/A').replace(/'/g, "\\'");
                         const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
-                        
-                        cardElement.innerHTML = `
-                            <img src="${card.images?.small || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen'}"
-                                 alt="${card.name || 'Carta sin nombre'}"
-                                 class="w-full h-auto object-cover rounded-t-xl"
-                                 onerror="this.src='https://placehold.co/400x550/a0aec0/ffffff?text=Error+imagen'">
-                            <div class="p-4">
-                                <h3 class="text-xl font-semibold mb-2 text-gray-900">${card.name || 'Nombre no disponible'}</h3>
-                                <p class="text-gray-600 text-sm mb-3">Set: ${card.set?.name || 'N/A'}</p>
-                                <p class="text-gray-600 text-sm mb-3">Serie: ${card.set?.series || 'N/A'}</p>
-                                <p class="text-gray-600 text-sm mb-3">Número: ${card.number || 'N/A'}</p>
-                                <div class="flex justify-between items-center">
-                                    <button class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold"
-                                            onclick="showCardDetails('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">
-                                        Ver Detalles
-                                    </button>
+
+                        const imgWrapper = document.createElement('div');
+                        imgWrapper.className = 'w-12 h-16 flex items-center justify-center bg-gray-100 dark:bg-gray-600 rounded cursor-pointer';
+                        imgWrapper.title = 'Mostrar imagen';
+                        imgWrapper.innerHTML = '<span class="text-xl">📷</span>';
+
+                        const imgEl = document.createElement('img');
+                        imgEl.src = card.images?.small || 'https://placehold.co/200x280/a0aec0/ffffff?text=Sin+imagen';
+                        imgEl.alt = card.name || 'Carta';
+                        imgEl.className = 'hidden w-12 h-16 object-contain rounded';
+                        imgEl.onerror = () => { imgEl.src = 'https://placehold.co/200x280/a0aec0/ffffff?text=Error'; };
+                        imgWrapper.addEventListener('click', () => {
+                            imgEl.classList.toggle('hidden');
+                        });
+
+                        const info = document.createElement('div');
+                        info.className = 'flex-1 min-w-0';
+                        info.innerHTML = `
+                            <div class="flex items-center justify-between">
+                                <div class="truncate">
+                                    <div class="font-semibold text-gray-900 dark:text-white truncate">${card.name || 'Nombre no disponible'}</div>
+                                    <div class="text-xs text-gray-600 dark:text-gray-300 truncate">Set: ${card.set?.name || 'N/A'} · Serie: ${card.set?.series || 'N/A'} · Nº: ${card.number || 'N/A'}</div>
                                 </div>
+                                <button class="btn-primary px-3 py-1.5 rounded text-xs"
+                                    onclick="showCardDetails('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">Ver Detalles</button>
                             </div>
                         `;
-                        cardsContainer.appendChild(cardElement);
+
+                        imgWrapper.appendChild(imgEl);
+                        row.appendChild(imgWrapper);
+                        row.appendChild(info);
+                        cardsContainer.appendChild(row);
                     });
                     
                     console.log('✅ All cards rendered successfully');
@@ -2564,6 +2576,39 @@
 
             // Mostrar secciones iniciales
             showInitialSections();
+
+            // Filtros de búsqueda
+            const filterSetSelect = document.getElementById('filterSetSelect');
+            const filterRaritySelect = document.getElementById('filterRaritySelect');
+            const filterTypeSelect = document.getElementById('filterTypeSelect');
+            const filterLanguageSelect = document.getElementById('filterLanguageSelect');
+            const applySearchFiltersBtn = document.getElementById('applySearchFiltersBtn');
+            const clearSearchFiltersBtn = document.getElementById('clearSearchFiltersBtn');
+
+            if (applySearchFiltersBtn) {
+                applySearchFiltersBtn.addEventListener('click', () => {
+                    searchFiltersState.set = filterSetSelect?.value || '';
+                    searchFiltersState.rarity = filterRaritySelect?.value || '';
+                    searchFiltersState.type = filterTypeSelect?.value || '';
+                    searchFiltersState.language = filterLanguageSelect?.value || '';
+                    const q = (searchInput?.value || '').trim();
+                    if (q.length >= 3) fetchCards(q);
+                });
+            }
+            if (clearSearchFiltersBtn) {
+                clearSearchFiltersBtn.addEventListener('click', () => {
+                    if (filterSetSelect) filterSetSelect.value = '';
+                    if (filterRaritySelect) filterRaritySelect.value = '';
+                    if (filterTypeSelect) filterTypeSelect.value = '';
+                    if (filterLanguageSelect) filterLanguageSelect.value = '';
+                    searchFiltersState.set = '';
+                    searchFiltersState.rarity = '';
+                    searchFiltersState.type = '';
+                    searchFiltersState.language = '';
+                    const q = (searchInput?.value || '').trim();
+                    if (q.length >= 3) fetchCards(q);
+                });
+            }
         });
 
         // Función para mostrar detalles de carta
@@ -2878,6 +2923,20 @@
                 `;
             }).join('');
             grid.innerHTML = html;
+        }
+
+        // Estado de filtros de búsqueda
+        const searchFiltersState = {
+            set: '', rarity: '', type: '', language: ''
+        };
+
+        function buildCardsQuery(baseQuery) {
+            const filters = [];
+            if (searchFiltersState.set) filters.push(`set.name:${encodeURIComponent(searchFiltersState.set)}`);
+            if (searchFiltersState.rarity) filters.push(`rarity:${encodeURIComponent(searchFiltersState.rarity)}`);
+            if (searchFiltersState.type) filters.push(`types:${encodeURIComponent(searchFiltersState.type)}`);
+            // language no está en API oficial; se aplica client-side si existiera
+            return filters.length ? `${baseQuery} AND ${filters.join(' AND ')}` : baseQuery;
         }
     </script>
 
@@ -3344,10 +3403,55 @@
             <h2 class="text-3xl font-bold mb-6 text-gray-700 dark:text-white flex items-center">
                 <span class="icon">✨</span> Resultados de Búsqueda
             </h2>
-            <div id="cardsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div class="flex flex-col lg:flex-row gap-6">
+                <!-- Sidebar de filtros -->
+                <aside id="searchFiltersSidebar" class="w-full lg:w-64 bg-white dark:bg-gray-800 rounded-xl shadow p-4 h-max">
+                    <h3 class="text-lg font-semibold text-gray-800 dark:text-white mb-3">Filtros</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Set</label>
+                            <select id="filterSetSelect" class="w-full border rounded px-2 py-2 dark:bg-gray-700 dark:text-white">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rareza</label>
+                            <select id="filterRaritySelect" class="w-full border rounded px-2 py-2 dark:bg-gray-700 dark:text-white">
+                                <option value="">Todas</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tipo</label>
+                            <select id="filterTypeSelect" class="w-full border rounded px-2 py-2 dark:bg-gray-700 dark:text-white">
+                                <option value="">Todos</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Idioma</label>
+                            <select id="filterLanguageSelect" class="w-full border rounded px-2 py-2 dark:bg-gray-700 dark:text-white">
+                                <option value="">Cualquiera</option>
+                                <option value="English">Inglés</option>
+                                <option value="Spanish">Español</option>
+                                <option value="Japanese">Japonés</option>
+                                <option value="French">Francés</option>
+                                <option value="German">Alemán</option>
+                                <option value="Italian">Italiano</option>
+                                <option value="Chinese">Chino</option>
+                            </select>
+                        </div>
+                        <div class="flex gap-2 pt-2">
+                            <button id="applySearchFiltersBtn" class="btn-primary px-3 py-2 rounded text-sm">Aplicar</button>
+                            <button id="clearSearchFiltersBtn" class="btn-secondary px-3 py-2 rounded text-sm">Limpiar</button>
+                        </div>
+                    </div>
+                </aside>
+                <!-- Lista de resultados -->
+                <div class="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow p-2">
+                    <div id="cardsContainer" class="divide-y divide-gray-200 dark:divide-gray-700"></div>
+                    <p id="noResultsMessage" class="text-center text-gray-600 dark:text-gray-400 mt-8 hidden">No se encontraron resultados para tu búsqueda.</p>
+                    <p id="errorMessage" class="text-center text-red-500 mt-8 hidden">Ha ocurrido un error al cargar las cartas.</p>
                 </div>
-            <p id="noResultsMessage" class="text-center text-gray-600 dark:text-gray-400 mt-8 hidden">No se encontraron resultados para tu búsqueda.</p>
-            <p id="errorMessage" class="text-center text-red-500 mt-8 hidden">Ha ocurrido un error al cargar las cartas.</p>
+            </div>
         </section>
 
         <section id="myCardsSection" class="mb-12 hidden">
