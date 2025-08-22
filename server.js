@@ -363,13 +363,25 @@ app.get('/api/pokemontcg/*', pokemonProxy);
 app.get('/api/ebay/search', async (req, res) => {
   try {
     const clientIP = req.ip || req.connection.remoteAddress;
-    if (!checkRateLimit(clientIP)) {
+
+    // Rate limit específico para eBay: 5 req/min por IP
+    const EBAY_RATE_LIMIT_WINDOW = 60 * 1000;
+    const EBAY_RATE_LIMIT_MAX = 5;
+    if (!app.locals.ebayRequestCounts) app.locals.ebayRequestCounts = new Map();
+    const now = Date.now();
+    const windowStart = now - EBAY_RATE_LIMIT_WINDOW;
+    const requests = app.locals.ebayRequestCounts.get(clientIP) || [];
+    const validRequests = requests.filter(t => t > windowStart);
+    if (validRequests.length >= EBAY_RATE_LIMIT_MAX) {
       return res.status(429).json({
-        error: 'Rate limit exceeded',
-        message: 'Demasiadas búsquedas en poco tiempo. Intenta de nuevo en 1 minuto.',
+        error: 'Rate limit exceeded (eBay)',
+        message: 'Has alcanzado el límite de 5 solicitudes por minuto al buscador de eBay.',
+        retryAfterSeconds: 60,
         timestamp: new Date().toISOString()
       });
     }
+    validRequests.push(now);
+    app.locals.ebayRequestCounts.set(clientIP, validRequests);
 
     const appId = process.env.EBAY_APP_ID;
     if (!appId) {
@@ -399,6 +411,7 @@ app.get('/api/ebay/search', async (req, res) => {
       'SECURITY-APPNAME': appId,
       'RESPONSE-DATA-FORMAT': 'JSON',
       'REST-PAYLOAD': 'true',
+      'GLOBAL-ID': 'EBAY-ES',
       keywords: query,
       'paginationInput.entriesPerPage': String(entriesPerPage),
       'paginationInput.pageNumber': String(page)
@@ -418,6 +431,7 @@ app.get('/api/ebay/search', async (req, res) => {
       headers: {
         'Accept': 'application/json',
         'X-EBAY-SOA-SECURITY-APPNAME': appId,
+        'X-EBAY-SOA-GLOBAL-ID': 'EBAY-ES',
         'User-Agent': 'TCGtrade-Railway/1.0'
       },
       timeout: 15000
@@ -425,6 +439,22 @@ app.get('/api/ebay/search', async (req, res) => {
 
     const text = await response.text();
     if (!response.ok) {
+      // Intentar mapear rate limit de eBay
+      try {
+        const errJson = JSON.parse(text);
+        const err = errJson?.errorMessage?.[0]?.error?.[0];
+        const errorId = err?.errorId?.[0];
+        const message = err?.message?.[0];
+        if (String(errorId) === '10001') {
+          return res.status(429).json({
+            error: 'eBay rate limit exceeded',
+            message: message || 'Rate limit de eBay alcanzado. Intenta de nuevo en unos minutos.',
+            retryAfterSeconds: 60,
+            url: apiUrl
+          });
+        }
+      } catch (_) {}
+
       return res.status(response.status).json({
         error: 'eBay API error',
         status: response.status,
@@ -457,7 +487,8 @@ app.get('/api/ebay/search', async (req, res) => {
       condition: it?.condition?.[0]?.conditionDisplayName?.[0] || undefined,
       location: it?.location?.[0] || undefined,
       shippingInfo: it?.shippingInfo?.[0] || undefined
-    }));
+    }))
+    .slice(0, entriesPerPage);
 
     const payload = { query, pagination, items: mapped, timestamp: new Date().toISOString() };
 
