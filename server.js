@@ -4,6 +4,7 @@
 const express = require('express');
 const path = require('path');
 const cors = require('cors');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -498,6 +499,58 @@ app.get('/api/ebay/search', async (req, res) => {
   } catch (error) {
     console.error('❌ eBay search error:', error);
     res.status(500).json({ error: 'Internal error', message: error.message });
+  }
+});
+
+// Endpoint de notificaciones de eBay (Marketplace Account Deletion/Closure)
+app.all('/api/ebay/notifications', async (req, res) => {
+  try {
+    // Verificación de challenge (GET)
+    const challengeCode = req.query?.challenge_code || req.query?.challengeCode;
+    const verificationToken = req.query?.verification_token || req.query?.verificationToken;
+    const endpointParam = req.query?.endpoint;
+
+    // Si viene challenge, calcular respuesta
+    if (challengeCode && verificationToken && endpointParam) {
+      // Debe coincidir con nuestra variable de entorno configurada
+      const expectedToken = process.env.EBAY_VERIFICATION_TOKEN || '';
+      if (!expectedToken) {
+        return res.status(500).json({
+          error: 'EBAY_VERIFICATION_TOKEN not configured',
+          message: 'Configura la variable EBAY_VERIFICATION_TOKEN en Railway',
+        });
+      }
+
+      // eBay requiere SHA-256 de (challengeCode + verificationToken + endpoint)
+      // Donde verificationToken es el token que configuraste en eBay Developer Portal
+      const raw = `${challengeCode}${verificationToken}${endpointParam}`;
+      const challengeResponse = crypto.createHash('sha256').update(raw).digest('hex');
+
+      return res.status(200).json({ challengeResponse });
+    }
+
+    // Recepción de notificaciones (POST)
+    if (req.method === 'POST') {
+      // Aceptar JSON sin rechazar content-type
+      let bodyText = '';
+      await new Promise(resolve => {
+        req.on('data', chunk => { bodyText += chunk; });
+        req.on('end', resolve);
+      });
+      try {
+        const payload = JSON.parse(bodyText || '{}');
+        console.log('📨 eBay Deletion/Closure Notification received:', JSON.stringify(payload));
+      } catch (e) {
+        console.log('📨 eBay Notification (raw):', bodyText);
+      }
+      return res.status(200).json({ status: 'ok' });
+    }
+
+    // Otros métodos
+    return res.status(200).send('OK');
+  } catch (error) {
+    console.error('❌ eBay notifications endpoint error:', error);
+    return res.status(500).json({ error: 'Internal error', message: error.message });
   }
 });
 
