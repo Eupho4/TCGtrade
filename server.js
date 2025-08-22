@@ -481,6 +481,12 @@ app.get('/api/ebay/search', async (req, res) => {
         const errorId = err?.errorId?.[0];
         const message = err?.message?.[0];
         if (String(errorId) === '10001') {
+          // Fallback: si tenemos cualquier cache previo, devolverlo con stale-if-error
+          const anyCached = cache.get(cacheKey);
+          if (anyCached) {
+            res.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=300');
+            return res.json({ ...anyCached.data, _cached: true, _staleIfError: true, _error: 'rate_limited' });
+          }
           return res.status(429).json({
             error: 'eBay rate limit exceeded',
             message: message || 'Rate limit de eBay alcanzado. Intenta de nuevo en unos minutos.',
@@ -489,6 +495,13 @@ app.get('/api/ebay/search', async (req, res) => {
           });
         }
       } catch (_) {}
+
+      // Si hay cache previo, servirlo como stale-if-error
+      const anyCached = cache.get(cacheKey);
+      if (anyCached) {
+        res.set('Cache-Control', 'public, max-age=30, stale-while-revalidate=300');
+        return res.json({ ...anyCached.data, _cached: true, _staleIfError: true, _error: 'upstream_error' });
+      }
 
       return res.status(response.status).json({
         error: 'eBay API error',
