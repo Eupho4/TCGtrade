@@ -24,7 +24,7 @@ const EMPTY_CACHE_DURATION = 2 * 60 * 1000; // 2 minutos para respuestas vacías
 
 // Middleware
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '2mb' }));
 app.use(express.static('.'));
 
 // Función de rate limiting
@@ -540,18 +540,22 @@ app.all('/api/ebay/notifications', async (req, res) => {
 
     // Recepción de notificaciones (POST)
     if (req.method === 'POST') {
-      let bodyText = '';
-      await new Promise(resolve => {
-        req.on('data', chunk => { bodyText += chunk; });
-        req.on('end', resolve);
-      });
+      // Responder 200 inmediatamente para evitar timeouts/"socket hang up"
+      res.status(200).json({ status: 'ok' });
+      // Procesar el cuerpo de forma asíncrona sin bloquear la respuesta
       try {
-        const payload = JSON.parse(bodyText || '{}');
-        console.log('📨 eBay Deletion/Closure Notification received:', JSON.stringify(payload));
-      } catch (e) {
-        console.log('📨 eBay Notification (raw):', bodyText);
-      }
-      return res.status(200).json({ status: 'ok' });
+        let bodyText = '';
+        req.on('data', chunk => { bodyText += chunk; });
+        req.on('end', () => {
+          try {
+            const payload = JSON.parse(bodyText || '{}');
+            console.log('📨 eBay Deletion/Closure Notification received:', JSON.stringify(payload));
+          } catch (e) {
+            console.log('📨 eBay Notification (raw):', bodyText);
+          }
+        });
+      } catch (_) {}
+      return;
     }
 
     // Otros métodos
