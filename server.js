@@ -292,6 +292,26 @@ async function pokemonProxy(req, res) {
     // Verificar status de la respuesta
     if (!response.ok) {
       console.error(`❌ API Error ${response.status}:`, data);
+
+      // Intentar fallback por término de búsqueda cuando hay error upstream
+      const query = req.query.q || '';
+      const searchTerm = query.toLowerCase().replace(/name:\*|\*/g, '').trim();
+      if (fallbackData[searchTerm]) {
+        console.log('🔄 Usando fallback por error upstream para:', searchTerm);
+        return res.json({
+          ...fallbackData[searchTerm],
+          _metadata: {
+            fetchTime: `${fetchTime}ms`,
+            timestamp: new Date().toISOString(),
+            hasApiKey: !!process.env.POKEMON_TCG_API_KEY,
+            endpoint: fullEndpoint,
+            platform: 'Railway',
+            fallback: true,
+            message: `Datos de fallback - Error ${response.status} upstream`
+          }
+        });
+      }
+
       return res.status(response.status).json({
         error: 'API Error',
         message: data.message || `Error ${response.status} de la API de Pokemon TCG`,
