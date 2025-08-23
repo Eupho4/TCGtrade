@@ -1508,9 +1508,8 @@
                 // Construir URL optimizada para Railway (sin límite de timeout)
                 const base = query.length <= 4 ? `name:${query.toLowerCase()}*` : `name:*${query.toLowerCase()}*`;
                 const withFilters = buildCardsQuery(base);
-                const qParam = encodeURIComponent(withFilters);
                 const pageSize = 30; // reducir más para evitar timeouts
-                const apiUrl = `/api/pokemontcg/cards?q=${qParam}&pageSize=${pageSize}`;
+                const apiUrl = `/api/pokemontcg/cards?q=${withFilters}&pageSize=${pageSize}`;
 
                 console.log('🌐 Fetching from URL:', apiUrl);
 
@@ -1608,8 +1607,7 @@
                     
                     try {
                         // Usar búsqueda más simple para el retry
-                        const simpleQuery = encodeURIComponent(query.toLowerCase());
-                        const retryUrl = `/api/pokemontcg/cards?q=name:${simpleQuery}&pageSize=30`;
+                        const retryUrl = `/api/pokemontcg/cards?q=name:${query.toLowerCase()}&pageSize=30`;
                         console.log('🔄 Retry URL (búsqueda exacta):', retryUrl);
                         
                         const retryController = new AbortController();
