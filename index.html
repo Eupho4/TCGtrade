@@ -1505,17 +1505,18 @@
             showSearchResults();
 
             try {
-                // Construir URL optimizada para Railway (sin límite de timeout)
+                // Construir URL optimizada con paginación
                 const base = query.length <= 4 ? `name:${query.toLowerCase()}*` : `name:*${query.toLowerCase()}*`;
-                const withFilters = buildCardsQuery(base);
-                const pageSize = 30; // reducir más para evitar timeouts
-                const apiUrl = `/api/pokemontcg/cards?q=${withFilters}&pageSize=${pageSize}`;
+                lastSearchBase = base;
+                searchPage = 1;
+                searchPageSize = 20;
+                const apiUrl = buildCardsApiUrl(base, searchPage, searchPageSize);
 
                 console.log('🌐 Fetching from URL:', apiUrl);
 
                 // Hacer petición con timeout (reducido)
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos - Railway no tiene límite de 10s
+                const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s
 
                 const response = await fetch(apiUrl, {
                     signal: controller.signal,
@@ -1607,11 +1608,11 @@
                     
                     try {
                         // Usar búsqueda más simple para el retry
-                        const retryUrl = `/api/pokemontcg/cards?q=name:${query.toLowerCase()}&pageSize=30`;
+                        const retryUrl = buildCardsApiUrl(`name:${query.toLowerCase()}`, 1, 20);
                         console.log('🔄 Retry URL (búsqueda exacta):', retryUrl);
                         
                         const retryController = new AbortController();
-                        const retryTimeoutId = setTimeout(() => retryController.abort(), 8000); // Timeout más corto
+                        const retryTimeoutId = setTimeout(() => retryController.abort(), 15000);
                         
                         const retryResponse = await fetch(retryUrl, {
                             signal: retryController.signal,
@@ -2927,6 +2928,12 @@
             set: '', rarity: '', type: '', language: ''
         };
 
+        // Estado de paginación de búsqueda
+        let lastSearchBase = '';
+        let searchPage = 1;
+        let searchPageSize = 20;
+        let searchTotal = 0;
+
         function buildCardsQuery(baseQuery) {
             const filters = [];
             if (searchFiltersState.set) filters.push(`set.name:"${searchFiltersState.set}"`);
@@ -2934,6 +2941,13 @@
             if (searchFiltersState.type) filters.push(`types:"${searchFiltersState.type}"`);
             // language no está en API oficial; se aplica client-side si existiera
             return filters.length ? `${baseQuery} AND ${filters.join(' AND ')}` : baseQuery;
+        }
+
+        function buildCardsApiUrl(baseQuery, page, pageSize) {
+            const withFilters = buildCardsQuery(baseQuery);
+            const qParam = encodeURIComponent(withFilters);
+            const pageParam = page ? `&page=${page}` : '';
+            return `/api/pokemontcg/cards?q=${qParam}${pageParam}&pageSize=${pageSize}`;
         }
     </script>
 
