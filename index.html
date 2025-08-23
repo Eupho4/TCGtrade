@@ -1543,6 +1543,10 @@
                     cardsReturned: cards.length
                 });
 
+                // Render paginación
+                const totalCount = data.totalCount || 0;
+                renderPagination(totalCount, searchPage, searchPageSize);
+
                 if (cards.length > 0) {
                     cards.forEach((card, index) => {
                         console.log(`📋 Processing card ${index + 1}:`, card.name);
@@ -2949,6 +2953,102 @@
             const pageParam = page ? `&page=${page}` : '';
             return `/api/pokemontcg/cards?q=${qParam}${pageParam}&pageSize=${pageSize}`;
         }
+
+        function renderPagination(totalCount, page, pageSize) {
+            const pagination = document.getElementById('searchPagination');
+            if (!pagination) return;
+            pagination.innerHTML = '';
+            if (!totalCount || totalCount <= pageSize) return;
+
+            const totalPages = Math.ceil(totalCount / pageSize);
+            const maxButtons = 7;
+            const start = Math.max(1, page - 3);
+            const end = Math.min(totalPages, start + maxButtons - 1);
+
+            const makeBtn = (label, targetPage, isActive = false, disabled = false) => {
+                const btn = document.createElement('button');
+                btn.textContent = label;
+                btn.className = `px-3 py-1 rounded ${isActive ? 'bg-orange-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`;
+                if (!disabled && !isActive) {
+                    btn.addEventListener('click', () => goToSearchPage(targetPage));
+                }
+                return btn;
+            };
+
+            pagination.appendChild(makeBtn('«', 1, false, page === 1));
+            pagination.appendChild(makeBtn('‹', Math.max(1, page - 1), false, page === 1));
+
+            for (let p = start; p <= end; p++) {
+                pagination.appendChild(makeBtn(String(p), p, p === page));
+            }
+
+            pagination.appendChild(makeBtn('›', Math.min(totalPages, page + 1), false, page === totalPages));
+            pagination.appendChild(makeBtn('»', totalPages, false, page === totalPages));
+        }
+
+        async function goToSearchPage(targetPage) {
+            searchPage = targetPage;
+            const apiUrl = buildCardsApiUrl(lastSearchBase, searchPage, searchPageSize);
+            console.log('🌐 Fetching page:', searchPage, apiUrl);
+
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 20000);
+            try {
+                const response = await fetch(apiUrl, { signal: controller.signal, headers: { 'Content-Type': 'application/json' } });
+                clearTimeout(timeoutId);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                const cards = data.data || [];
+                cardsContainer.innerHTML = '';
+                cards.forEach((card) => {
+                    const safeCardId = (card.id || '').replace(/'/g, "\\'");
+                    const safeCardName = (card.name || '').replace(/'/g, "\\'");
+                    const safeSetName = (card.set?.name || 'N/A').replace(/'/g, "\\'");
+                    const safeSeries = (card.set?.series || 'N/A').replace(/'/g, "\\'");
+                    const safeNumber = (card.number || 'N/A').replace(/'/g, "\\'");
+                    const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
+
+                    const row = document.createElement('div');
+                    row.className = 'flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700';
+                    const imgWrapper = document.createElement('div');
+                    imgWrapper.className = 'w-12 h-16 flex items-center justify-center bg-gray-100 dark:bg-gray-600 rounded cursor-pointer';
+                    imgWrapper.title = 'Mostrar imagen';
+                    imgWrapper.innerHTML = '<span class="text-xl">📷</span>';
+                    const imgEl = document.createElement('img');
+                    imgEl.src = card.images?.small || 'https://placehold.co/200x280/a0aec0/ffffff?text=Sin+imagen';
+                    imgEl.alt = card.name || 'Carta';
+                    imgEl.className = 'hidden w-12 h-16 object-contain rounded';
+                    imgEl.onerror = () => { imgEl.src = 'https://placehold.co/200x280/a0aec0/ffffff?text=Error'; };
+                    imgWrapper.addEventListener('click', () => { imgEl.classList.toggle('hidden'); });
+
+                    const info = document.createElement('div');
+                    info.className = 'flex-1 min-w-0';
+                    info.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div class="truncate">
+                                <div class="font-semibold text-gray-900 dark:text-white truncate">${card.name || 'Nombre no disponible'}</div>
+                                <div class="text-xs text-gray-600 dark:text-gray-300 truncate">Set: ${card.set?.name || 'N/A'} · Serie: ${card.set?.series || 'N/A'} · Nº: ${card.number || 'N/A'}</div>
+                            </div>
+                            <button class="btn-primary px-3 py-1.5 rounded text-xs"
+                                onclick="showCardDetails('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">Ver Detalles</button>
+                        </div>
+                    `;
+
+                    imgWrapper.appendChild(imgEl);
+                    row.appendChild(imgWrapper);
+                    row.appendChild(info);
+                    cardsContainer.appendChild(row);
+                });
+
+                const totalCount = data.totalCount || 0;
+                renderPagination(totalCount, searchPage, searchPageSize);
+            } catch (e) {
+                clearTimeout(timeoutId);
+                console.error('❌ Error al cargar página:', e);
+            }
+        }
     </script>
 
     <style>
@@ -3461,6 +3561,7 @@
                     <div id="cardsContainer" class="divide-y divide-gray-200 dark:divide-gray-700"></div>
                     <p id="noResultsMessage" class="text-center text-gray-600 dark:text-gray-400 mt-8 hidden">No se encontraron resultados para tu búsqueda.</p>
                     <p id="errorMessage" class="text-center text-red-500 mt-8 hidden">Ha ocurrido un error al cargar las cartas.</p>
+                    <div id="searchPagination" class="mt-4 flex justify-center items-center gap-1"></div>
                 </div>
             </div>
         </section>
