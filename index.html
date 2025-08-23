@@ -1509,7 +1509,7 @@
                 const base = query.length <= 4 ? `name:${query.toLowerCase()}*` : `name:*${query.toLowerCase()}*`;
                 const withFilters = buildCardsQuery(base);
                 const qParam = encodeURIComponent(withFilters);
-                const pageSize = 50; // reducir para evitar timeouts
+                const pageSize = 30; // reducir más para evitar timeouts
                 const apiUrl = `/api/pokemontcg/cards?q=${qParam}&pageSize=${pageSize}`;
 
                 console.log('🌐 Fetching from URL:', apiUrl);
