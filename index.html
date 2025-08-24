@@ -1113,8 +1113,8 @@
                     <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-orange-300 transition-colors">
                         <div class="flex justify-between items-start mb-3">
                             <div>
-                                <h4 class="font-semibold text-gray-800">${trade.title}</h4>
-                                <p class="text-sm text-gray-600">${trade.description}</p>
+                                <h4 class="font-semibold text-gray-800 dark:text-white">${trade.title}</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-300">${trade.description}</p>
                             </div>
                             <span class="text-xs text-gray-500">${formatDate(trade.createdAt)}</span>
                         </div>
@@ -1450,8 +1450,8 @@
                         <div class="set-item bg-gray-50 rounded-lg p-4">
                             <div class="flex justify-between items-center">
                                 <div>
-                                    <h4 class="font-semibold text-gray-800">${setName}</h4>
-                                    <p class="text-sm text-gray-600">${cardsInSet.length} cartas</p>
+                                    <h4 class="font-semibold text-gray-800 dark:text-gray-100">${setName}</h4>
+                                    <p class="text-sm text-gray-600 dark:text-gray-300">${cardsInSet.length} cartas</p>
                                 </div>
                                 <div class="text-right">
                                     <div class="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -1695,7 +1695,7 @@
                                              class="w-full h-auto object-cover rounded-t-xl"
                                              onerror="this.src='https://placehold.co/400x550/a0aec0/ffffff?text=Error+imagen'">
                                         <div class="p-4">
-                                            <h3 class="text-xl font-semibold mb-2 text-gray-900">${card.name || 'Nombre no disponible'}</h3>
+                                            <h3 class="text-xl font-semibold mb-2 text-gray-900 dark:text-white">${card.name || 'Nombre no disponible'}</h3>
                                             <p class="text-gray-600 text-sm mb-3">Set: ${card.set?.name || 'N/A'}</p>
                                             <p class="text-gray-600 text-sm mb-3">Serie: ${card.set?.series || 'N/A'}</p>
                                             <p class="text-gray-600 text-sm mb-3">Número: ${card.number || 'N/A'}</p>
@@ -1929,7 +1929,7 @@
                         <div class="flex items-center justify-between">
                             <div class="flex-1">
                                 <div class="flex items-center gap-2">
-                                    <span class="font-semibold text-gray-900">${card.name}</span>
+                                    <span class="font-semibold text-gray-900 dark:text-white">${card.name}</span>
                                     <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">En colección</span>
                                 </div>
                                 <div class="text-xs text-gray-600">
@@ -3060,7 +3060,7 @@
                     <div class="flex items-center justify-between">
                         <div class="flex-1">
                             <div class="flex items-center gap-2">
-                                <span class="font-semibold text-gray-900">${name}</span>
+                                                                    <span class="font-semibold text-gray-900 dark:text-white">${name}</span>
                                 <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">En colección</span>
                             </div>
                             <div class="text-xs text-gray-600">
@@ -3806,7 +3806,7 @@
                 <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <div>
-                            <h2 class="text-3xl font-bold text-gray-800 mb-2 flex items-center">
+                            <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-2 flex items-center">
                                 <span class="icon mr-3">❓</span> Centro de Ayuda
                             </h2>
                             <p class="text-gray-600">Encuentra respuestas a todas tus preguntas sobre TCGtrade</p>
@@ -4185,7 +4185,7 @@
                 <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <div>
-                            <h2 class="text-3xl font-bold text-gray-800 mb-2 flex items-center">
+                            <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-2 flex items-center">
                                 <span class="icon mr-3">🤝</span> Intercambios
                             </h2>
                             <p class="text-gray-600">Gestiona tus intercambios de cartas y encuentra nuevos coleccionistas</p>
@@ -4273,7 +4273,7 @@
                 <!-- Contenido de Intercambios Completados -->
                 <div id="tradesCompletedContent" class="trade-tab-content hidden">
                     <div class="bg-white rounded-xl shadow-lg p-6">
-                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center">
                             <span class="icon mr-2">✅</span> Intercambios Completados
                         </h3>
                         <div id="completedTradesContainer" class="space-y-4">
@@ -4317,7 +4317,7 @@
                         
                         <!-- Información del Usuario -->
                         <div class="flex-1">
-                            <h1 class="text-2xl font-bold text-gray-800 mb-2" id="profileUserName">Usuario</h1>
+                            <h1 class="text-2xl font-bold text-gray-800 dark:text-white mb-2" id="profileUserName">Usuario</h1>
                             <p class="text-sm text-gray-500">Miembro desde <span id="profileJoinDate">Enero 2024</span></p>
                         </div>
                         
@@ -4452,8 +4452,8 @@
                                     </div>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-500">Total de Cartas</p>
-                                    <p class="text-2xl font-bold text-gray-900" id="totalCardsCount">0</p>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total de Cartas</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="totalCardsCount">0</p>
                                 </div>
                             </div>
                         </div>
@@ -4467,8 +4467,8 @@
                                     </div>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-500">Sets Diferentes</p>
-                                    <p class="text-2xl font-bold text-gray-900" id="uniqueSetsCount">0</p>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Sets Diferentes</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="uniqueSetsCount">0</p>
                                 </div>
                             </div>
                         </div>
@@ -4482,8 +4482,8 @@
                                     </div>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-500">Intercambios</p>
-                                    <p class="text-2xl font-bold text-gray-900" id="completedTradesCount">0</p>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Intercambios</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="completedTradesCount">0</p>
                                 </div>
                             </div>
                         </div>
@@ -4497,8 +4497,8 @@
                                     </div>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-500">Cartas Únicas</p>
-                                    <p class="text-2xl font-bold text-gray-900" id="uniqueCardsCount">0</p>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Cartas Únicas</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="uniqueCardsCount">0</p>
                                 </div>
                             </div>
                         </div>
@@ -4512,9 +4512,9 @@
                                     </div>
                                 </div>
                                 <div class="ml-4">
-                                    <p class="text-sm font-medium text-gray-500">Valor Total</p>
-                                    <p class="text-2xl font-bold text-gray-900" id="totalCollectionValue">€0.00</p>
-                                    <p class="text-xs text-gray-500" id="valueEstimateNote">Estimado</p>
+                                    <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Valor Total</p>
+                                    <p class="text-2xl font-bold text-gray-900 dark:text-white" id="totalCollectionValue">€0.00</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400" id="valueEstimateNote">Estimado</p>
                                 </div>
                             </div>
                         </div>
@@ -4522,7 +4522,7 @@
 
                     <!-- Desglose por Sets -->
                     <div class="bg-white rounded-xl shadow-lg p-6">
-                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center">
                             <span class="icon mr-2">📊</span> Desglose por Sets
                         </h3>
                         <div id="setsBreakdown" class="space-y-4">
@@ -4537,8 +4537,8 @@
                 <!-- Contenido de Mi Colección (oculto por defecto) -->
                 <div id="profileCollectionContent" class="profile-tab-content hidden">
                     <div class="bg-white rounded-xl shadow-lg p-6">
-                        <h3 class="text-xl font-bold text-gray-800 mb-4">🎴 Mi Colección</h3>
-                        <p id="myCardsStatus" class="text-gray-600 mb-4"></p>
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-4">🎴 Mi Colección</h3>
+                        <p id="myCardsStatus" class="text-gray-600 dark:text-gray-300 mb-4"></p>
                         <div id="myCardsGrid" class="space-y-1 border rounded-lg bg-white">
                             <div class="text-center text-gray-500 py-8">
                                 <p>No hay cartas en tu colección</p>
@@ -4550,8 +4550,8 @@
                 <!-- Contenido de Mis Intercambios (oculto por defecto) -->
                 <div id="profileTradesContent" class="profile-tab-content hidden">
                     <div class="bg-white rounded-xl shadow-lg p-6">
-                        <h3 class="text-xl font-bold text-gray-800 mb-4">🤝 Mis Intercambios</h3>
-                        <p class="text-gray-600">Aquí podrás ver el historial de tus intercambios.</p>
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-4">🤝 Mis Intercambios</h3>
+                        <p class="text-gray-600 dark:text-gray-300">Aquí podrás ver el historial de tus intercambios.</p>
                     </div>
                 </div>
 
