@@ -1563,20 +1563,35 @@
 
                         const imgWrapper = document.createElement('div');
                         imgWrapper.className = 'w-10 h-10 flex items-center justify-center bg-transparent rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2 z-10';
-                        imgWrapper.title = 'Mostrar imagen';
-                        imgWrapper.innerHTML = '<span class="text-xl">📷</span>';
+                        imgWrapper.title = 'Click para ver imagen';
+                        imgWrapper.innerHTML = '<span class="text-xl">🎴</span>';
 
+                        // Crear contenedor de imagen expandida con overlay
+                        const imgOverlay = document.createElement('div');
+                        imgOverlay.className = 'hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
+                        imgOverlay.style.position = 'fixed';
+                        imgOverlay.addEventListener('click', () => { 
+                            imgOverlay.classList.add('hidden');
+                            document.body.style.overflow = 'auto';
+                        });
+                        
                         const imgEl = document.createElement('img');
-                        imgEl.src = (card.images?.large || card.images?.small) || 'https://placehold.co/200x280/a0aec0/ffffff?text=Sin+imagen';
+                        imgEl.src = (card.images?.large || card.images?.small) || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen';
                         imgEl.alt = card.name || 'Carta';
-                        imgEl.className = 'hidden absolute w-80 h-112 object-contain rounded left-3 top-1/2 -translate-y-1/2 z-20';
-                        imgEl.onerror = () => { imgEl.src = 'https://placehold.co/200x280/a0aec0/ffffff?text=Error'; };
-                        imgWrapper.addEventListener('click', () => {
-                            imgEl.classList.toggle('hidden');
+                        imgEl.className = 'max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl';
+                        imgEl.onerror = () => { imgEl.src = 'https://placehold.co/400x550/a0aec0/ffffff?text=Error'; };
+                        
+                        imgOverlay.appendChild(imgEl);
+                        document.body.appendChild(imgOverlay);
+                        
+                        imgWrapper.addEventListener('click', (e) => { 
+                            e.stopPropagation();
+                            imgOverlay.classList.remove('hidden');
+                            document.body.style.overflow = 'hidden';
                         });
 
                         const info = document.createElement('div');
-                        info.className = 'flex-1 min-w-0 pl-32';
+                        info.className = 'flex-1 min-w-0 pl-16';
                         info.innerHTML = `
                             <div class="flex items-center justify-between">
                                 <div class="truncate">
@@ -1588,7 +1603,6 @@
                             </div>
                         `;
 
-                        imgWrapper.appendChild(imgEl);
                         row.appendChild(imgWrapper);
                         row.appendChild(info);
                         cardsContainer.appendChild(row);
@@ -3016,17 +3030,35 @@
                     row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 h-16 overflow-visible';
                     const imgWrapper = document.createElement('div');
                     imgWrapper.className = 'w-10 h-10 flex items-center justify-center bg-transparent rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2 z-10';
-                    imgWrapper.title = 'Mostrar imagen';
-                    imgWrapper.innerHTML = '<span class="text-xl">📷</span>';
+                    imgWrapper.title = 'Click para ver imagen';
+                    imgWrapper.innerHTML = '<span class="text-xl">🎴</span>';
+                    
+                    // Crear contenedor de imagen expandida con overlay
+                    const imgOverlay = document.createElement('div');
+                    imgOverlay.className = 'hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
+                    imgOverlay.style.position = 'fixed';
+                    imgOverlay.addEventListener('click', () => { 
+                        imgOverlay.classList.add('hidden');
+                        document.body.style.overflow = 'auto';
+                    });
+                    
                     const imgEl = document.createElement('img');
-                    imgEl.src = (card.images?.large || card.images?.small) || 'https://placehold.co/200x280/a0aec0/ffffff?text=Sin+imagen';
+                    imgEl.src = (card.images?.large || card.images?.small) || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen';
                     imgEl.alt = card.name || 'Carta';
-                    imgEl.className = 'hidden absolute w-80 h-112 object-contain rounded left-3 top-1/2 -translate-y-1/2 z-20';
-                    imgEl.onerror = () => { imgEl.src = 'https://placehold.co/200x280/a0aec0/ffffff?text=Error'; };
-                    imgWrapper.addEventListener('click', () => { imgEl.classList.toggle('hidden'); });
+                    imgEl.className = 'max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl';
+                    imgEl.onerror = () => { imgEl.src = 'https://placehold.co/400x550/a0aec0/ffffff?text=Error'; };
+                    
+                    imgOverlay.appendChild(imgEl);
+                    document.body.appendChild(imgOverlay);
+                    
+                    imgWrapper.addEventListener('click', (e) => { 
+                        e.stopPropagation();
+                        imgOverlay.classList.remove('hidden');
+                        document.body.style.overflow = 'hidden';
+                    });
 
                     const info = document.createElement('div');
-                    info.className = 'flex-1 min-w-0 pl-32';
+                    info.className = 'flex-1 min-w-0 pl-16';
                     info.innerHTML = `
                         <div class="flex items-center justify-between">
                             <div class="truncate">
@@ -3038,7 +3070,6 @@
                         </div>
                     `;
 
-                    imgWrapper.appendChild(imgEl);
                     row.appendChild(imgWrapper);
                     row.appendChild(info);
                     cardsContainer.appendChild(row);
