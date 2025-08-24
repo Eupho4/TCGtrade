@@ -1552,7 +1552,7 @@
                         console.log(`📋 Processing card ${index + 1}:`, card.name);
                         
                         const row = document.createElement('div');
-                        row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 h-24 overflow-hidden';
+                        row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 h-16 overflow-visible';
 
                         const safeCardId = (card.id || '').replace(/'/g, "\\'");
                         const safeCardName = (card.name || '').replace(/'/g, "\\'");
@@ -1562,7 +1562,7 @@
                         const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
 
                         const imgWrapper = document.createElement('div');
-                        imgWrapper.className = 'w-28 h-40 flex items-center justify-center bg-gray-100 dark:bg-gray-600 rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2';
+                        imgWrapper.className = 'w-28 h-40 flex items-center justify-center bg-gray-100 dark:bg-gray-600 rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2 z-10';
                         imgWrapper.title = 'Mostrar imagen';
                         imgWrapper.innerHTML = '<span class="text-xl">📷</span>';
 
@@ -3013,9 +3013,9 @@
                     const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
 
                     const row = document.createElement('div');
-                    row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 h-24 overflow-hidden';
+                    row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 h-16 overflow-visible';
                     const imgWrapper = document.createElement('div');
-                    imgWrapper.className = 'w-28 h-40 flex items-center justify-center bg-gray-100 dark:bg-gray-600 rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2';
+                    imgWrapper.className = 'w-28 h-40 flex items-center justify-center bg-gray-100 dark:bg-gray-600 rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2 z-10';
                     imgWrapper.title = 'Mostrar imagen';
                     imgWrapper.innerHTML = '<span class="text-xl">📷</span>';
                     const imgEl = document.createElement('img');
