@@ -1448,7 +1448,7 @@
                 let setsHTML = '';
                 setsMap.forEach((cardsInSet, setName) => {
                     setsHTML += `
-                        <div class="set-item bg-gray-50 rounded-lg p-4">
+                        <div class="set-item bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
                             <div class="flex justify-between items-center">
                                 <div>
                                     <h4 class="font-semibold text-gray-800 dark:text-gray-100">${setName}</h4>
@@ -4371,52 +4371,52 @@
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <!-- Nombre -->
                                 <div>
-                                    <label for="profileName" class="block text-gray-700 text-sm font-bold mb-2">
+                                    <label for="profileName" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                                         Nombre *
                                     </label>
                                     <input type="text" id="profileName" name="name" 
-                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
+                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
                                            placeholder="Tu nombre">
                                 </div>
                                 
                                 <!-- Apellidos -->
                                 <div>
-                                    <label for="profileLastName" class="block text-gray-700 text-sm font-bold mb-2">
+                                    <label for="profileLastName" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                                         Apellidos *
                                     </label>
                                     <input type="text" id="profileLastName" name="lastName" 
-                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
+                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
                                            placeholder="Tus apellidos">
                                 </div>
                             </div>
                             
                             <!-- Dirección -->
                             <div>
-                                <label for="profileAddress" class="block text-gray-700 text-sm font-bold mb-2">
+                                <label for="profileAddress" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                                     Dirección
                                 </label>
                                 <input type="text" id="profileAddress" name="address" 
-                                       class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
+                                       class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
                                        placeholder="Tu dirección completa">
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <!-- Fecha de Nacimiento -->
                                 <div>
-                                    <label for="profileBirthDate" class="block text-gray-700 text-sm font-bold mb-2">
+                                    <label for="profileBirthDate" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                                         Fecha de Nacimiento
                                     </label>
                                     <input type="date" id="profileBirthDate" name="birthDate" 
-                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400">
+                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400">
                                 </div>
                                 
                                 <!-- Correo Electrónico -->
                                 <div>
-                                    <label for="profileEmail" class="block text-gray-700 text-sm font-bold mb-2">
+                                    <label for="profileEmail" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                                         Correo Electrónico *
                                     </label>
                                     <input type="email" id="profileEmail" name="email" 
-                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
+                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
                                            placeholder="tu@email.com">
                                 </div>
                             </div>
