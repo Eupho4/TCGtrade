@@ -1552,7 +1552,7 @@
                         console.log(`📋 Processing card ${index + 1}:`, card.name);
                         
                         const row = document.createElement('div');
-                        row.className = 'flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700';
+                        row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 h-24 overflow-hidden';
 
                         const safeCardId = (card.id || '').replace(/'/g, "\\'");
                         const safeCardName = (card.name || '').replace(/'/g, "\\'");
@@ -1562,7 +1562,7 @@
                         const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
 
                         const imgWrapper = document.createElement('div');
-                        imgWrapper.className = 'w-28 h-40 flex items-center justify-center bg-gray-100 dark:bg-gray-600 rounded cursor-pointer';
+                        imgWrapper.className = 'w-28 h-40 flex items-center justify-center bg-gray-100 dark:bg-gray-600 rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2';
                         imgWrapper.title = 'Mostrar imagen';
                         imgWrapper.innerHTML = '<span class="text-xl">📷</span>';
 
@@ -1576,7 +1576,7 @@
                         });
 
                         const info = document.createElement('div');
-                        info.className = 'flex-1 min-w-0';
+                        info.className = 'flex-1 min-w-0 pl-32';
                         info.innerHTML = `
                             <div class="flex items-center justify-between">
                                 <div class="truncate">
@@ -3013,9 +3013,9 @@
                     const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
 
                     const row = document.createElement('div');
-                    row.className = 'flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700';
+                    row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 h-24 overflow-hidden';
                     const imgWrapper = document.createElement('div');
-                    imgWrapper.className = 'w-28 h-40 flex items-center justify-center bg-gray-100 dark:bg-gray-600 rounded cursor-pointer';
+                    imgWrapper.className = 'w-28 h-40 flex items-center justify-center bg-gray-100 dark:bg-gray-600 rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2';
                     imgWrapper.title = 'Mostrar imagen';
                     imgWrapper.innerHTML = '<span class="text-xl">📷</span>';
                     const imgEl = document.createElement('img');
@@ -3026,7 +3026,7 @@
                     imgWrapper.addEventListener('click', () => { imgEl.classList.toggle('hidden'); });
 
                     const info = document.createElement('div');
-                    info.className = 'flex-1 min-w-0';
+                    info.className = 'flex-1 min-w-0 pl-32';
                     info.innerHTML = `
                         <div class="flex items-center justify-between">
                             <div class="truncate">
