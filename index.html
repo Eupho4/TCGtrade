@@ -1563,31 +1563,30 @@
 
                         const imgWrapper = document.createElement('div');
                         imgWrapper.className = 'w-10 h-10 flex items-center justify-center bg-transparent rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2 z-10';
-                        imgWrapper.title = 'Click para ver imagen';
+                        imgWrapper.title = 'Pasa el mouse para ver imagen';
                         imgWrapper.innerHTML = '<span class="text-xl">🎴</span>';
 
-                        // Crear contenedor de imagen expandida con overlay
-                        const imgOverlay = document.createElement('div');
-                        imgOverlay.className = 'hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
-                        imgOverlay.style.position = 'fixed';
-                        imgOverlay.addEventListener('click', () => { 
-                            imgOverlay.classList.add('hidden');
-                            document.body.style.overflow = 'auto';
-                        });
+                        // Crear contenedor de imagen con hover
+                        const imgContainer = document.createElement('div');
+                        imgContainer.className = 'hidden absolute left-14 top-1/2 -translate-y-1/2 z-30';
+                        imgContainer.style.pointerEvents = 'none';
                         
                         const imgEl = document.createElement('img');
                         imgEl.src = (card.images?.large || card.images?.small) || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen';
                         imgEl.alt = card.name || 'Carta';
-                        imgEl.className = 'max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl';
+                        imgEl.className = 'w-64 h-auto object-contain rounded-lg shadow-2xl border-2 border-gray-200';
                         imgEl.onerror = () => { imgEl.src = 'https://placehold.co/400x550/a0aec0/ffffff?text=Error'; };
                         
-                        imgOverlay.appendChild(imgEl);
-                        document.body.appendChild(imgOverlay);
+                        imgContainer.appendChild(imgEl);
+                        row.appendChild(imgContainer);
                         
-                        imgWrapper.addEventListener('click', (e) => { 
-                            e.stopPropagation();
-                            imgOverlay.classList.remove('hidden');
-                            document.body.style.overflow = 'hidden';
+                        // Eventos de hover
+                        imgWrapper.addEventListener('mouseenter', () => { 
+                            imgContainer.classList.remove('hidden');
+                        });
+                        
+                        imgWrapper.addEventListener('mouseleave', () => { 
+                            imgContainer.classList.add('hidden');
                         });
 
                         const info = document.createElement('div');
@@ -3030,31 +3029,30 @@
                     row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 h-16 overflow-visible';
                     const imgWrapper = document.createElement('div');
                     imgWrapper.className = 'w-10 h-10 flex items-center justify-center bg-transparent rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2 z-10';
-                    imgWrapper.title = 'Click para ver imagen';
+                    imgWrapper.title = 'Pasa el mouse para ver imagen';
                     imgWrapper.innerHTML = '<span class="text-xl">🎴</span>';
                     
-                    // Crear contenedor de imagen expandida con overlay
-                    const imgOverlay = document.createElement('div');
-                    imgOverlay.className = 'hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center';
-                    imgOverlay.style.position = 'fixed';
-                    imgOverlay.addEventListener('click', () => { 
-                        imgOverlay.classList.add('hidden');
-                        document.body.style.overflow = 'auto';
-                    });
+                    // Crear contenedor de imagen con hover
+                    const imgContainer = document.createElement('div');
+                    imgContainer.className = 'hidden absolute left-14 top-1/2 -translate-y-1/2 z-30';
+                    imgContainer.style.pointerEvents = 'none';
                     
                     const imgEl = document.createElement('img');
                     imgEl.src = (card.images?.large || card.images?.small) || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen';
                     imgEl.alt = card.name || 'Carta';
-                    imgEl.className = 'max-w-[90vw] max-h-[90vh] object-contain rounded-lg shadow-2xl';
+                    imgEl.className = 'w-64 h-auto object-contain rounded-lg shadow-2xl border-2 border-gray-200';
                     imgEl.onerror = () => { imgEl.src = 'https://placehold.co/400x550/a0aec0/ffffff?text=Error'; };
                     
-                    imgOverlay.appendChild(imgEl);
-                    document.body.appendChild(imgOverlay);
+                    imgContainer.appendChild(imgEl);
+                    row.appendChild(imgContainer);
                     
-                    imgWrapper.addEventListener('click', (e) => { 
-                        e.stopPropagation();
-                        imgOverlay.classList.remove('hidden');
-                        document.body.style.overflow = 'hidden';
+                    // Eventos de hover
+                    imgWrapper.addEventListener('mouseenter', () => { 
+                        imgContainer.classList.remove('hidden');
+                    });
+                    
+                    imgWrapper.addEventListener('mouseleave', () => { 
+                        imgContainer.classList.add('hidden');
                     });
 
                     const info = document.createElement('div');
