@@ -260,7 +260,7 @@
                 
                 if (myTradesContainer) {
                     myTradesContainer.innerHTML = `
-                        <div class="text-center text-gray-500 py-8">
+                        <div class="text-center text-gray-500 dark:text-gray-400 py-8">
                             <p>Debes iniciar sesión para ver tus intercambios</p>
                             <button class="btn-primary mt-4 px-4 py-2 rounded-lg text-sm font-semibold" onclick="showAuthModal('login')">
                                 Iniciar Sesión
@@ -271,7 +271,7 @@
                 
                 if (availableTradesContainer) {
                     availableTradesContainer.innerHTML = `
-                        <div class="text-center text-gray-500 py-8">
+                        <div class="text-center text-gray-500 dark:text-gray-400 py-8">
                             <p>Debes iniciar sesión para ver intercambios disponibles</p>
                             <button class="btn-primary mt-4 px-4 py-2 rounded-lg text-sm font-semibold" onclick="showAuthModal('login')">
                                 Iniciar Sesión
@@ -1100,7 +1100,7 @@
 
             if (trades.length === 0) {
                 container.innerHTML = `
-                    <div class="text-center text-gray-500 py-8">
+                    <div class="text-center text-gray-500 dark:text-gray-400 py-8">
                         <p>No hay intercambios disponibles</p>
                     </div>
                 `;
@@ -1121,11 +1121,11 @@
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                             <div>
-                                <h5 class="text-sm font-medium text-gray-700 mb-2">📤 Ofrezco:</h5>
+                                <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">📤 Ofrezco:</h5>
                                 <div class="space-y-2">
                                     ${trade.offeredCards.map(card => `
                                         <div class="flex items-center justify-between bg-white px-3 py-2 rounded border">
-                                            <span class="text-sm text-gray-700">${card.name || card}</span>
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">${card.name || card}</span>
                                             <div class="flex items-center space-x-2">
                                                 <span class="text-xs px-2 py-1 rounded-full text-white font-medium" 
                                                       style="background-color: ${CARD_CONDITIONS[card.condition || 'NM'].color}">
@@ -1138,11 +1138,11 @@
                                 </div>
                             </div>
                             <div>
-                                <h5 class="text-sm font-medium text-gray-700 mb-2">📥 Busco:</h5>
+                                <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">📥 Busco:</h5>
                                 <div class="space-y-2">
                                     ${trade.wantedCards.map(card => `
                                         <div class="flex items-center justify-between bg-white px-3 py-2 rounded border">
-                                            <span class="text-sm text-gray-700">${card.name || card}</span>
+                                            <span class="text-sm text-gray-700 dark:text-gray-300">${card.name || card}</span>
                                             <div class="flex items-center space-x-2">
                                                 <span class="text-xs px-2 py-1 rounded-full text-white font-medium" 
                                                       style="background-color: ${CARD_CONDITIONS[card.condition || 'NM'].color}">
@@ -1157,7 +1157,7 @@
                         </div>
                         
                         <div class="flex justify-between items-center">
-                            <span class="text-xs text-gray-500">Por: ${trade.user}</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400">Por: ${trade.user}</span>
                             <div class="flex space-x-2">
                                 ${trade.type === 'created' ? `
                                     <button class="btn-secondary px-3 py-1 rounded text-xs" onclick="editTrade('${trade.id}')">
@@ -1437,7 +1437,7 @@
                 // Crear HTML para el desglose
                 if (setsMap.size === 0) {
                     setsBreakdownElement.innerHTML = `
-                        <div class="text-center text-gray-500 py-8">
+                        <div class="text-center text-gray-500 dark:text-gray-400 py-8">
                             <p>No hay cartas en tu colección</p>
                         </div>
                     `;
@@ -1454,7 +1454,7 @@
                                     <p class="text-sm text-gray-600 dark:text-gray-300">${cardsInSet.length} cartas</p>
                                 </div>
                                 <div class="text-right">
-                                    <div class="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                    <div class="w-16 h-2 bg-gray-200 dark:bg-gray-600 rounded-full overflow-hidden">
                                         <div class="h-full bg-orange-500 rounded-full" style="width: ${Math.min(100, (cardsInSet.length / 10) * 100)}%"></div>
                                     </div>
                                 </div>
@@ -1468,7 +1468,7 @@
             } catch (error) {
                 console.error('❌ Error al cargar desglose por sets:', error);
                 setsBreakdownElement.innerHTML = `
-                    <div class="text-center text-gray-500 py-8">
+                    <div class="text-center text-gray-500 dark:text-gray-400 py-8">
                         <p>Error al cargar el desglose por sets</p>
                     </div>
                 `;
@@ -1886,7 +1886,7 @@
                 const imageUrl = card.imageUrl;
                 
                 const row = document.createElement('div');
-                row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 h-16 overflow-visible';
+                row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 h-16 overflow-visible';
                 if (index < cards.length - 1) {
                     row.className += ' border-b';
                 }
@@ -1953,7 +1953,7 @@
                                     #${card.number} · ${card.set} · ${card.series || 'N/A'}
                                 </div>
                             </div>
-                            <span class="text-sm text-gray-500">Falta en tu colección</span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400">Falta en tu colección</span>
                         </div>
                     `;
                 }
@@ -3019,7 +3019,7 @@
                 const condition = card.condition || 'NM';
                 
                 const row = document.createElement('div');
-                row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 h-16 overflow-visible';
+                row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 h-16 overflow-visible';
                 if (index < cards.length - 1) {
                     row.className += ' border-b';
                 }
@@ -3120,7 +3120,7 @@
             const makeBtn = (label, targetPage, isActive = false, disabled = false) => {
                 const btn = document.createElement('button');
                 btn.textContent = label;
-                btn.className = `px-3 py-1 rounded ${isActive ? 'bg-orange-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`;
+                btn.className = `px-3 py-1 rounded ${isActive ? 'bg-orange-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`;
                 if (!disabled && !isActive) {
                     btn.addEventListener('click', () => goToSearchPage(targetPage));
                 }
@@ -3829,16 +3829,16 @@
                             <button id="helpGettingStartedTab" class="help-tab active py-4 px-1 border-b-2 border-orange-500 text-orange-600 font-medium text-sm">
                                 🚀 Primeros Pasos
                             </button>
-                            <button id="helpTradingTab" class="help-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                            <button id="helpTradingTab" class="help-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium text-sm">
                                 🤝 Intercambios
                             </button>
-                            <button id="helpCardConditionsTab" class="help-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                            <button id="helpCardConditionsTab" class="help-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium text-sm">
                                 🎴 Condiciones de Cartas
                             </button>
-                            <button id="helpAccountTab" class="help-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                            <button id="helpAccountTab" class="help-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium text-sm">
                                 👤 Cuenta y Perfil
                             </button>
-                            <button id="helpFAQTab" class="help-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                            <button id="helpFAQTab" class="help-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium text-sm">
                                 ❓ FAQ
                             </button>
                         </nav>
@@ -4082,7 +4082,7 @@
 
                             <div class="bg-blue-50 p-4 rounded-lg">
                                 <h4 class="text-lg font-semibold text-gray-800 mb-3">📈 Estadísticas de tu Colección</h4>
-                                <p class="text-gray-600 mb-3">En tu perfil puedes ver estadísticas detalladas de tu colección:</p>
+                                <p class="text-gray-600 dark:text-gray-300 mb-3">En tu perfil puedes ver estadísticas detalladas de tu colección:</p>
                                 <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
                                     <div class="text-center">
                                         <div class="text-2xl font-bold text-blue-600">🎴</div>
@@ -4208,13 +4208,13 @@
                             <button id="tradesActiveTab" class="trade-tab active py-4 px-1 border-b-2 border-orange-500 text-orange-600 font-medium text-sm">
                                 🔄 Activos
                             </button>
-                            <button id="tradesPendingTab" class="trade-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                            <button id="tradesPendingTab" class="trade-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium text-sm">
                                 ⏳ Pendientes
                             </button>
-                            <button id="tradesCompletedTab" class="trade-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                            <button id="tradesCompletedTab" class="trade-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium text-sm">
                                 ✅ Completados
                             </button>
-                            <button id="tradesReceivedTab" class="trade-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                            <button id="tradesReceivedTab" class="trade-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium text-sm">
                                 📥 Recibidos
                             </button>
                         </nav>
@@ -4231,7 +4231,7 @@
                             </h3>
                             <div id="myTradesContainer" class="space-y-4">
                                 <!-- Los intercambios se cargarán dinámicamente aquí -->
-                                <div class="text-center text-gray-500 py-8">
+                                <div class="text-center text-gray-500 dark:text-gray-400 py-8">
                                     <p>No tienes intercambios activos</p>
                                     <button class="btn-primary mt-4 px-4 py-2 rounded-lg text-sm font-semibold">
                                         Crear mi primer intercambio
@@ -4247,7 +4247,7 @@
                             </h3>
                             <div id="availableTradesContainer" class="space-y-4">
                                 <!-- Los intercambios disponibles se cargarán dinámicamente aquí -->
-                                <div class="text-center text-gray-500 py-8">
+                                <div class="text-center text-gray-500 dark:text-gray-400 py-8">
                                     <p>No hay intercambios disponibles en este momento</p>
                                 </div>
                             </div>
@@ -4263,7 +4263,7 @@
                         </h3>
                         <div id="pendingTradesContainer" class="space-y-4">
                             <!-- Los intercambios pendientes se cargarán dinámicamente aquí -->
-                            <div class="text-center text-gray-500 py-8">
+                            <div class="text-center text-gray-500 dark:text-gray-400 py-8">
                                 <p>No tienes intercambios pendientes</p>
                             </div>
                         </div>
@@ -4278,7 +4278,7 @@
                         </h3>
                         <div id="completedTradesContainer" class="space-y-4">
                             <!-- Los intercambios completados se cargarán dinámicamente aquí -->
-                            <div class="text-center text-gray-500 py-8">
+                            <div class="text-center text-gray-500 dark:text-gray-400 py-8">
                                 <p>No tienes intercambios completados</p>
                             </div>
                         </div>
@@ -4293,7 +4293,7 @@
                         </h3>
                         <div id="receivedTradesContainer" class="space-y-4">
                             <!-- Los intercambios recibidos se cargarán dinámicamente aquí -->
-                            <div class="text-center text-gray-500 py-8">
+                            <div class="text-center text-gray-500 dark:text-gray-400 py-8">
                                 <p>No has recibido propuestas de intercambio</p>
                             </div>
                         </div>
@@ -4318,7 +4318,7 @@
                         <!-- Información del Usuario -->
                         <div class="flex-1">
                             <h1 class="text-2xl font-bold text-gray-800 dark:text-white mb-2" id="profileUserName">Usuario</h1>
-                            <p class="text-sm text-gray-500">Miembro desde <span id="profileJoinDate">Enero 2024</span></p>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">Miembro desde <span id="profileJoinDate">Enero 2024</span></p>
                         </div>
                         
 
@@ -4332,16 +4332,16 @@
                             <button id="profilePersonalTab" class="profile-tab active py-4 px-1 border-b-2 border-orange-500 text-orange-600 font-medium text-sm">
                                 👤 Mi Perfil
                             </button>
-                            <button id="profileDashboardTab" class="profile-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                            <button id="profileDashboardTab" class="profile-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium text-sm">
                                 📊 Dashboard
                             </button>
-                            <button id="profileCollectionTab" class="profile-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                            <button id="profileCollectionTab" class="profile-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium text-sm">
                                 🎴 Mi Colección
                             </button>
-                            <button id="profileTradesTab" class="profile-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                            <button id="profileTradesTab" class="profile-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium text-sm">
                                 🤝 Mis Intercambios
                             </button>
-                            <button id="profileSettingsTab" class="profile-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                            <button id="profileSettingsTab" class="profile-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium text-sm">
                                 ⚙️ Configuración
                             </button>
                         </nav>
@@ -4527,7 +4527,7 @@
                         </h3>
                         <div id="setsBreakdown" class="space-y-4">
                             <!-- Los sets se cargarán dinámicamente aquí -->
-                            <div class="text-center text-gray-500 py-8">
+                            <div class="text-center text-gray-500 dark:text-gray-400 py-8">
                                 <p>No hay datos de sets disponibles</p>
                             </div>
                         </div>
@@ -4540,7 +4540,7 @@
                         <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-4">🎴 Mi Colección</h3>
                         <p id="myCardsStatus" class="text-gray-600 dark:text-gray-300 mb-4"></p>
                         <div id="myCardsGrid" class="space-y-1 border rounded-lg bg-white">
-                            <div class="text-center text-gray-500 py-8">
+                            <div class="text-center text-gray-500 dark:text-gray-400 py-8">
                                 <p>No hay cartas en tu colección</p>
                             </div>
                         </div>
