@@ -1567,9 +1567,9 @@
                         imgWrapper.innerHTML = '<span class="text-xl">📷</span>';
 
                         const imgEl = document.createElement('img');
-                        imgEl.src = card.images?.small || 'https://placehold.co/200x280/a0aec0/ffffff?text=Sin+imagen';
+                        imgEl.src = (card.images?.large || card.images?.small) || 'https://placehold.co/200x280/a0aec0/ffffff?text=Sin+imagen';
                         imgEl.alt = card.name || 'Carta';
-                        imgEl.className = 'hidden absolute w-28 h-40 object-contain rounded left-3 top-1/2 -translate-y-1/2';
+                        imgEl.className = 'hidden absolute w-48 h-64 object-contain rounded left-3 top-1/2 -translate-y-1/2';
                         imgEl.onerror = () => { imgEl.src = 'https://placehold.co/200x280/a0aec0/ffffff?text=Error'; };
                         imgWrapper.addEventListener('click', () => {
                             imgEl.classList.toggle('hidden');
@@ -3019,9 +3019,9 @@
                     imgWrapper.title = 'Mostrar imagen';
                     imgWrapper.innerHTML = '<span class="text-xl">📷</span>';
                     const imgEl = document.createElement('img');
-                    imgEl.src = card.images?.small || 'https://placehold.co/200x280/a0aec0/ffffff?text=Sin+imagen';
+                    imgEl.src = (card.images?.large || card.images?.small) || 'https://placehold.co/200x280/a0aec0/ffffff?text=Sin+imagen';
                     imgEl.alt = card.name || 'Carta';
-                    imgEl.className = 'hidden absolute w-28 h-40 object-contain rounded left-3 top-1/2 -translate-y-1/2';
+                    imgEl.className = 'hidden absolute w-48 h-64 object-contain rounded left-3 top-1/2 -translate-y-1/2';
                     imgEl.onerror = () => { imgEl.src = 'https://placehold.co/200x280/a0aec0/ffffff?text=Error'; };
                     imgWrapper.addEventListener('click', () => { imgEl.classList.toggle('hidden'); });
 
