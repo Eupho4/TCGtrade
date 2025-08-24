@@ -1846,7 +1846,7 @@
             }
         }
 
-        // Función para renderizar cartas en la colección
+        // Función para renderizar cartas en la colección (nuevo diseño de lista)
         function renderCardsInCollection(cards) {
             if (!myCardsContainer) return;
 
@@ -1857,31 +1857,89 @@
                 return;
             }
 
-            cards.forEach(card => {
-                const isOwned = card.isOwned !== undefined ? card.isOwned : true;
-                const cardClass = isOwned ? 'card-bg' : 'card-bg missing-card';
-                const imageUrl = card.imageUrl;
-                const buttonHtml = isOwned ?
-                    `<button class="btn-secondary px-4 py-2 rounded-lg text-sm font-semibold mt-2" onclick="removeCardFromCollection('${card.id}')">Eliminar</button>` :
-                    `<span class="text-sm text-gray-500 mt-2">Falta en tu colección</span>`;
+            // Cambiar el contenedor a diseño de lista
+            myCardsContainer.className = 'space-y-1 border rounded-lg bg-white';
 
-                const cardElement = document.createElement('div');
-                cardElement.className = `${cardClass} rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105`;
-                cardElement.innerHTML = `
-                    <img src="${imageUrl}" alt="${card.name}" class="w-full h-auto object-cover rounded-t-xl"
-                         onerror="this.src='https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen';">
-                    <div class="p-4">
-                        <h3 class="text-xl font-semibold mb-2 text-gray-900">${card.name}</h3>
-                        <p class="text-gray-600 text-sm mb-3">Número: ${card.number}</p>
-                        <p class="text-gray-600 text-sm mb-3">Serie: ${card.series || 'N/A'}</p>
-                        <p class="text-gray-600 text-sm mb-3">Expansión: ${card.set}</p>
-                        ${isOwned ? `<p class="text-gray-600 text-sm mb-3">Idioma: ${card.language || 'N/A'}</p>` : ''}
-                        <div class="flex justify-between items-center">
-                            ${buttonHtml}
+            cards.forEach((card, index) => {
+                const isOwned = card.isOwned !== undefined ? card.isOwned : true;
+                const imageUrl = card.imageUrl;
+                
+                const row = document.createElement('div');
+                row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 h-16 overflow-visible';
+                if (index < cards.length - 1) {
+                    row.className += ' border-b';
+                }
+                
+                // Icono de imagen con hover
+                const imgWrapper = document.createElement('div');
+                imgWrapper.className = 'w-10 h-10 flex items-center justify-center bg-transparent rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2 z-10';
+                imgWrapper.title = 'Pasa el mouse para ver imagen';
+                imgWrapper.innerHTML = isOwned ? '<span class="text-xl">🎴</span>' : '<span class="text-xl opacity-50">🎴</span>';
+                
+                // Contenedor de imagen con hover
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'hidden absolute left-14 top-1/2 -translate-y-1/2 z-30';
+                imgContainer.style.pointerEvents = 'none';
+                
+                const imgEl = document.createElement('img');
+                imgEl.src = imageUrl || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen';
+                imgEl.alt = card.name || 'Carta';
+                imgEl.className = 'w-64 h-auto object-contain rounded-lg shadow-2xl border-2 border-gray-200';
+                imgEl.onerror = () => { imgEl.src = 'https://placehold.co/400x550/a0aec0/ffffff?text=Error'; };
+                
+                imgContainer.appendChild(imgEl);
+                row.appendChild(imgContainer);
+                
+                // Eventos de hover
+                imgWrapper.addEventListener('mouseenter', () => { 
+                    imgContainer.classList.remove('hidden');
+                });
+                
+                imgWrapper.addEventListener('mouseleave', () => { 
+                    imgContainer.classList.add('hidden');
+                });
+                
+                // Información de la carta
+                const info = document.createElement('div');
+                info.className = 'flex-1 min-w-0 pl-16';
+                
+                if (isOwned) {
+                    info.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-semibold text-gray-900">${card.name}</span>
+                                    <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">En colección</span>
+                                </div>
+                                <div class="text-xs text-gray-600">
+                                    #${card.number} · ${card.set} · ${card.series || 'N/A'} · ${card.language || 'N/A'}
+                                </div>
+                            </div>
+                            <button class="btn-secondary px-3 py-1.5 rounded text-xs" onclick="removeCardFromCollection('${card.id}')">
+                                Eliminar
+                            </button>
                         </div>
-                    </div>
-                `;
-                myCardsContainer.appendChild(cardElement);
+                    `;
+                } else {
+                    info.innerHTML = `
+                        <div class="flex items-center justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2">
+                                    <span class="font-semibold text-gray-500 line-through">${card.name}</span>
+                                    <span class="text-xs bg-red-100 text-red-700 px-2 py-0.5 rounded">Falta</span>
+                                </div>
+                                <div class="text-xs text-gray-400">
+                                    #${card.number} · ${card.set} · ${card.series || 'N/A'}
+                                </div>
+                            </div>
+                            <span class="text-sm text-gray-500">Falta en tu colección</span>
+                        </div>
+                    `;
+                }
+                
+                row.appendChild(imgWrapper);
+                row.appendChild(info);
+                myCardsContainer.appendChild(row);
             });
         }
 
@@ -3635,8 +3693,9 @@
                     Aplicar Filtros
                 </button>
             </div>
-            <div id="myCardsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                </div>
+            <div id="myCardsContainer" class="space-y-1 border rounded-lg bg-white">
+                <!-- Las cartas se mostrarán aquí en formato lista -->
+            </div>
             <p id="noMyCardsMessage" class="text-center text-gray-600 dark:text-gray-400 mt-8 hidden">Aún no tienes cartas en tu colección. ¡Busca y añade algunas!</p>
             <p id="myCardsErrorMessage" class="text-center text-red-500 mt-8 hidden">Error al cargar tu colección. Por favor, inténtalo de nuevo.</p>
         </section>
