@@ -1016,28 +1016,42 @@
             try {
                 console.log('🤝 Cargando intercambios del usuario...');
 
-                // Por ahora, mostrar datos de ejemplo
-                // En el futuro, esto cargará desde Firestore
-                const exampleTrades = [
-                    {
-                        id: 'trade1',
-                        type: 'created',
-                        status: 'active',
-                        title: 'Intercambio Pikachu por Charizard',
-                        description: 'Busco un Charizard en buen estado',
-                        offeredCards: [
-                            { name: 'Pikachu VMAX', condition: 'NM', language: 'Español' },
-                            { name: 'Pikachu GX', condition: 'EX', language: 'Español' }
-                        ],
-                        wantedCards: [
-                            { name: 'Charizard VMAX', condition: 'NM', language: 'Español' }
-                        ],
-                        createdAt: new Date(),
-                        user: 'coleccionista123'
-                    }
-                ];
+                // Cargar intercambios guardados del usuario
+                const savedTrades = JSON.parse(localStorage.getItem('userTrades') || '[]');
+                
+                // Combinar con datos de ejemplo si no hay intercambios guardados
+                let allTrades = [...savedTrades];
+                
+                if (allTrades.length === 0) {
+                    // Mostrar datos de ejemplo si no hay intercambios guardados
+                    const exampleTrades = [
+                        {
+                            id: 'trade1',
+                            type: 'created',
+                            status: 'active',
+                            title: 'Intercambio Pikachu por Charizard',
+                            description: 'Busco un Charizard en buen estado',
+                            offeredCards: [
+                                { name: 'Pikachu VMAX', condition: 'NM', language: 'Español' },
+                                { name: 'Pikachu GX', condition: 'EX', language: 'Español' }
+                            ],
+                            wantedCards: [
+                                { name: 'Charizard VMAX', condition: 'NM', language: 'Español' }
+                            ],
+                            createdAt: new Date(),
+                            user: currentUser.email || currentUser.displayName || 'coleccionista123'
+                        }
+                    ];
+                    allTrades = exampleTrades;
+                }
 
-                displayTrades(exampleTrades, 'myTradesContainer');
+                // Convertir fechas de string a Date si es necesario
+                allTrades = allTrades.map(trade => ({
+                    ...trade,
+                    createdAt: typeof trade.createdAt === 'string' ? new Date(trade.createdAt) : trade.createdAt
+                }));
+
+                displayTrades(allTrades, 'myTradesContainer');
 
             } catch (error) {
                 console.error('❌ Error al cargar intercambios:', error);
@@ -1216,6 +1230,311 @@
         function viewTradeDetails(tradeId) {
             console.log('👁️ Viendo detalles del intercambio:', tradeId);
             alert('Función de detalles en desarrollo');
+        }
+
+        // Función para mostrar modal de crear intercambio
+        window.showCreateTradeModal = () => {
+            if (!currentUser) {
+                alert('Debes iniciar sesión para crear intercambios');
+                showAuthModal('login');
+                return;
+            }
+
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
+                            <span class="icon mr-3">🤝</span> Crear Nuevo Intercambio
+                        </h3>
+                        <button id="closeCreateTradeModal" 
+                                class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-3xl">
+                            &times;
+                        </button>
+                    </div>
+
+                    <form id="createTradeForm" class="space-y-6">
+                        <!-- Información básica -->
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">📋 Información del Intercambio</h4>
+                            <div class="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Título del intercambio *
+                                    </label>
+                                    <input type="text" id="tradeTitle" required
+                                           placeholder="Ej: Intercambio Pikachu por Charizard"
+                                           class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-600 text-gray-900 dark:text-white">
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Descripción (opcional)
+                                    </label>
+                                    <textarea id="tradeDescription" rows="3"
+                                              placeholder="Describe las condiciones específicas, preferencias o detalles adicionales..."
+                                              class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-600 text-gray-900 dark:text-white resize-none"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cartas que ofrezco -->
+                        <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-4">
+                            <h4 class="text-lg font-semibold text-blue-800 dark:text-blue-300 mb-4 flex items-center">
+                                <span class="mr-2">📤</span> Cartas que Ofrezco
+                            </h4>
+                            <div id="offeredCardsContainer" class="space-y-3 mb-4">
+                                <!-- Las cartas ofrecidas se añadirán aquí -->
+                            </div>
+                            <button type="button" id="addOfferedCardBtn"
+                                    class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center">
+                                <span class="mr-2">+</span> Añadir Carta Ofrecida
+                            </button>
+                        </div>
+
+                        <!-- Cartas que busco -->
+                        <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+                            <h4 class="text-lg font-semibold text-green-800 dark:text-green-300 mb-4 flex items-center">
+                                <span class="mr-2">📥</span> Cartas que Busco
+                            </h4>
+                            <div id="wantedCardsContainer" class="space-y-3 mb-4">
+                                <!-- Las cartas buscadas se añadirán aquí -->
+                            </div>
+                            <button type="button" id="addWantedCardBtn"
+                                    class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center">
+                                <span class="mr-2">+</span> Añadir Carta Buscada
+                            </button>
+                        </div>
+
+                        <!-- Botones de acción -->
+                        <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-600">
+                            <button type="button" id="cancelCreateTrade"
+                                    class="px-6 py-3 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold">
+                                Cancelar
+                            </button>
+                            <button type="submit" id="submitCreateTrade"
+                                    class="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold flex items-center">
+                                <span class="mr-2">🚀</span> Crear Intercambio
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            setupCreateTradeModalEvents(modal);
+        };
+
+        // Configurar eventos del modal de crear intercambio
+        function setupCreateTradeModalEvents(modal) {
+            const closeBtn = modal.querySelector('#closeCreateTradeModal');
+            const cancelBtn = modal.querySelector('#cancelCreateTrade');
+            const form = modal.querySelector('#createTradeForm');
+            const addOfferedBtn = modal.querySelector('#addOfferedCardBtn');
+            const addWantedBtn = modal.querySelector('#addWantedCardBtn');
+
+            // Cerrar modal
+            const closeModal = () => modal.remove();
+            closeBtn.addEventListener('click', closeModal);
+            cancelBtn.addEventListener('click', closeModal);
+            
+            // Cerrar con ESC o click fuera
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) closeModal();
+            });
+            
+            document.addEventListener('keydown', function escHandler(e) {
+                if (e.key === 'Escape') {
+                    closeModal();
+                    document.removeEventListener('keydown', escHandler);
+                }
+            });
+
+            // Añadir cartas
+            addOfferedBtn.addEventListener('click', () => addCardToTrade('offered'));
+            addWantedBtn.addEventListener('click', () => addCardToTrade('wanted'));
+
+            // Enviar formulario
+            form.addEventListener('submit', handleCreateTradeSubmit);
+
+            // Añadir una carta inicial de cada tipo
+            addCardToTrade('offered');
+            addCardToTrade('wanted');
+        }
+
+        // Función para añadir carta al intercambio
+        function addCardToTrade(type) {
+            const container = document.getElementById(type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer');
+            const cardIndex = container.children.length;
+            const cardId = `${type}_card_${cardIndex}`;
+
+            const cardElement = document.createElement('div');
+            cardElement.className = 'bg-white dark:bg-gray-600 rounded-lg p-4 border border-gray-200 dark:border-gray-500';
+            cardElement.innerHTML = `
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Nombre de la carta *
+                        </label>
+                        <input type="text" name="${type}_name_${cardIndex}" required
+                               placeholder="Ej: Pikachu VMAX"
+                               class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Condición *
+                        </label>
+                        <select name="${type}_condition_${cardIndex}" required
+                                class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            ${Object.values(CARD_CONDITIONS).map(condition => 
+                                `<option value="${condition.code}">${condition.icon} ${condition.code}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Idioma
+                        </label>
+                        <select name="${type}_language_${cardIndex}"
+                                class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                            <option value="Español">Español</option>
+                            <option value="Inglés">Inglés</option>
+                            <option value="Japonés">Japonés</option>
+                            <option value="Cualquiera">Cualquiera</option>
+                        </select>
+                    </div>
+                    <div class="flex items-end">
+                        <button type="button" onclick="this.parentElement.parentElement.parentElement.remove()"
+                                class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm font-semibold">
+                            🗑️
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            container.appendChild(cardElement);
+        }
+
+        // Manejar envío del formulario
+        async function handleCreateTradeSubmit(e) {
+            e.preventDefault();
+            
+            const form = e.target;
+            const formData = new FormData(form);
+            
+            // Recoger datos básicos
+            const tradeData = {
+                title: formData.get('tradeTitle') || document.getElementById('tradeTitle').value,
+                description: formData.get('tradeDescription') || document.getElementById('tradeDescription').value,
+                offeredCards: [],
+                wantedCards: [],
+                createdAt: new Date(),
+                user: currentUser.email || currentUser.displayName || 'Usuario',
+                status: 'active',
+                type: 'created'
+            };
+
+            // Recoger cartas ofrecidas
+            const offeredContainer = document.getElementById('offeredCardsContainer');
+            Array.from(offeredContainer.children).forEach((cardEl, index) => {
+                const nameInput = cardEl.querySelector(`input[name*="offered_name_${index}"]`);
+                const conditionSelect = cardEl.querySelector(`select[name*="offered_condition_${index}"]`);
+                const languageSelect = cardEl.querySelector(`select[name*="offered_language_${index}"]`);
+                
+                if (nameInput && nameInput.value.trim()) {
+                    tradeData.offeredCards.push({
+                        name: nameInput.value.trim(),
+                        condition: conditionSelect ? conditionSelect.value : 'NM',
+                        language: languageSelect ? languageSelect.value : 'Español'
+                    });
+                }
+            });
+
+            // Recoger cartas buscadas
+            const wantedContainer = document.getElementById('wantedCardsContainer');
+            Array.from(wantedContainer.children).forEach((cardEl, index) => {
+                const nameInput = cardEl.querySelector(`input[name*="wanted_name_${index}"]`);
+                const conditionSelect = cardEl.querySelector(`select[name*="wanted_condition_${index}"]`);
+                const languageSelect = cardEl.querySelector(`select[name*="wanted_language_${index}"]`);
+                
+                if (nameInput && nameInput.value.trim()) {
+                    tradeData.wantedCards.push({
+                        name: nameInput.value.trim(),
+                        condition: conditionSelect ? conditionSelect.value : 'NM',
+                        language: languageSelect ? languageSelect.value : 'Español'
+                    });
+                }
+            });
+
+            // Validaciones
+            if (!tradeData.title.trim()) {
+                alert('Por favor, ingresa un título para el intercambio');
+                return;
+            }
+
+            if (tradeData.offeredCards.length === 0) {
+                alert('Debes añadir al menos una carta que ofreces');
+                return;
+            }
+
+            if (tradeData.wantedCards.length === 0) {
+                alert('Debes añadir al menos una carta que buscas');
+                return;
+            }
+
+            try {
+                // Generar ID único para el intercambio
+                tradeData.id = 'trade_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                
+                console.log('💾 Guardando intercambio:', tradeData);
+                
+                // Por ahora, guardar en localStorage como demo
+                const savedTrades = JSON.parse(localStorage.getItem('userTrades') || '[]');
+                savedTrades.unshift(tradeData); // Añadir al principio
+                localStorage.setItem('userTrades', JSON.stringify(savedTrades));
+                
+                // Aquí se implementará el guardado en Firestore
+                // await saveTradeToFirestore(tradeData);
+                
+                // Mostrar mensaje de éxito más elegante
+                showSuccessMessage('¡Intercambio creado exitosamente! 🎉');
+                document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50').remove(); // Cerrar modal
+                
+                // Recargar intercambios
+                if (typeof loadUserTrades === 'function') {
+                    loadUserTrades();
+                }
+                
+            } catch (error) {
+                console.error('❌ Error al crear intercambio:', error);
+                alert('Error al crear el intercambio. Inténtalo de nuevo.');
+            }
+        }
+
+        // Función para mostrar mensaje de éxito
+        function showSuccessMessage(message) {
+            const successModal = document.createElement('div');
+            successModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            successModal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md w-full mx-4 text-center shadow-xl">
+                    <div class="text-6xl mb-4">🎉</div>
+                    <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">${message}</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-6">Tu intercambio estará visible para otros coleccionistas.</p>
+                    <button onclick="this.parentElement.parentElement.remove()" 
+                            class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-semibold">
+                        ¡Perfecto!
+                    </button>
+                </div>
+            `;
+            
+            document.body.appendChild(successModal);
+            
+            // Auto-cerrar después de 3 segundos
+            setTimeout(() => {
+                if (successModal.parentElement) {
+                    successModal.remove();
+                }
+            }, 3000);
         }
 
         // Función para generar selector de condición de carta
@@ -2429,7 +2748,7 @@
             if (createTradeBtn) {
                 createTradeBtn.addEventListener('click', () => {
                     console.log('➕ Crear intercambio clicked');
-                    alert('Función de crear intercambio en desarrollo');
+                    showCreateTradeModal();
                 });
             }
 
@@ -4377,7 +4696,7 @@
                                 <!-- Los intercambios se cargarán dinámicamente aquí -->
                                 <div class="text-center text-gray-500 dark:text-gray-400 py-8">
                                     <p>No tienes intercambios activos</p>
-                                    <button class="btn-primary mt-4 px-4 py-2 rounded-lg text-sm font-semibold">
+                                    <button onclick="showCreateTradeModal()" class="btn-primary mt-4 px-4 py-2 rounded-lg text-sm font-semibold">
                                         Crear mi primer intercambio
                                     </button>
                                 </div>
