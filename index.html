@@ -1178,8 +1178,8 @@
                                     <button class="btn-secondary px-3 py-1 rounded text-xs" onclick="editTrade('${trade.id}')">
                                         ✏️ Editar
                                     </button>
-                                    <button class="btn-secondary px-3 py-1 rounded text-xs" onclick="cancelTrade('${trade.id}')">
-                                        ❌ Cancelar
+                                    <button class="btn-secondary px-3 py-1 rounded text-xs" onclick="deleteTrade('${trade.id}')">
+                                        🗑️ Eliminar
                                     </button>
                                 ` : `
                                     <button class="btn-primary px-3 py-1 rounded text-xs" onclick="proposeTrade('${trade.id}')">
@@ -1210,15 +1210,49 @@
         }
 
         // Funciones de acción para intercambios
-        function editTrade(tradeId) {
-            console.log('✏️ Editando intercambio:', tradeId);
-            alert('Función de edición en desarrollo');
+        // Función para encontrar un intercambio por ID
+        function findTradeById(tradeId) {
+            const savedTrades = JSON.parse(localStorage.getItem('userTrades') || '[]');
+            return savedTrades.find(trade => trade.id === tradeId);
         }
 
-        function cancelTrade(tradeId) {
-            console.log('❌ Cancelando intercambio:', tradeId);
-            if (confirm('¿Estás seguro de que quieres cancelar este intercambio?')) {
-                alert('Intercambio cancelado');
+        // Función para editar intercambio (abre modal con datos pre-cargados)
+        function editTrade(tradeId) {
+            console.log('✏️ Editando intercambio:', tradeId);
+            
+            const trade = findTradeById(tradeId);
+            if (!trade) {
+                alert('❌ No se encontró el intercambio para editar');
+                return;
+            }
+            
+            console.log('📋 Datos del intercambio a editar:', trade);
+            
+            // Abrir modal de crear intercambio con datos pre-cargados
+            showCreateTradeModal(trade);
+        }
+
+        // Función para eliminar intercambio directamente
+        function deleteTrade(tradeId) {
+            console.log('🗑️ Eliminando intercambio:', tradeId);
+            
+            const trade = findTradeById(tradeId);
+            if (!trade) {
+                alert('❌ No se encontró el intercambio para eliminar');
+                return;
+            }
+            
+            if (confirm(`🗑️ ¿Estás seguro de que quieres eliminar este intercambio?\n\n"${trade.title}"\n\n⚠️ Esta acción no se puede deshacer.`)) {
+                // Eliminar del localStorage
+                let savedTrades = JSON.parse(localStorage.getItem('userTrades') || '[]');
+                savedTrades = savedTrades.filter(t => t.id !== tradeId);
+                localStorage.setItem('userTrades', JSON.stringify(savedTrades));
+                
+                console.log('✅ Intercambio eliminado exitosamente');
+                alert('✅ Intercambio eliminado exitosamente');
+                
+                // Recargar la lista de intercambios
+                loadUserTrades();
             }
         }
 
@@ -1233,12 +1267,15 @@
         }
 
         // Función para mostrar modal de crear intercambio
-        window.showCreateTradeModal = () => {
+        window.showCreateTradeModal = (existingTrade = null) => {
             if (!currentUser) {
                 alert('Debes iniciar sesión para crear intercambios');
                 showAuthModal('login');
                 return;
             }
+
+            const isEditing = !!existingTrade;
+            console.log(isEditing ? '✏️ Modo edición activado' : '🆕 Modo crear nuevo');
 
             const modal = document.createElement('div');
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
@@ -1246,7 +1283,7 @@
                 <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
                     <div class="flex justify-between items-center mb-6">
                         <h3 class="text-2xl font-bold text-gray-900 dark:text-white flex items-center">
-                            <span class="icon mr-3">🤝</span> Crear Nuevo Intercambio
+                            <span class="icon mr-3">${isEditing ? '✏️' : '🤝'}</span> ${isEditing ? 'Editar Intercambio' : 'Crear Nuevo Intercambio'}
                         </h3>
                         <button id="closeCreateTradeModal" 
                                 class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-3xl">
@@ -1255,6 +1292,7 @@
                     </div>
 
                     <form id="createTradeForm" class="space-y-6">
+                        ${isEditing ? `<input type="hidden" id="editingTradeId" value="${existingTrade.id}">` : ''}
                         <!-- Vista previa del título generado -->
                         <div class="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
                             <h4 class="text-lg font-semibold text-orange-800 dark:text-orange-300 mb-2 flex items-center">
@@ -1359,9 +1397,84 @@
             // Enviar formulario
             form.addEventListener('submit', handleCreateTradeSubmit);
 
-            // Añadir una carta inicial de cada tipo
-            addCardToTrade('offered');
-            addCardToTrade('wanted');
+            // Añadir cartas iniciales o pre-cargar datos existentes
+            if (isEditing && existingTrade) {
+                console.log('📋 Pre-cargando cartas existentes...');
+                
+                // Pre-cargar descripción
+                const descriptionTextarea = document.getElementById('tradeDescription');
+                if (descriptionTextarea && existingTrade.description) {
+                    descriptionTextarea.value = existingTrade.description;
+                }
+                
+                // Pre-cargar cartas ofrecidas
+                existingTrade.offeredCards.forEach((card, index) => {
+                    if (index === 0) {
+                        // La primera carta reemplaza la carta inicial
+                        addCardToTrade('offered');
+                        preloadCardData('offered', 0, card);
+                    } else {
+                        // Cartas adicionales
+                        addCardToTrade('offered');
+                        preloadCardData('offered', index, card);
+                    }
+                });
+                
+                // Pre-cargar cartas buscadas  
+                existingTrade.wantedCards.forEach((card, index) => {
+                    if (index === 0) {
+                        // La primera carta reemplaza la carta inicial
+                        addCardToTrade('wanted');
+                        preloadCardData('wanted', 0, card);
+                    } else {
+                        // Cartas adicionales
+                        addCardToTrade('wanted');
+                        preloadCardData('wanted', index, card);
+                    }
+                });
+                
+                // Actualizar título
+                updateGeneratedTitle();
+            } else {
+                // Modo crear nuevo: añadir cartas vacías
+                addCardToTrade('offered');
+                addCardToTrade('wanted');
+            }
+        }
+
+        // Función para pre-cargar datos en una carta existente
+        function preloadCardData(type, cardIndex, cardData) {
+            console.log(`📝 Pre-cargando datos para ${type} carta ${cardIndex}:`, cardData);
+            
+            const container = document.getElementById(type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer');
+            const cardElement = container.children[cardIndex];
+            
+            if (!cardElement) {
+                console.error('❌ No se encontró el elemento de carta para pre-cargar');
+                return;
+            }
+            
+            // Pre-cargar nombre
+            const nameInput = cardElement.querySelector(`input[name*="${type}_name_"]`);
+            if (nameInput && cardData.name) {
+                nameInput.value = cardData.name;
+                // Bloquear el campo después de pre-cargarlo
+                lockExistingCard(cardElement);
+            }
+            
+            // Pre-cargar condición
+            const conditionSelect = cardElement.querySelector(`select[name*="${type}_condition_"]`);
+            if (conditionSelect && cardData.condition) {
+                conditionSelect.value = cardData.condition;
+            }
+            
+            // Pre-cargar idioma
+            const languageSelect = cardElement.querySelector(`select[name*="${type}_language_"]`);
+            if (languageSelect && cardData.language) {
+                languageSelect.value = cardData.language;
+            }
+            
+            console.log(`✅ Carta ${type} ${cardIndex} pre-cargada y bloqueada`);
         }
 
         // Función para añadir carta al intercambio
@@ -1600,6 +1713,13 @@
             const form = e.target;
             const formData = new FormData(form);
             
+            // Detectar si estamos editando
+            const editingTradeIdElement = document.getElementById('editingTradeId');
+            const isEditing = !!editingTradeIdElement;
+            const editingTradeId = isEditing ? editingTradeIdElement.value : null;
+            
+            console.log(isEditing ? `✏️ Editando intercambio: ${editingTradeId}` : '🆕 Creando nuevo intercambio');
+            
             // Recoger datos básicos
             const generatedTitleElement = document.getElementById('generatedTitle');
             const generatedTitle = generatedTitleElement ? generatedTitleElement.textContent : '';
@@ -1609,11 +1729,22 @@
                 description: document.getElementById('tradeDescription').value || '',
                 offeredCards: [],
                 wantedCards: [],
-                createdAt: new Date(),
                 user: currentUser.email || currentUser.displayName || 'Usuario',
                 status: 'active',
                 type: 'created'
             };
+            
+            // Si estamos editando, mantener datos existentes
+            if (isEditing) {
+                tradeData.id = editingTradeId;
+                const existingTrade = findTradeById(editingTradeId);
+                if (existingTrade) {
+                    tradeData.createdAt = existingTrade.createdAt; // Mantener fecha original
+                    tradeData.updatedAt = new Date(); // Añadir fecha de actualización
+                }
+            } else {
+                tradeData.createdAt = new Date();
+            }
 
             // Recoger cartas ofrecidas
             const offeredContainer = document.getElementById('offeredCardsContainer');
@@ -1672,21 +1803,37 @@
             }
 
             try {
-                // Generar ID único para el intercambio
-                tradeData.id = 'trade_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                let savedTrades = JSON.parse(localStorage.getItem('userTrades') || '[]');
                 
-                console.log('💾 Guardando intercambio:', tradeData);
-                
-                // Por ahora, guardar en localStorage como demo
-                const savedTrades = JSON.parse(localStorage.getItem('userTrades') || '[]');
-                savedTrades.unshift(tradeData); // Añadir al principio
-                localStorage.setItem('userTrades', JSON.stringify(savedTrades));
-                
-                // Aquí se implementará el guardado en Firestore
-                // await saveTradeToFirestore(tradeData);
-                
-                // Mostrar mensaje de éxito más elegante
-                showSuccessMessage('¡Intercambio creado exitosamente! 🎉');
+                if (isEditing) {
+                    // Modo edición: actualizar intercambio existente
+                    console.log('✏️ Actualizando intercambio existente:', tradeData);
+                    
+                    const tradeIndex = savedTrades.findIndex(t => t.id === editingTradeId);
+                    if (tradeIndex !== -1) {
+                        savedTrades[tradeIndex] = tradeData;
+                        localStorage.setItem('userTrades', JSON.stringify(savedTrades));
+                        
+                        // Aquí se implementará la actualización en Firestore
+                        // await updateTradeInFirestore(tradeData);
+                        
+                        showSuccessMessage('¡Intercambio actualizado exitosamente! ✏️');
+                    } else {
+                        throw new Error('No se encontró el intercambio para actualizar');
+                    }
+                } else {
+                    // Modo creación: crear nuevo intercambio
+                    tradeData.id = 'trade_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    console.log('💾 Creando nuevo intercambio:', tradeData);
+                    
+                    savedTrades.unshift(tradeData); // Añadir al principio
+                    localStorage.setItem('userTrades', JSON.stringify(savedTrades));
+                    
+                    // Aquí se implementará el guardado en Firestore
+                    // await saveTradeToFirestore(tradeData);
+                    
+                    showSuccessMessage('¡Intercambio creado exitosamente! 🎉');
+                }
                 document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50').remove(); // Cerrar modal
                 
                 // Recargar intercambios
@@ -3597,7 +3744,7 @@
         window.showInitialSections = showInitialSections;
         window.fetchCards = fetchCards;
         window.editTrade = editTrade;
-        window.cancelTrade = cancelTrade;
+        window.deleteTrade = deleteTrade;
         window.proposeTrade = proposeTrade;
         window.viewTradeDetails = viewTradeDetails;
         window.createConditionSelector = createConditionSelector;
