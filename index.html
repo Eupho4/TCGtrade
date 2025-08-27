@@ -1619,8 +1619,12 @@
                                     <div class="font-semibold text-gray-900 dark:text-white truncate">${card.name || 'Nombre no disponible'}</div>
                                     <div class="text-xs text-gray-600 dark:text-gray-300 truncate">Set: ${card.set?.name || 'N/A'} · Serie: ${card.set?.series || 'N/A'} · Nº: ${card.number || 'N/A'}</div>
                                 </div>
-                                <button class="btn-primary px-3 py-1.5 rounded text-xs"
-                                    onclick="showCardDetails('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">Ver Detalles</button>
+                                <div class="flex gap-2">
+                                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs"
+                                        onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">Ver Detalles</button>
+                                    <button class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs"
+                                        onclick="addCardDirectly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">+ Añadir</button>
+                                </div>
                             </div>
                         `;
 
@@ -1700,10 +1704,14 @@
                                             <p class="text-gray-600 text-sm mb-3">Set: ${card.set?.name || 'N/A'}</p>
                                             <p class="text-gray-600 text-sm mb-3">Serie: ${card.set?.series || 'N/A'}</p>
                                             <p class="text-gray-600 text-sm mb-3">Número: ${card.number || 'N/A'}</p>
-                                            <div class="flex justify-between items-center">
-                                                <button class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold"
-                                                        onclick="showCardDetails('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">
+                                            <div class="flex justify-between items-center gap-2">
+                                                <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold"
+                                                        onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">
                                                     Ver Detalles
+                                                </button>
+                                                <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-semibold"
+                                                        onclick="addCardDirectly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">
+                                                    + Añadir
                                                 </button>
                                             </div>
                                         </div>
@@ -2708,8 +2716,44 @@
 
         });
 
-        // Función para mostrar detalles de carta
-        window.showCardDetails = (cardId, cardName, imageUrl, setName, series, number) => {
+        // Función para mostrar detalles de carta (solo información)
+        window.showCardDetailsOnly = (cardId, cardName, imageUrl, setName, series, number) => {
+            // Crear modal de detalles
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white">Detalles de la Carta</h3>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                                class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                    </div>
+                    <div class="text-center mb-4">
+                        <img src="${imageUrl}" alt="${cardName}" 
+                             class="w-48 h-auto mx-auto rounded-lg shadow-lg"
+                             onerror="this.src='https://placehold.co/400x550/a0aec0/ffffff?text=Error+imagen'">
+                    </div>
+                    <div class="space-y-2 text-sm">
+                        <p><strong>Nombre:</strong> ${cardName}</p>
+                        <p><strong>Set:</strong> ${setName}</p>
+                        <p><strong>Serie:</strong> ${series}</p>
+                        <p><strong>Número:</strong> ${number}</p>
+                        <p><strong>ID:</strong> ${cardId}</p>
+                    </div>
+                    <div class="mt-6 flex justify-end">
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                                class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                            Cerrar
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        };
+
+        // Función para añadir carta directamente (botón separado)
+        window.addCardDirectly = (cardId, cardName, imageUrl, setName, series, number) => {
             if (!currentUser) {
                 alert('Inicia sesión para añadir cartas a tu colección');
                 showAuthModal('login');
@@ -2728,6 +2772,9 @@
                 }
             }
         };
+
+        // Mantener función original para compatibilidad (deprecated)
+        window.showCardDetails = window.addCardDirectly;
 
         // Función para añadir carta a la colección
         async function addCardToCollection(cardId, cardName, imageUrl, setName, series, number) {
@@ -2808,10 +2855,14 @@
                                     <p class="text-gray-600 text-sm mb-3">Set: ${card.set?.name || 'N/A'}</p>
                                     <p class="text-gray-600 text-sm mb-3">Serie: ${card.set?.series || 'N/A'}</p>
                                     <p class="text-gray-600 text-sm mb-3">Número: ${card.number || 'N/A'}</p>
-                                    <div class="flex justify-between items-center">
-                                        <button class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold"
-                                                onclick="showCardDetails('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">
+                                    <div class="flex justify-between items-center gap-2">
+                                        <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold"
+                                                onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">
                                             Ver Detalles
+                                        </button>
+                                        <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-semibold"
+                                                onclick="addCardDirectly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">
+                                            + Añadir
                                         </button>
                                     </div>
                                 </div>
@@ -2903,10 +2954,14 @@
                                     <p class="text-gray-600 text-sm mb-3">Set: ${card.set?.name || 'N/A'}</p>
                                     <p class="text-gray-600 text-sm mb-3">Serie: ${card.set?.series || 'N/A'}</p>
                                     <p class="text-gray-600 text-sm mb-3">Número: ${card.number || 'N/A'}</p>
-                                    <div class="flex justify-between items-center">
-                                        <button class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold"
-                                                onclick="showCardDetails('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">
+                                    <div class="flex justify-between items-center gap-2">
+                                        <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold"
+                                                onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">
                                             Ver Detalles
+                                        </button>
+                                        <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-2 rounded-lg text-sm font-semibold"
+                                                onclick="addCardDirectly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">
+                                            + Añadir
                                         </button>
                                     </div>
                                 </div>
@@ -3201,8 +3256,12 @@
                                 <div class="font-semibold text-gray-900 dark:text-white truncate">${card.name || 'Nombre no disponible'}</div>
                                 <div class="text-xs text-gray-600 dark:text-gray-300 truncate">Set: ${card.set?.name || 'N/A'} · Serie: ${card.set?.series || 'N/A'} · Nº: ${card.number || 'N/A'}</div>
                             </div>
-                            <button class="btn-primary px-3 py-1.5 rounded text-xs"
-                                onclick="showCardDetails('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">Ver Detalles</button>
+                            <div class="flex gap-2">
+                                <button class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs"
+                                    onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">Ver Detalles</button>
+                                <button class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs"
+                                    onclick="addCardDirectly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">+ Añadir</button>
+                            </div>
                         </div>
                     `;
 
