@@ -1255,26 +1255,13 @@
                     </div>
 
                     <form id="createTradeForm" class="space-y-6">
-                        <!-- Información básica -->
-                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
-                            <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-4">📋 Información del Intercambio</h4>
-                            <div class="grid grid-cols-1 gap-4">
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Título del intercambio *
-                                    </label>
-                                    <input type="text" id="tradeTitle" required
-                                           placeholder="Ej: Intercambio Pikachu por Charizard"
-                                           class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-600 text-gray-900 dark:text-white">
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                                        Descripción (opcional)
-                                    </label>
-                                    <textarea id="tradeDescription" rows="3"
-                                              placeholder="Describe las condiciones específicas, preferencias o detalles adicionales..."
-                                              class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-600 text-gray-900 dark:text-white resize-none"></textarea>
-                                </div>
+                        <!-- Vista previa del título generado -->
+                        <div class="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4">
+                            <h4 class="text-lg font-semibold text-orange-800 dark:text-orange-300 mb-2 flex items-center">
+                                <span class="mr-2">✨</span> Vista Previa del Título
+                            </h4>
+                            <div id="generatedTitle" class="text-gray-700 dark:text-gray-300 font-medium italic">
+                                El título se generará automáticamente cuando añadas cartas
                             </div>
                         </div>
 
@@ -1304,6 +1291,21 @@
                                     class="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center">
                                 <span class="mr-2">+</span> Añadir Carta Buscada
                             </button>
+                        </div>
+
+                        <!-- Otros detalles -->
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <h4 class="text-lg font-semibold text-gray-800 dark:text-white mb-4 flex items-center">
+                                <span class="mr-2">📝</span> Otros Detalles
+                            </h4>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Información adicional (opcional)
+                                </label>
+                                <textarea id="tradeDescription" rows="3"
+                                          placeholder="Describe condiciones específicas, preferencias, ubicación para intercambio presencial, etc..."
+                                          class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-600 text-gray-900 dark:text-white resize-none"></textarea>
+                            </div>
                         </div>
 
                         <!-- Botones de acción -->
@@ -1378,7 +1380,8 @@
                         </label>
                         <input type="text" name="${type}_name_${cardIndex}" required
                                placeholder="Ej: Pikachu VMAX"
-                               class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                               class="card-name-input w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                               oninput="updateGeneratedTitle()">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -1404,7 +1407,7 @@
                         </select>
                     </div>
                     <div class="flex items-end">
-                        <button type="button" onclick="this.parentElement.parentElement.parentElement.remove()"
+                        <button type="button" onclick="removeCardFromTrade(this)"
                                 class="bg-red-500 hover:bg-red-600 text-white px-3 py-2 rounded text-sm font-semibold">
                             🗑️
                         </button>
@@ -1413,6 +1416,74 @@
             `;
 
             container.appendChild(cardElement);
+            updateGeneratedTitle();
+        }
+
+        // Función para eliminar carta y actualizar título
+        function removeCardFromTrade(button) {
+            button.parentElement.parentElement.parentElement.remove();
+            updateGeneratedTitle();
+        }
+
+        // Función para generar título automáticamente
+        function updateGeneratedTitle() {
+            const titleElement = document.getElementById('generatedTitle');
+            if (!titleElement) return;
+
+            const offeredCards = [];
+            const wantedCards = [];
+
+            // Recoger cartas ofrecidas
+            const offeredContainer = document.getElementById('offeredCardsContainer');
+            if (offeredContainer) {
+                offeredContainer.querySelectorAll('.card-name-input').forEach(input => {
+                    if (input.value.trim()) {
+                        offeredCards.push(input.value.trim());
+                    }
+                });
+            }
+
+            // Recoger cartas buscadas
+            const wantedContainer = document.getElementById('wantedCardsContainer');
+            if (wantedContainer) {
+                wantedContainer.querySelectorAll('.card-name-input').forEach(input => {
+                    if (input.value.trim()) {
+                        wantedCards.push(input.value.trim());
+                    }
+                });
+            }
+
+            // Generar título
+            let generatedTitle = '';
+            
+            if (offeredCards.length > 0 && wantedCards.length > 0) {
+                const offeredText = offeredCards.length === 1 
+                    ? offeredCards[0] 
+                    : `${offeredCards[0]} (+${offeredCards.length - 1} más)`;
+                
+                const wantedText = wantedCards.length === 1 
+                    ? wantedCards[0] 
+                    : `${wantedCards[0]} (+${wantedCards.length - 1} más)`;
+                
+                generatedTitle = `Intercambio ${offeredText} por ${wantedText}`;
+            } else if (offeredCards.length > 0) {
+                const offeredText = offeredCards.length === 1 
+                    ? offeredCards[0] 
+                    : `${offeredCards[0]} (+${offeredCards.length - 1} más)`;
+                generatedTitle = `Intercambio ${offeredText} por [Cartas buscadas]`;
+            } else if (wantedCards.length > 0) {
+                const wantedText = wantedCards.length === 1 
+                    ? wantedCards[0] 
+                    : `${wantedCards[0]} (+${wantedCards.length - 1} más)`;
+                generatedTitle = `Intercambio [Cartas ofrecidas] por ${wantedText}`;
+            } else {
+                generatedTitle = 'El título se generará automáticamente cuando añadas cartas';
+            }
+
+            titleElement.textContent = generatedTitle;
+            titleElement.className = generatedTitle.includes('[') 
+                ? 'text-gray-500 dark:text-gray-400 font-medium italic'
+                : 'text-gray-800 dark:text-gray-200 font-semibold';
         }
 
         // Manejar envío del formulario
@@ -1423,9 +1494,12 @@
             const formData = new FormData(form);
             
             // Recoger datos básicos
+            const generatedTitleElement = document.getElementById('generatedTitle');
+            const generatedTitle = generatedTitleElement ? generatedTitleElement.textContent : '';
+            
             const tradeData = {
-                title: formData.get('tradeTitle') || document.getElementById('tradeTitle').value,
-                description: formData.get('tradeDescription') || document.getElementById('tradeDescription').value,
+                title: generatedTitle,
+                description: document.getElementById('tradeDescription').value || '',
                 offeredCards: [],
                 wantedCards: [],
                 createdAt: new Date(),
@@ -1467,8 +1541,8 @@
             });
 
             // Validaciones
-            if (!tradeData.title.trim()) {
-                alert('Por favor, ingresa un título para el intercambio');
+            if (!tradeData.title.trim() || tradeData.title.includes('[') || tradeData.title.includes('automáticamente')) {
+                alert('Por favor, completa al menos una carta ofrecida y una carta buscada para generar el título');
                 return;
             }
 
