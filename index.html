@@ -1458,8 +1458,6 @@
             const nameInput = cardElement.querySelector(`input[name*="${type}_name_"]`);
             if (nameInput && cardData.name) {
                 nameInput.value = cardData.name;
-                // Bloquear el campo después de pre-cargarlo
-                lockExistingCard(cardElement);
             }
             
             // Pre-cargar condición
@@ -1474,7 +1472,7 @@
                 languageSelect.value = cardData.language;
             }
             
-            console.log(`✅ Carta ${type} ${cardIndex} pre-cargada y bloqueada`);
+            console.log(`✅ Carta ${type} ${cardIndex} pre-cargada y EDITABLE (modo edición)`);
         }
 
         // Función para añadir carta al intercambio
