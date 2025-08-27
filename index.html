@@ -1218,17 +1218,32 @@
 
         // Función para editar intercambio (abre modal con datos pre-cargados)
         function editTrade(tradeId) {
-            console.log('✏️ Editando intercambio:', tradeId);
+            console.log('🔍 === INICIANDO EDICIÓN ===');
+            console.log('✏️ Editando intercambio ID:', tradeId);
+            
+            // Verificar localStorage
+            const savedTrades = JSON.parse(localStorage.getItem('userTrades') || '[]');
+            console.log('📦 Intercambios en localStorage:', savedTrades.length);
+            console.log('📦 Todos los intercambios:', savedTrades);
             
             const trade = findTradeById(tradeId);
+            console.log('🔍 Intercambio encontrado:', trade);
+            
             if (!trade) {
+                console.error('❌ No se encontró el intercambio para editar. ID buscado:', tradeId);
                 alert('❌ No se encontró el intercambio para editar');
                 return;
             }
             
-            console.log('📋 Datos del intercambio a editar:', trade);
+            console.log('📋 Datos completos del intercambio a editar:');
+            console.log('- ID:', trade.id);
+            console.log('- Título:', trade.title);
+            console.log('- Descripción:', trade.description);
+            console.log('- Cartas ofrecidas:', trade.offeredCards);
+            console.log('- Cartas buscadas:', trade.wantedCards);
             
             // Abrir modal de crear intercambio con datos pre-cargados
+            console.log('🚀 Abriendo modal con datos...');
             showCreateTradeModal(trade);
         }
 
@@ -1268,6 +1283,9 @@
 
         // Función para mostrar modal de crear intercambio
         window.showCreateTradeModal = (existingTrade = null) => {
+            console.log('🚀 === ABRIENDO MODAL ===');
+            console.log('📥 Parámetro existingTrade recibido:', existingTrade);
+            
             if (!currentUser) {
                 alert('Debes iniciar sesión para crear intercambios');
                 showAuthModal('login');
@@ -1275,7 +1293,15 @@
             }
 
             const isEditing = !!existingTrade;
+            console.log('🔧 isEditing calculado:', isEditing);
             console.log(isEditing ? '✏️ Modo edición activado' : '🆕 Modo crear nuevo');
+            
+            if (isEditing) {
+                console.log('📋 Datos para edición:');
+                console.log('- existingTrade completo:', existingTrade);
+                console.log('- offeredCards:', existingTrade?.offeredCards);
+                console.log('- wantedCards:', existingTrade?.wantedCards);
+            }
 
             const modal = document.createElement('div');
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
@@ -1398,8 +1424,15 @@
             form.addEventListener('submit', handleCreateTradeSubmit);
 
             // Añadir cartas iniciales o pre-cargar datos existentes
+            console.log('🔍 === INICIANDO SETUP DE CARTAS ===');
+            console.log('🔧 isEditing:', isEditing);
+            console.log('📦 existingTrade:', existingTrade);
+            
             if (isEditing && existingTrade) {
+                console.log('📋 ✅ ENTRANDO EN MODO EDICIÓN');
                 console.log('📋 Modo edición: pre-cargando cartas existentes...', existingTrade);
+                console.log('📋 offeredCards para pre-cargar:', existingTrade.offeredCards);
+                console.log('📋 wantedCards para pre-cargar:', existingTrade.wantedCards);
                 
                 // Pre-cargar descripción inmediatamente
                 setTimeout(() => {
