@@ -2752,15 +2752,75 @@
             document.body.appendChild(modal);
         };
 
+        // Función para mostrar modal de confirmación personalizado
+        window.showAddCardModal = (cardId, cardName, imageUrl, setName, series, number) => {
+            return new Promise((resolve) => {
+                const modal = document.createElement('div');
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                modal.innerHTML = `
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+                        <div class="text-center mb-6">
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Añadir a Colección</h3>
+                            <p class="text-gray-700 dark:text-gray-300">
+                                ¿Quieres añadir "<strong>${cardName}</strong>" a tu colección?
+                            </p>
+                        </div>
+                        <div class="flex gap-3 justify-end">
+                            <button id="cancelAddCard" 
+                                    class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">
+                                Cancelar
+                            </button>
+                            <button id="confirmAddCard" 
+                                    class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors">
+                                Añadir
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(modal);
+                
+                // Event listeners
+                const cancelBtn = modal.querySelector('#cancelAddCard');
+                const confirmBtn = modal.querySelector('#confirmAddCard');
+                
+                cancelBtn.addEventListener('click', () => {
+                    modal.remove();
+                    resolve(false);
+                });
+                
+                confirmBtn.addEventListener('click', () => {
+                    modal.remove();
+                    resolve(true);
+                });
+                
+                // Cerrar con ESC o click fuera
+                modal.addEventListener('click', (e) => {
+                    if (e.target === modal) {
+                        modal.remove();
+                        resolve(false);
+                    }
+                });
+                
+                document.addEventListener('keydown', function escHandler(e) {
+                    if (e.key === 'Escape') {
+                        modal.remove();
+                        document.removeEventListener('keydown', escHandler);
+                        resolve(false);
+                    }
+                });
+            });
+        };
+
         // Función para añadir carta directamente (botón separado)
-        window.addCardDirectly = (cardId, cardName, imageUrl, setName, series, number) => {
+        window.addCardDirectly = async (cardId, cardName, imageUrl, setName, series, number) => {
             if (!currentUser) {
                 alert('Inicia sesión para añadir cartas a tu colección');
                 showAuthModal('login');
                 return;
             }
 
-            const confirmed = confirm(`¿Quieres añadir "${cardName}" a tu colección?\n\nSet: ${setName}\nSerie: ${series}\nNúmero: ${number}`);
+            const confirmed = await showAddCardModal(cardId, cardName, imageUrl, setName, series, number);
             
             if (confirmed) {
                 addCardToCollection(cardId, cardName, imageUrl, setName, series, number);
