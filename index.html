@@ -1536,18 +1536,30 @@
 
                 console.log('🌐 Fetching from URL:', apiUrl);
 
-                // Hacer petición con timeout (reducido)
+                // Hacer petición con timeout mejorado
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 45000); // 45s
+                const timeoutId = setTimeout(() => {
+                    console.log('⏰ Timeout alcanzado, abortando petición...');
+                    controller.abort();
+                }, 30000); // Reducido a 30s
 
-                const response = await fetch(apiUrl, {
-                    signal: controller.signal,
-                    headers: {
-                        'Content-Type': 'application/json'
+                let response;
+                try {
+                    response = await fetch(apiUrl, {
+                        signal: controller.signal,
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    clearTimeout(timeoutId);
+                } catch (fetchError) {
+                    clearTimeout(timeoutId);
+                    if (fetchError.name === 'AbortError') {
+                        console.log('🔄 Petición cancelada por timeout');
+                        throw new Error('TIMEOUT');
                     }
-                });
-
-                clearTimeout(timeoutId);
+                    throw fetchError;
+                }
 
                 console.log('📡 Response status:', response.status);
 
@@ -1646,7 +1658,7 @@
                 console.error('❌ Error completo en fetchCards:', error);
 
                 // Si es timeout, intentar con búsqueda más simple y menos resultados
-                if ((error.name === 'AbortError' || error.message.includes('408')) && !query.includes('_retry')) {
+                if ((error.name === 'AbortError' || error.message.includes('408') || error.message === 'TIMEOUT') && !query.includes('_retry')) {
                     console.log('🔄 Timeout detectado, reintentando con búsqueda optimizada...');
                     
                     try {
@@ -1655,14 +1667,22 @@
                         console.log('🔄 Retry URL (búsqueda exacta):', retryUrl);
                         
                         const retryController = new AbortController();
-                        const retryTimeoutId = setTimeout(() => retryController.abort(), 15000);
+                        const retryTimeoutId = setTimeout(() => {
+                            console.log('⏰ Retry timeout alcanzado');
+                            retryController.abort();
+                        }, 10000); // 10 segundos para retry
                         
-                        const retryResponse = await fetch(retryUrl, {
-                            signal: retryController.signal,
-                            headers: { 'Content-Type': 'application/json' }
-                        });
-                        
-                        clearTimeout(retryTimeoutId);
+                        let retryResponse;
+                        try {
+                            retryResponse = await fetch(retryUrl, {
+                                signal: retryController.signal,
+                                headers: { 'Content-Type': 'application/json' }
+                            });
+                            clearTimeout(retryTimeoutId);
+                        } catch (retryError) {
+                            clearTimeout(retryTimeoutId);
+                            throw retryError;
+                        }
                         
                         if (retryResponse.ok) {
                             const retryData = await retryResponse.json();
@@ -1730,18 +1750,22 @@
 
                 let errorMsg = 'Error al buscar cartas. ';
                 
-                if (error.name === 'AbortError') {
-                    errorMsg += 'La búsqueda tardó demasiado tiempo. Configura tu API Key para mejor rendimiento o prueba términos más específicos.';
+                if (error.name === 'AbortError' || error.message === 'TIMEOUT') {
+                    errorMsg += 'La API de Pokemon TCG está experimentando problemas de conectividad.';
                 } else if (error.message.includes('Failed to fetch')) {
-                    errorMsg += 'Problema de conexión. Verifica tu internet o prueba más tarde.';
-                } else if (error.message.includes('404')) {
-                    errorMsg += 'Servicio no disponible temporalmente. Prueba más tarde.';
+                    errorMsg += 'Problema de conexión con la API de Pokemon TCG.';
+                } else if (error.message.includes('504')) {
+                    errorMsg += 'La API de Pokemon TCG no está respondiendo.';
                 } else {
-                    errorMsg += error.message + ' (Configura tu API Key para mejor rendimiento)';
+                    errorMsg += 'Las APIs pueden estar experimentando problemas temporales.';
                 }
 
                 if (errorMessage) {
-                    errorMessage.textContent = errorMsg;
+                    errorMessage.innerHTML = `
+                        ❌ ${errorMsg}<br>
+                        <small class="text-gray-500">🔧 Las APIs de Pokemon TCG están experimentando problemas técnicos.</small><br>
+                        <small class="text-blue-600">💡 Esto es temporal - intenta de nuevo en unos minutos.</small>
+                    `;
                     errorMessage.classList.remove('hidden');
                 }
             } finally {
