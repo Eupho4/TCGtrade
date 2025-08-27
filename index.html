@@ -1367,6 +1367,13 @@
         // Función para añadir carta al intercambio
         function addCardToTrade(type) {
             const container = document.getElementById(type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer');
+            
+            // IMPORTANTE: Bloquear todas las cartas existentes antes de añadir una nueva
+            console.log(`🔒 Bloqueando cartas existentes de tipo: ${type}`);
+            Array.from(container.children).forEach(existingCard => {
+                lockExistingCard(existingCard);
+            });
+            
             const cardIndex = container.children.length;
             const cardId = `${type}_card_${cardIndex}`;
 
@@ -1383,9 +1390,7 @@
                                value=""
                                class="card-name-input w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
                                oninput="updateGeneratedTitle()"
-                               onblur="lockCardInput(this)"
-                               onkeypress="if(event.key==='Enter') this.blur()"
-                               title="Escribe el nombre de la carta (Enter para confirmar)">
+                               title="Escribe el nombre de la carta">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -1393,7 +1398,6 @@
                         </label>
                         <select name="${type}_condition_${cardIndex}" required
                                 class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
-                                onchange="lockCardSelect(this)"
                                 title="Selecciona la condición de la carta">
                             ${Object.values(CARD_CONDITIONS).map(condition => 
                                 `<option value="${condition.code}">${condition.icon} ${condition.code}</option>`
@@ -1406,7 +1410,6 @@
                         </label>
                         <select name="${type}_language_${cardIndex}"
                                 class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
-                                onchange="lockCardSelect(this)"
                                 title="Selecciona el idioma de la carta">
                             <option value="Español">🇪🇸 Español</option>
                             <option value="Inglés">🇺🇸 Inglés</option>
@@ -1453,40 +1456,48 @@
             `;
 
             container.appendChild(cardElement);
-            
-            // Enfocar automáticamente el campo de nombre para mejor UX
-            const nameInput = cardElement.querySelector('input[name*="_name_"]');
-            if (nameInput) {
-                setTimeout(() => nameInput.focus(), 100);
-            }
-            
             updateGeneratedTitle();
+            
+            console.log(`✅ Nueva carta ${type} añadida y lista para editar`);
         }
 
-        // Función para bloquear input después de completarlo
-        window.lockCardInput = function(input) {
-            if (input.value.trim()) {
-                console.log('🔒 Bloqueando campo nombre:', input.value);
-                input.readOnly = true;
-                input.className = input.className.replace('bg-white dark:bg-gray-700', 'bg-gray-100 dark:bg-gray-600');
-                input.className = input.className.replace('text-gray-900 dark:text-white', 'text-gray-700 dark:text-gray-300');
-                input.className = input.className.replace(' focus:outline-none focus:ring-2 focus:ring-orange-400', '');
-                input.className += ' cursor-not-allowed';
-                input.title = "Campo completado - solo se puede eliminar la carta";
-                updateGeneratedTitle();
+        // Función para bloquear una carta completa (todos sus campos)
+        function lockExistingCard(cardElement) {
+            console.log('🔒 Bloqueando carta completa');
+            
+            // Bloquear input de nombre
+            const nameInput = cardElement.querySelector('input[name*="_name_"]');
+            if (nameInput && !nameInput.readOnly) {
+                nameInput.readOnly = true;
+                nameInput.className = nameInput.className.replace('bg-white dark:bg-gray-700', 'bg-gray-100 dark:bg-gray-600');
+                nameInput.className = nameInput.className.replace('text-gray-900 dark:text-white', 'text-gray-700 dark:text-gray-300');
+                nameInput.className = nameInput.className.replace(' focus:outline-none focus:ring-2 focus:ring-orange-400', '');
+                nameInput.className += ' cursor-not-allowed';
+                nameInput.title = "Carta bloqueada - solo se puede eliminar";
             }
-        };
-
-        // Función para bloquear select después de seleccionar
-        window.lockCardSelect = function(select) {
-            console.log('🔒 Bloqueando select:', select.value);
-            select.disabled = true;
-            select.className = select.className.replace('bg-white dark:bg-gray-700', 'bg-gray-100 dark:bg-gray-600');
-            select.className = select.className.replace('text-gray-900 dark:text-white', 'text-gray-700 dark:text-gray-300');
-            select.className = select.className.replace(' focus:outline-none focus:ring-2 focus:ring-orange-400', '');
-            select.className += ' cursor-not-allowed';
-            select.title = "Campo completado - solo se puede eliminar la carta";
-        };
+            
+            // Bloquear select de condición
+            const conditionSelect = cardElement.querySelector('select[name*="_condition_"]');
+            if (conditionSelect && !conditionSelect.disabled) {
+                conditionSelect.disabled = true;
+                conditionSelect.className = conditionSelect.className.replace('bg-white dark:bg-gray-700', 'bg-gray-100 dark:bg-gray-600');
+                conditionSelect.className = conditionSelect.className.replace('text-gray-900 dark:text-white', 'text-gray-700 dark:text-gray-300');
+                conditionSelect.className = conditionSelect.className.replace(' focus:outline-none focus:ring-2 focus:ring-orange-400', '');
+                conditionSelect.className += ' cursor-not-allowed';
+                conditionSelect.title = "Carta bloqueada - solo se puede eliminar";
+            }
+            
+            // Bloquear select de idioma
+            const languageSelect = cardElement.querySelector('select[name*="_language_"]');
+            if (languageSelect && !languageSelect.disabled) {
+                languageSelect.disabled = true;
+                languageSelect.className = languageSelect.className.replace('bg-white dark:bg-gray-700', 'bg-gray-100 dark:bg-gray-600');
+                languageSelect.className = languageSelect.className.replace('text-gray-900 dark:text-white', 'text-gray-700 dark:text-gray-300');
+                languageSelect.className = languageSelect.className.replace(' focus:outline-none focus:ring-2 focus:ring-orange-400', '');
+                languageSelect.className += ' cursor-not-allowed';
+                languageSelect.title = "Carta bloqueada - solo se puede eliminar";
+            }
+        }
 
         // Función para eliminar carta y actualizar título
         window.removeCardFromTrade = function(button) {
