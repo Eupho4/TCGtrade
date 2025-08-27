@@ -1388,11 +1388,14 @@
             `;
             
             document.body.appendChild(modal);
-            setupCreateTradeModalEvents(modal);
+            setupCreateTradeModalEvents(modal, isEditing, existingTrade);
         };
 
         // Configurar eventos del modal de crear intercambio
-        function setupCreateTradeModalEvents(modal) {
+        function setupCreateTradeModalEvents(modal, isEditing = false, existingTrade = null) {
+            console.log('🔧 === CONFIGURANDO EVENTOS DEL MODAL ===');
+            console.log('🔧 isEditing recibido:', isEditing);
+            console.log('🔧 existingTrade recibido:', existingTrade);
             const closeBtn = modal.querySelector('#closeCreateTradeModal');
             const cancelBtn = modal.querySelector('#cancelCreateTrade');
             const form = modal.querySelector('#createTradeForm');
