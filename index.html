@@ -1378,17 +1378,22 @@
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Nombre de la carta *
                         </label>
-                        <input type="text" name="${type}_name_${cardIndex}" required
-                               placeholder="Ej: Pikachu VMAX"
-                               class="card-name-input w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                               oninput="updateGeneratedTitle()">
+                        <input type="text" name="${type}_name_${cardIndex}" required readonly
+                               placeholder="Haz clic aquí para escribir el nombre"
+                               value=""
+                               class="card-name-input w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+                               oninput="updateGeneratedTitle()"
+                               onclick="enableCardInput(this)"
+                               title="Haz clic para escribir el nombre de la carta">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Condición *
                         </label>
                         <select name="${type}_condition_${cardIndex}" required
-                                class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                onclick="enableCardSelect(this)"
+                                title="Selecciona la condición de la carta">
                             ${Object.values(CARD_CONDITIONS).map(condition => 
                                 `<option value="${condition.code}">${condition.icon} ${condition.code}</option>`
                             ).join('')}
@@ -1399,7 +1404,9 @@
                             Idioma
                         </label>
                         <select name="${type}_language_${cardIndex}"
-                                class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white">
+                                class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded focus:outline-none focus:ring-2 focus:ring-orange-400 bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                                onclick="enableCardSelect(this)"
+                                title="Selecciona el idioma de la carta">
                             <option value="Español">Español</option>
                             <option value="Inglés">Inglés</option>
                             <option value="Japonés">Japonés</option>
@@ -1422,6 +1429,41 @@
             container.appendChild(cardElement);
             updateGeneratedTitle();
         }
+
+        // Función para habilitar edición de input de carta
+        window.enableCardInput = function(input) {
+            if (input.readOnly) {
+                input.readOnly = false;
+                input.focus();
+                input.placeholder = "Escribe el nombre de la carta";
+                
+                // Bloquear después de escribir
+                input.addEventListener('blur', function() {
+                    if (this.value.trim()) {
+                        this.readOnly = true;
+                        this.className = this.className.replace('bg-white dark:bg-gray-700', 'bg-gray-100 dark:bg-gray-600');
+                        this.className = this.className.replace('text-gray-900 dark:text-white', 'text-gray-700 dark:text-gray-300');
+                        this.className += ' cursor-not-allowed';
+                        this.title = "Campo completado - solo se puede eliminar la carta";
+                        updateGeneratedTitle();
+                    }
+                }, { once: true });
+            }
+        };
+
+        // Función para habilitar edición de select de carta
+        window.enableCardSelect = function(select) {
+            if (select.disabled) return;
+            
+            // Bloquear después de seleccionar
+            select.addEventListener('change', function() {
+                this.disabled = true;
+                this.className = this.className.replace('bg-white dark:bg-gray-700', 'bg-gray-100 dark:bg-gray-600');
+                this.className = this.className.replace('text-gray-900 dark:text-white', 'text-gray-700 dark:text-gray-300');
+                this.className += ' cursor-not-allowed';
+                this.title = "Campo completado - solo se puede eliminar la carta";
+            }, { once: true });
+        };
 
         // Función para eliminar carta y actualizar título
         window.removeCardFromTrade = function(button) {
@@ -1541,9 +1583,9 @@
             // Recoger cartas ofrecidas
             const offeredContainer = document.getElementById('offeredCardsContainer');
             Array.from(offeredContainer.children).forEach((cardEl, index) => {
-                const nameInput = cardEl.querySelector(`input[name*="offered_name_${index}"]`);
-                const conditionSelect = cardEl.querySelector(`select[name*="offered_condition_${index}"]`);
-                const languageSelect = cardEl.querySelector(`select[name*="offered_language_${index}"]`);
+                const nameInput = cardEl.querySelector(`input[name*="offered_name_"]`);
+                const conditionSelect = cardEl.querySelector(`select[name*="offered_condition_"]`);
+                const languageSelect = cardEl.querySelector(`select[name*="offered_language_"]`);
                 
                 if (nameInput && nameInput.value.trim()) {
                     tradeData.offeredCards.push({
@@ -1557,9 +1599,9 @@
             // Recoger cartas buscadas
             const wantedContainer = document.getElementById('wantedCardsContainer');
             Array.from(wantedContainer.children).forEach((cardEl, index) => {
-                const nameInput = cardEl.querySelector(`input[name*="wanted_name_${index}"]`);
-                const conditionSelect = cardEl.querySelector(`select[name*="wanted_condition_${index}"]`);
-                const languageSelect = cardEl.querySelector(`select[name*="wanted_language_${index}"]`);
+                const nameInput = cardEl.querySelector(`input[name*="wanted_name_"]`);
+                const conditionSelect = cardEl.querySelector(`select[name*="wanted_condition_"]`);
+                const languageSelect = cardEl.querySelector(`select[name*="wanted_language_"]`);
                 
                 if (nameInput && nameInput.value.trim()) {
                     tradeData.wantedCards.push({
@@ -1570,19 +1612,25 @@
                 }
             });
 
-            // Validaciones
-            if (!tradeData.title.trim() || tradeData.title.includes('[') || tradeData.title.includes('automáticamente')) {
-                alert('Por favor, completa al menos una carta ofrecida y una carta buscada para generar el título');
-                return;
-            }
+            // Validaciones mejoradas
+            console.log('📋 Validando intercambio:', {
+                offeredCards: tradeData.offeredCards.length,
+                wantedCards: tradeData.wantedCards.length,
+                title: tradeData.title
+            });
 
             if (tradeData.offeredCards.length === 0) {
-                alert('Debes añadir al menos una carta que ofreces');
+                alert('❌ Debes añadir al menos una carta que ofreces.\n\n💡 Haz clic en "Añadir carta ofrecida", escribe el nombre de la carta y selecciona sus características.');
                 return;
             }
 
             if (tradeData.wantedCards.length === 0) {
-                alert('Debes añadir al menos una carta que buscas');
+                alert('❌ Debes añadir al menos una carta que buscas.\n\n💡 Haz clic en "Añadir carta solicitada", escribe el nombre de la carta y selecciona sus características.');
+                return;
+            }
+
+            if (!tradeData.title.trim() || tradeData.title.includes('[') || tradeData.title.includes('automáticamente')) {
+                alert('❌ El título no se ha generado correctamente.\n\n💡 Asegúrate de que has completado el nombre de al menos una carta ofrecida y una carta solicitada.');
                 return;
             }
 
