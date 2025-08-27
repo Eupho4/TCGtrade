@@ -1378,22 +1378,23 @@
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Nombre de la carta *
                         </label>
-                        <input type="text" name="${type}_name_${cardIndex}" required readonly
-                               placeholder="Nombre de la carta"
-                               value="Carta ${cardIndex + 1}"
-                               class="card-name-input w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed"
+                        <input type="text" name="${type}_name_${cardIndex}" required
+                               placeholder="Escribe el nombre de la carta"
+                               value=""
+                               class="card-name-input w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
                                oninput="updateGeneratedTitle()"
-                               onclick="enableCardInput(this)"
-                               title="Haz clic para cambiar el nombre de la carta">
+                               onblur="lockCardInput(this)"
+                               onkeypress="if(event.key==='Enter') this.blur()"
+                               title="Escribe el nombre de la carta (Enter para confirmar)">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Condición *
                         </label>
-                        <select name="${type}_condition_${cardIndex}" required disabled
-                                class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed"
-                                onclick="enableCardSelect(this)"
-                                title="Haz clic para cambiar la condición de la carta">
+                        <select name="${type}_condition_${cardIndex}" required
+                                class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                onchange="lockCardSelect(this)"
+                                title="Selecciona la condición de la carta">
                             ${Object.values(CARD_CONDITIONS).map(condition => 
                                 `<option value="${condition.code}">${condition.icon} ${condition.code}</option>`
                             ).join('')}
@@ -1403,10 +1404,10 @@
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Idioma
                         </label>
-                        <select name="${type}_language_${cardIndex}" disabled
-                                class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-gray-100 dark:bg-gray-600 text-gray-700 dark:text-gray-300 cursor-not-allowed"
-                                onclick="enableCardSelect(this)"
-                                title="Haz clic para cambiar el idioma de la carta">
+                        <select name="${type}_language_${cardIndex}"
+                                class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                onchange="lockCardSelect(this)"
+                                title="Selecciona el idioma de la carta">
                             <option value="Español">🇪🇸 Español</option>
                             <option value="Inglés">🇺🇸 Inglés</option>
                             <option value="Francés">🇫🇷 Francés</option>
@@ -1452,71 +1453,39 @@
             `;
 
             container.appendChild(cardElement);
+            
+            // Enfocar automáticamente el campo de nombre para mejor UX
+            const nameInput = cardElement.querySelector('input[name*="_name_"]');
+            if (nameInput) {
+                setTimeout(() => nameInput.focus(), 100);
+            }
+            
             updateGeneratedTitle();
         }
 
-        // Función para habilitar edición de input de carta
-        window.enableCardInput = function(input) {
-            if (input.readOnly) {
-                console.log('🔓 Habilitando edición del nombre de carta');
-                input.readOnly = false;
-                input.className = input.className.replace('bg-gray-100 dark:bg-gray-600', 'bg-white dark:bg-gray-700');
-                input.className = input.className.replace('text-gray-700 dark:text-gray-300', 'text-gray-900 dark:text-white');
-                input.className = input.className.replace(' cursor-not-allowed', '');
-                input.className += ' focus:outline-none focus:ring-2 focus:ring-orange-400';
-                input.title = "Escribe el nombre de la carta";
-                input.select(); // Seleccionar todo el texto para fácil reemplazo
-                
-                // Bloquear después de escribir (al perder el foco)
-                input.addEventListener('blur', function() {
-                    if (this.value.trim()) {
-                        console.log('🔒 Bloqueando campo nombre:', this.value);
-                        this.readOnly = true;
-                        this.className = this.className.replace('bg-white dark:bg-gray-700', 'bg-gray-100 dark:bg-gray-600');
-                        this.className = this.className.replace('text-gray-900 dark:text-white', 'text-gray-700 dark:text-gray-300');
-                        this.className = this.className.replace(' focus:outline-none focus:ring-2 focus:ring-orange-400', '');
-                        this.className += ' cursor-not-allowed';
-                        this.title = "Campo completado - solo se puede eliminar la carta";
-                        updateGeneratedTitle();
-                    } else {
-                        // Si está vacío, restaurar valor por defecto
-                        const cardIndex = this.name.match(/\d+/)[0];
-                        this.value = `Carta ${parseInt(cardIndex) + 1}`;
-                    }
-                }, { once: true });
-                
-                // También actualizar al presionar Enter
-                input.addEventListener('keypress', function(e) {
-                    if (e.key === 'Enter') {
-                        this.blur();
-                    }
-                }, { once: true });
+        // Función para bloquear input después de completarlo
+        window.lockCardInput = function(input) {
+            if (input.value.trim()) {
+                console.log('🔒 Bloqueando campo nombre:', input.value);
+                input.readOnly = true;
+                input.className = input.className.replace('bg-white dark:bg-gray-700', 'bg-gray-100 dark:bg-gray-600');
+                input.className = input.className.replace('text-gray-900 dark:text-white', 'text-gray-700 dark:text-gray-300');
+                input.className = input.className.replace(' focus:outline-none focus:ring-2 focus:ring-orange-400', '');
+                input.className += ' cursor-not-allowed';
+                input.title = "Campo completado - solo se puede eliminar la carta";
+                updateGeneratedTitle();
             }
         };
 
-        // Función para habilitar edición de select de carta
-        window.enableCardSelect = function(select) {
-            if (select.disabled) {
-                console.log('🔓 Habilitando edición del select');
-                select.disabled = false;
-                select.className = select.className.replace('bg-gray-100 dark:bg-gray-600', 'bg-white dark:bg-gray-700');
-                select.className = select.className.replace('text-gray-700 dark:text-gray-300', 'text-gray-900 dark:text-white');
-                select.className = select.className.replace(' cursor-not-allowed', '');
-                select.className += ' focus:outline-none focus:ring-2 focus:ring-orange-400';
-                select.title = "Selecciona una opción";
-                select.focus();
-                
-                // Bloquear después de seleccionar
-                select.addEventListener('change', function() {
-                    console.log('🔒 Bloqueando select:', this.value);
-                    this.disabled = true;
-                    this.className = this.className.replace('bg-white dark:bg-gray-700', 'bg-gray-100 dark:bg-gray-600');
-                    this.className = this.className.replace('text-gray-900 dark:text-white', 'text-gray-700 dark:text-gray-300');
-                    this.className = this.className.replace(' focus:outline-none focus:ring-2 focus:ring-orange-400', '');
-                    this.className += ' cursor-not-allowed';
-                    this.title = "Campo completado - solo se puede eliminar la carta";
-                }, { once: true });
-            }
+        // Función para bloquear select después de seleccionar
+        window.lockCardSelect = function(select) {
+            console.log('🔒 Bloqueando select:', select.value);
+            select.disabled = true;
+            select.className = select.className.replace('bg-white dark:bg-gray-700', 'bg-gray-100 dark:bg-gray-600');
+            select.className = select.className.replace('text-gray-900 dark:text-white', 'text-gray-700 dark:text-gray-300');
+            select.className = select.className.replace(' focus:outline-none focus:ring-2 focus:ring-orange-400', '');
+            select.className += ' cursor-not-allowed';
+            select.title = "Campo completado - solo se puede eliminar la carta";
         };
 
         // Función para eliminar carta y actualizar título
