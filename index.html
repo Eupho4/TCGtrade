@@ -1371,7 +1371,7 @@
             const cardId = `${type}_card_${cardIndex}`;
 
             const cardElement = document.createElement('div');
-            cardElement.className = 'bg-white dark:bg-gray-600 rounded-lg p-4 border border-gray-200 dark:border-gray-500';
+            cardElement.className = 'trade-card bg-white dark:bg-gray-600 rounded-lg p-4 border border-gray-200 dark:border-gray-500';
             cardElement.innerHTML = `
                 <div class="grid grid-cols-1 md:grid-cols-4 gap-3 items-end">
                     <div>
@@ -1424,22 +1424,36 @@
         }
 
         // Función para eliminar carta y actualizar título
-        function removeCardFromTrade(button) {
-            const cardElement = button.closest('.bg-white');
+        window.removeCardFromTrade = function(button) {
+            console.log('🗑️ Intentando eliminar carta...');
+            
+            // Buscar el elemento de la carta usando la clase específica
+            const cardElement = button.closest('.trade-card');
+            
+            if (!cardElement) {
+                console.error('❌ No se pudo encontrar el elemento de la carta');
+                return;
+            }
+            
             const container = cardElement.parentElement;
+            console.log('📦 Container encontrado, tiene', container.children.length, 'cartas');
             
             // Verificar que no sea la única carta del tipo
             if (container.children.length <= 1) {
-                alert('Debes mantener al menos una carta de cada tipo');
+                alert('⚠️ Debes mantener al menos una carta de cada tipo');
                 return;
             }
             
             // Eliminar la carta
+            console.log('✅ Eliminando carta...');
             cardElement.remove();
             
             // Actualizar el título
+            console.log('🔄 Actualizando título...');
             updateGeneratedTitle();
-        }
+            
+            console.log('✨ Carta eliminada exitosamente');
+        };
 
         // Función para generar título automáticamente
         function updateGeneratedTitle() {
