@@ -1354,7 +1354,7 @@
                             </button>
                             <button type="submit" id="submitCreateTrade"
                                     class="px-6 py-3 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold flex items-center">
-                                <span class="mr-2">🚀</span> Crear Intercambio
+                                <span class="mr-2">${isEditing ? '✅' : '🚀'}</span> ${isEditing ? 'Confirmar Intercambio' : 'Crear Intercambio'}
                             </button>
                         </div>
                     </form>
@@ -1399,44 +1399,45 @@
 
             // Añadir cartas iniciales o pre-cargar datos existentes
             if (isEditing && existingTrade) {
-                console.log('📋 Pre-cargando cartas existentes...');
+                console.log('📋 Modo edición: pre-cargando cartas existentes...', existingTrade);
                 
-                // Pre-cargar descripción
-                const descriptionTextarea = document.getElementById('tradeDescription');
-                if (descriptionTextarea && existingTrade.description) {
-                    descriptionTextarea.value = existingTrade.description;
-                }
+                // Pre-cargar descripción inmediatamente
+                setTimeout(() => {
+                    const descriptionTextarea = document.getElementById('tradeDescription');
+                    if (descriptionTextarea && existingTrade.description) {
+                        descriptionTextarea.value = existingTrade.description;
+                        console.log('✅ Descripción pre-cargada:', existingTrade.description);
+                    }
+                }, 50);
                 
                 // Pre-cargar cartas ofrecidas
                 existingTrade.offeredCards.forEach((card, index) => {
-                    if (index === 0) {
-                        // La primera carta reemplaza la carta inicial
-                        addCardToTrade('offered');
-                        preloadCardData('offered', 0, card);
-                    } else {
-                        // Cartas adicionales
-                        addCardToTrade('offered');
+                    console.log(`📝 Añadiendo carta ofrecida ${index}:`, card);
+                    addCardToTrade('offered');
+                    // Pre-cargar datos con delay para asegurar que el DOM esté listo
+                    setTimeout(() => {
                         preloadCardData('offered', index, card);
-                    }
+                    }, 100 + (index * 50));
                 });
                 
                 // Pre-cargar cartas buscadas  
                 existingTrade.wantedCards.forEach((card, index) => {
-                    if (index === 0) {
-                        // La primera carta reemplaza la carta inicial
-                        addCardToTrade('wanted');
-                        preloadCardData('wanted', 0, card);
-                    } else {
-                        // Cartas adicionales
-                        addCardToTrade('wanted');
+                    console.log(`📝 Añadiendo carta buscada ${index}:`, card);
+                    addCardToTrade('wanted');
+                    // Pre-cargar datos con delay para asegurar que el DOM esté listo
+                    setTimeout(() => {
                         preloadCardData('wanted', index, card);
-                    }
+                    }, 100 + (index * 50));
                 });
                 
-                // Actualizar título
-                updateGeneratedTitle();
+                // Actualizar título después de pre-cargar todo
+                setTimeout(() => {
+                    updateGeneratedTitle();
+                    console.log('✅ Pre-carga completada en modo edición');
+                }, 500);
             } else {
                 // Modo crear nuevo: añadir cartas vacías
+                console.log('🆕 Modo crear nuevo: añadiendo cartas vacías');
                 addCardToTrade('offered');
                 addCardToTrade('wanted');
             }
