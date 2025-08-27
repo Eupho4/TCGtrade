@@ -1111,13 +1111,13 @@
             let tradesHTML = '';
             trades.forEach(trade => {
                 tradesHTML += `
-                    <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-orange-300 transition-colors">
+                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 hover:border-orange-300 dark:hover:border-orange-400 transition-colors">
                         <div class="flex justify-between items-start mb-3">
                             <div>
                                 <h4 class="font-semibold text-gray-800 dark:text-white">${trade.title}</h4>
                                 <p class="text-sm text-gray-600 dark:text-gray-300">${trade.description}</p>
                             </div>
-                            <span class="text-xs text-gray-500">${formatDate(trade.createdAt)}</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400">${formatDate(trade.createdAt)}</span>
                         </div>
                         
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -1125,14 +1125,14 @@
                                 <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">📤 Ofrezco:</h5>
                                 <div class="space-y-2">
                                     ${trade.offeredCards.map(card => `
-                                        <div class="flex items-center justify-between bg-white px-3 py-2 rounded border">
-                                            <span class="text-sm text-gray-700 dark:text-gray-300">${card.name || card}</span>
+                                        <div class="flex items-center justify-between bg-white dark:bg-gray-600 px-3 py-2 rounded border border-gray-200 dark:border-gray-500">
+                                            <span class="text-sm text-gray-700 dark:text-gray-200">${card.name || card}</span>
                                             <div class="flex items-center space-x-2">
                                                 <span class="text-xs px-2 py-1 rounded-full text-white font-medium" 
                                                       style="background-color: ${CARD_CONDITIONS[card.condition || 'NM'].color}">
                                                     ${CARD_CONDITIONS[card.condition || 'NM'].icon} ${card.condition || 'NM'}
                                                 </span>
-                                                <span class="text-xs text-gray-500">${card.language || 'Español'}</span>
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">${card.language || 'Español'}</span>
                                             </div>
                                         </div>
                                     `).join('')}
@@ -1142,14 +1142,14 @@
                                 <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">📥 Busco:</h5>
                                 <div class="space-y-2">
                                     ${trade.wantedCards.map(card => `
-                                        <div class="flex items-center justify-between bg-white px-3 py-2 rounded border">
-                                            <span class="text-sm text-gray-700 dark:text-gray-300">${card.name || card}</span>
+                                        <div class="flex items-center justify-between bg-white dark:bg-gray-600 px-3 py-2 rounded border border-gray-200 dark:border-gray-500">
+                                            <span class="text-sm text-gray-700 dark:text-gray-200">${card.name || card}</span>
                                             <div class="flex items-center space-x-2">
                                                 <span class="text-xs px-2 py-1 rounded-full text-white font-medium" 
                                                       style="background-color: ${CARD_CONDITIONS[card.condition || 'NM'].color}">
                                                     ${CARD_CONDITIONS[card.condition || 'NM'].icon} ${card.condition || 'NM'}
                                                 </span>
-                                                <span class="text-xs text-gray-500">${card.language || 'Español'}</span>
+                                                <span class="text-xs text-gray-500 dark:text-gray-400">${card.language || 'Español'}</span>
                                             </div>
                                         </div>
                                     `).join('')}
@@ -1158,7 +1158,7 @@
                         </div>
                         
                         <div class="flex justify-between items-center">
-                            <span class="text-xs text-gray-500 dark:text-gray-400">Por: ${trade.user}</span>
+                            <span class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400">Por: ${trade.user}</span>
                             <div class="flex space-x-2">
                                 ${trade.type === 'created' ? `
                                     <button class="btn-secondary px-3 py-1 rounded text-xs" onclick="editTrade('${trade.id}')">
@@ -1912,7 +1912,7 @@
             }
 
             // Cambiar el contenedor a diseño de lista
-            myCardsContainer.className = 'space-y-1 border rounded-lg bg-white';
+            myCardsContainer.className = 'space-y-1 border rounded-lg bg-white dark:bg-gray-800';
 
             cards.forEach((card, index) => {
                 const isOwned = card.isOwned !== undefined ? card.isOwned : true;
@@ -3142,7 +3142,7 @@
             if (!container) return;
             
             // Cambiar el contenedor a diseño de lista
-            container.className = 'space-y-1 border rounded-lg bg-white';
+            container.className = 'space-y-1 border rounded-lg bg-white dark:bg-gray-800';
             container.innerHTML = '';
             
             if (cards.length === 0) {
@@ -3916,7 +3916,7 @@
                     Aplicar Filtros
                 </button>
             </div>
-            <div id="myCardsContainer" class="space-y-1 border rounded-lg bg-white">
+            <div id="myCardsContainer" class="space-y-1 border rounded-lg bg-white dark:bg-gray-800">
                 <!-- Las cartas se mostrarán aquí en formato lista -->
             </div>
             <p id="noMyCardsMessage" class="text-center text-gray-600 dark:text-gray-400 mt-8 hidden">Aún no tienes cartas en tu colección. ¡Busca y añade algunas!</p>
@@ -3929,16 +3929,16 @@
             </h2>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div class="card-bg p-6 rounded-xl shadow-md">
-                    <h3 class="text-2xl font-semibold mb-3 text-gray-800 flex items-center justify-center"><span class="icon">➕</span> 1. Crea tu Colección</h3>
-                    <p class="text-gray-600">Añade las cartas que tienes y las que buscas a tu perfil.</p>
+                    <h3 class="text-2xl font-semibold mb-3 text-gray-800 dark:text-white flex items-center justify-center"><span class="icon">➕</span> 1. Crea tu Colección</h3>
+                    <p class="text-gray-600 dark:text-gray-300">Añade las cartas que tienes y las que buscas a tu perfil.</p>
                 </div>
                 <div class="card-bg p-6 rounded-xl shadow-md">
-                    <h3 class="text-2xl font-semibold mb-3 text-gray-800 flex items-center justify-center"><span class="icon">🔎</span> 2. Encuentra Intercambios</h3>
-                    <p class="text-gray-600">Nuestro sistema te conectará con usuarios que tengan lo que necesitas.</p>
+                    <h3 class="text-2xl font-semibold mb-3 text-gray-800 dark:text-white flex items-center justify-center"><span class="icon">🔎</span> 2. Encuentra Intercambios</h3>
+                    <p class="text-gray-600 dark:text-gray-300">Nuestro sistema te conectará con usuarios que tengan lo que necesitas.</p>
                 </div>
                 <div class="card-bg p-6 rounded-xl shadow-md">
-                    <h3 class="text-2xl font-semibold mb-3 text-gray-800 flex items-center justify-center"><span class="icon">🎉</span> 3. Intercambia y Disfruta</h3>
-                    <p class="text-gray-600">Acuerda el intercambio de forma segura y completa tu colección.</p>
+                    <h3 class="text-2xl font-semibold mb-3 text-gray-800 dark:text-white flex items-center justify-center"><span class="icon">🎉</span> 3. Intercambia y Disfruta</h3>
+                    <p class="text-gray-600 dark:text-gray-300">Acuerda el intercambio de forma segura y completa tu colección.</p>
                 </div>
             </div>
         </section>
@@ -3947,7 +3947,7 @@
         <section id="helpSection" class="mb-12 hidden">
             <div class="max-w-6xl mx-auto">
                 <!-- Header de Ayuda -->
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <div>
                             <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-2 flex items-center">
@@ -3967,7 +3967,7 @@
                 </div>
 
                 <!-- Tabs de Ayuda -->
-                <div class="bg-white rounded-xl shadow-lg mb-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg mb-6">
                     <div class="border-b border-gray-200">
                         <nav class="flex space-x-8 px-6" aria-label="Tabs">
                             <button id="helpGettingStartedTab" class="help-tab active py-4 px-1 border-b-2 border-orange-500 text-orange-600 font-medium text-sm">
@@ -3991,7 +3991,7 @@
 
                 <!-- Contenido de Primeros Pasos -->
                 <div id="helpGettingStartedContent" class="help-tab-content">
-                    <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                         <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
                             <span class="icon mr-2">🚀</span> Primeros Pasos en TCGtrade
                         </h3>
@@ -4034,7 +4034,7 @@
 
                 <!-- Contenido de Intercambios -->
                 <div id="helpTradingContent" class="help-tab-content hidden">
-                    <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                         <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
                             <span class="icon mr-2">🤝</span> Guía de Intercambios
                         </h3>
@@ -4082,7 +4082,7 @@
 
                 <!-- Contenido de Condiciones de Cartas -->
                 <div id="helpCardConditionsContent" class="help-tab-content hidden">
-                    <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                         <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
                             <span class="icon mr-2">🎴</span> Guía de Condiciones de Cartas
                         </h3>
@@ -4197,7 +4197,7 @@
 
                 <!-- Contenido de Cuenta y Perfil -->
                 <div id="helpAccountContent" class="help-tab-content hidden">
-                    <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                         <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
                             <span class="icon mr-2">👤</span> Gestión de Cuenta y Perfil
                         </h3>
@@ -4252,7 +4252,7 @@
 
                 <!-- Contenido de FAQ -->
                 <div id="helpFAQContent" class="help-tab-content hidden">
-                    <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                         <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
                             <span class="icon mr-2">❓</span> Preguntas Frecuentes (FAQ)
                         </h3>
@@ -4326,13 +4326,13 @@
         <section id="interchangesSection" class="mb-12 hidden">
             <div class="max-w-7xl mx-auto">
                 <!-- Header de Intercambios -->
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
                     <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                         <div>
                             <h2 class="text-3xl font-bold text-gray-800 dark:text-white mb-2 flex items-center">
                                 <span class="icon mr-3">🤝</span> Intercambios
                             </h2>
-                            <p class="text-gray-600">Gestiona tus intercambios de cartas y encuentra nuevos coleccionistas</p>
+                            <p class="text-gray-600 dark:text-gray-300">Gestiona tus intercambios de cartas y encuentra nuevos coleccionistas</p>
                         </div>
                         <div class="flex space-x-3">
                             <button id="createTradeBtn" class="btn-primary px-6 py-3 rounded-lg text-sm font-semibold flex items-center">
@@ -4346,8 +4346,8 @@
                 </div>
 
                 <!-- Tabs de Intercambios -->
-                <div class="bg-white rounded-xl shadow-lg mb-6">
-                    <div class="border-b border-gray-200">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg mb-6">
+                    <div class="border-b border-gray-200 dark:border-gray-700">
                         <nav class="flex space-x-8 px-6" aria-label="Tabs">
                             <button id="tradesActiveTab" class="trade-tab active py-4 px-1 border-b-2 border-orange-500 text-orange-600 font-medium text-sm">
                                 🔄 Activos
@@ -4369,8 +4369,8 @@
                 <div id="tradesActiveContent" class="trade-tab-content">
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <!-- Intercambios que he creado -->
-                        <div class="bg-white rounded-xl shadow-lg p-6">
-                            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center">
                                 <span class="icon mr-2">📤</span> Mis Ofertas
                             </h3>
                             <div id="myTradesContainer" class="space-y-4">
@@ -4385,8 +4385,8 @@
                         </div>
 
                         <!-- Intercambios disponibles -->
-                        <div class="bg-white rounded-xl shadow-lg p-6">
-                            <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center">
                                 <span class="icon mr-2">🎯</span> Intercambios Disponibles
                             </h3>
                             <div id="availableTradesContainer" class="space-y-4">
@@ -4401,8 +4401,8 @@
 
                 <!-- Contenido de Intercambios Pendientes -->
                 <div id="tradesPendingContent" class="trade-tab-content hidden">
-                    <div class="bg-white rounded-xl shadow-lg p-6">
-                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center">
                             <span class="icon mr-2">⏳</span> Intercambios Pendientes
                         </h3>
                         <div id="pendingTradesContainer" class="space-y-4">
@@ -4416,7 +4416,7 @@
 
                 <!-- Contenido de Intercambios Completados -->
                 <div id="tradesCompletedContent" class="trade-tab-content hidden">
-                    <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                         <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center">
                             <span class="icon mr-2">✅</span> Intercambios Completados
                         </h3>
@@ -4431,8 +4431,8 @@
 
                 <!-- Contenido de Intercambios Recibidos -->
                 <div id="tradesReceivedContent" class="trade-tab-content hidden">
-                    <div class="bg-white rounded-xl shadow-lg p-6">
-                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center">
                             <span class="icon mr-2">📥</span> Intercambios Recibidos
                         </h3>
                         <div id="receivedTradesContainer" class="space-y-4">
@@ -4450,7 +4450,7 @@
         <section id="profileSection" class="mb-12 hidden">
             <div class="max-w-6xl mx-auto">
                 <!-- Header del Perfil -->
-                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-6">
                     <div class="flex flex-col md:flex-row items-start md:items-center gap-6">
                         <!-- Avatar del Usuario -->
                         <div class="flex-shrink-0">
@@ -4470,7 +4470,7 @@
                 </div>
 
                 <!-- Tabs de Navegación -->
-                <div class="bg-white rounded-xl shadow-lg mb-6">
+                <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg mb-6">
                     <div class="border-b border-gray-200">
                         <nav class="flex space-x-8 px-6" aria-label="Tabs">
                             <button id="profilePersonalTab" class="profile-tab active py-4 px-1 border-b-2 border-orange-500 text-orange-600 font-medium text-sm">
@@ -4494,7 +4494,7 @@
 
                 <!-- Contenido de Mi Perfil -->
                 <div id="profilePersonalContent" class="profile-tab-content">
-                    <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                         <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
                             <span class="icon mr-2">👤</span> Información Personal
                         </h3>
@@ -4508,7 +4508,7 @@
                                 <input type="text" id="profileUsername" name="username" 
                                        class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-400 leading-tight bg-gray-50 cursor-not-allowed"
                                        placeholder="usuario123" readonly>
-                                <p class="text-xs text-gray-500 mt-1">El nombre de usuario no se puede modificar</p>
+                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">El nombre de usuario no se puede modificar</p>
                             </div>
                             
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -4588,7 +4588,7 @@
                 <div id="profileDashboardContent" class="profile-tab-content hidden">
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
                         <!-- Estadística: Total de Cartas -->
-                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 stats-card">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500 stats-card">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0">
                                     <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -4603,7 +4603,7 @@
                         </div>
 
                         <!-- Estadística: Cartas por Sets -->
-                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 stats-card">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-green-500 stats-card">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0">
                                     <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
@@ -4618,7 +4618,7 @@
                         </div>
 
                         <!-- Estadística: Intercambios Completados -->
-                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500 stats-card">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-purple-500 stats-card">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0">
                                     <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
@@ -4633,7 +4633,7 @@
                         </div>
 
                         <!-- Estadística: Cartas Únicas -->
-                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500 stats-card">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-orange-500 stats-card">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0">
                                     <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -4648,7 +4648,7 @@
                         </div>
 
                         <!-- Estadística: Valor Total de la Colección -->
-                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-emerald-500 stats-card">
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-emerald-500 stats-card">
                             <div class="flex items-center">
                                 <div class="flex-shrink-0">
                                     <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
@@ -4658,14 +4658,14 @@
                                 <div class="ml-4">
                                     <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Valor Total</p>
                                     <p class="text-2xl font-bold text-gray-900 dark:text-white" id="totalCollectionValue">€0.00</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400" id="valueEstimateNote">Estimado</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400" id="valueEstimateNote">Estimado</p>
                                 </div>
                             </div>
                         </div>
                     </div>
 
                     <!-- Desglose por Sets -->
-                    <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                         <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-4 flex items-center">
                             <span class="icon mr-2">📊</span> Desglose por Sets
                         </h3>
@@ -4680,7 +4680,7 @@
 
                 <!-- Contenido de Mi Colección (oculto por defecto) -->
                 <div id="profileCollectionContent" class="profile-tab-content hidden">
-                    <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                         <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-4">🎴 Mi Colección</h3>
                         <p id="myCardsStatus" class="text-gray-600 dark:text-gray-300 mb-4"></p>
                         <div id="myCardsGrid" class="space-y-1 border rounded-lg bg-white">
@@ -4693,7 +4693,7 @@
 
                 <!-- Contenido de Mis Intercambios (oculto por defecto) -->
                 <div id="profileTradesContent" class="profile-tab-content hidden">
-                    <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                         <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-4">🤝 Mis Intercambios</h3>
                         <p class="text-gray-600 dark:text-gray-300">Aquí podrás ver el historial de tus intercambios.</p>
                     </div>
@@ -4752,7 +4752,7 @@
                                         <input type="password" id="newPassword" name="newPassword" 
                                                class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 dark:text-white bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
                                                placeholder="Nueva contraseña" required>
-                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Mínimo 6 caracteres</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400 mt-1">Mínimo 6 caracteres</p>
                                     </div>
                                     
                                     <div>
@@ -4819,7 +4819,7 @@
                 <div class="mb-4">
                     <label for="registerUsername" class="block text-gray-700 text-sm font-bold mb-2">Nombre de Usuario *:</label>
                     <input type="text" id="registerUsername" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required placeholder="usuario123">
-                    <p class="text-xs text-gray-500 mt-1">Este será tu nombre único en la plataforma</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Este será tu nombre único en la plataforma</p>
                 </div>
                 <div class="mb-4">
                     <label for="registerEmail" class="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico:</label>
