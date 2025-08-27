@@ -1385,7 +1385,7 @@
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Nombre de la carta *
                         </label>
-                        <input type="text" name="${type}_name_${cardIndex}" required
+                        <input type="text" name="${type}_name_${cardIndex}"
                                placeholder="Escribe el nombre de la carta"
                                value=""
                                class="card-name-input w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
@@ -1396,7 +1396,7 @@
                         <label class="block text-xs font-medium text-gray-700 dark:text-gray-300 mb-1">
                             Condición *
                         </label>
-                        <select name="${type}_condition_${cardIndex}" required
+                        <select name="${type}_condition_${cardIndex}"
                                 class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
                                 title="Selecciona la condición de la carta">
                             ${Object.values(CARD_CONDITIONS).map(condition => 
@@ -1596,6 +1596,7 @@
         async function handleCreateTradeSubmit(e) {
             e.preventDefault();
             
+            // Desactivar validación HTML nativa para hacer nuestra propia validación
             const form = e.target;
             const formData = new FormData(form);
             
@@ -1646,25 +1647,27 @@
                 }
             });
 
-            // Validaciones mejoradas
+            // Validaciones mejoradas - solo cuentan cartas con nombre
             console.log('📋 Validando intercambio:', {
-                offeredCards: tradeData.offeredCards.length,
-                wantedCards: tradeData.wantedCards.length,
+                totalOfferedCards: offeredContainer.children.length,
+                validOfferedCards: tradeData.offeredCards.length,
+                totalWantedCards: wantedContainer.children.length,
+                validWantedCards: tradeData.wantedCards.length,
                 title: tradeData.title
             });
 
             if (tradeData.offeredCards.length === 0) {
-                alert('❌ Debes añadir al menos una carta que ofreces.\n\n💡 Haz clic en "Añadir carta ofrecida", escribe el nombre de la carta y selecciona sus características.');
+                alert('❌ Debes completar al menos una carta que ofreces.\n\n💡 Escribe el nombre en al menos una carta ofrecida.\n\n📝 Las cartas vacías se ignoran automáticamente.');
                 return;
             }
 
             if (tradeData.wantedCards.length === 0) {
-                alert('❌ Debes añadir al menos una carta que buscas.\n\n💡 Haz clic en "Añadir carta solicitada", escribe el nombre de la carta y selecciona sus características.');
+                alert('❌ Debes completar al menos una carta que buscas.\n\n💡 Escribe el nombre en al menos una carta buscada.\n\n📝 Las cartas vacías se ignoran automáticamente.');
                 return;
             }
 
             if (!tradeData.title.trim() || tradeData.title.includes('[') || tradeData.title.includes('automáticamente')) {
-                alert('❌ El título no se ha generado correctamente.\n\n💡 Asegúrate de que has completado el nombre de al menos una carta ofrecida y una carta solicitada.');
+                alert('❌ El título no se ha generado correctamente.\n\n💡 Asegúrate de que has escrito el nombre en al menos una carta ofrecida y una carta buscada.\n\n📝 Las cartas vacías no generan título.');
                 return;
             }
 
