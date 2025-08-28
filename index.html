@@ -787,17 +787,56 @@
 
             try {
                 const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
-                const userData = userDoc.data();
+                let userData = userDoc.data();
 
-                // Actualizar información del usuario en la UI
+                // MIGRACIÓN AUTOMÁTICA: Si el usuario tiene un name pero no username,
+                // significa que es un usuario antiguo donde el username estaba en name
+                if (userData && userData.name && !userData.username) {
+                    console.log('🔄 Detectado usuario antiguo, migrando estructura de datos...');
+                    
+                    // Verificar si el name parece ser un username (sin espacios, formato de usuario)
+                    const nameValue = userData.name;
+                    const isUsername = !nameValue.includes(' ') && /^[a-zA-Z0-9_]+$/.test(nameValue);
+                    
+                    if (isUsername) {
+                        // Migrar: mover name a username
+                        userData.username = nameValue;
+                        userData.name = ''; // Limpiar el campo name para el nombre real
+                        
+                        // Actualizar en Firestore
+                        try {
+                            await setDoc(doc(db, 'users', currentUser.uid), {
+                                username: nameValue,
+                                name: ''
+                            }, { merge: true });
+                            console.log('✅ Datos migrados exitosamente');
+                        } catch (migrationError) {
+                            console.error('Error al migrar datos:', migrationError);
+                        }
+                    }
+                }
+
+                // Actualizar información del usuario en la UI (header del perfil)
                 const userNameElement = document.getElementById('profileUserName');
                 const userEmailElement = document.getElementById('profileUserEmail');
                 const joinDateElement = document.getElementById('profileJoinDate');
 
                 if (userNameElement) {
-                    const displayName = userData?.name && userData?.lastName 
-                        ? `${userData.name} ${userData.lastName}` 
-                        : userData?.displayName || currentUser.displayName || 'Usuario';
+                    // Mostrar username primero, luego nombre completo si existe
+                    let displayName = 'Usuario';
+                    
+                    if (userData?.username) {
+                        displayName = userData.username;
+                    } else if (userData?.name && userData?.lastName) {
+                        displayName = `${userData.name} ${userData.lastName}`;
+                    } else if (userData?.name) {
+                        displayName = userData.name;
+                    } else if (userData?.displayName) {
+                        displayName = userData.displayName;
+                    } else if (currentUser.displayName) {
+                        displayName = currentUser.displayName;
+                    }
+                    
                     userNameElement.textContent = displayName;
                 }
 
@@ -824,6 +863,7 @@
                 const profileBirthDateInput = document.getElementById('profileBirthDate');
                 const profileEmailInput = document.getElementById('profileEmail');
 
+                // Usar los datos ya migrados
                 if (profileUsernameInput) profileUsernameInput.value = userData?.username || '';
                 if (profileNameInput) profileNameInput.value = userData?.name || '';
                 if (profileLastNameInput) profileLastNameInput.value = userData?.lastName || '';
