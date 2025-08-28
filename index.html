@@ -3464,35 +3464,54 @@
                 });
             }
 
-            // Event listeners para autenticación
-            if (loginBtn) {
-                loginBtn.addEventListener('click', async () => {
-                    const email = loginEmailInput?.value;
-                    const password = loginPasswordInput?.value;
-                    if (loginError) loginError.classList.add('hidden');
+            // Función para manejar el login
+            async function handleLogin() {
+                const email = loginEmailInput?.value;
+                const password = loginPasswordInput?.value;
+                if (loginError) loginError.classList.add('hidden');
 
-                    try {
-                        await signInWithEmailAndPassword(auth, email, password);
-                        hideAuthModal();
-                        console.log('Usuario inició sesión:', auth.currentUser.email);
-                    } catch (error) {
-                        console.error('Error al iniciar sesión:', error);
-                        let errorMessage = 'Error al iniciar sesión.';
-                        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                            errorMessage = 'Correo o contraseña incorrectos.';
-                        } else if (error.code === 'auth/invalid-email') {
-                            errorMessage = 'Formato de correo inválido.';
-                        }
-                        if (loginError) {
-                            loginError.textContent = errorMessage;
-                            loginError.classList.remove('hidden');
-                        }
+                try {
+                    await signInWithEmailAndPassword(auth, email, password);
+                    hideAuthModal();
+                    console.log('Usuario inició sesión:', auth.currentUser.email);
+                } catch (error) {
+                    console.error('Error al iniciar sesión:', error);
+                    let errorMessage = 'Error al iniciar sesión.';
+                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                        errorMessage = 'Correo o contraseña incorrectos.';
+                    } else if (error.code === 'auth/invalid-email') {
+                        errorMessage = 'Formato de correo inválido.';
+                    }
+                    if (loginError) {
+                        loginError.textContent = errorMessage;
+                        loginError.classList.remove('hidden');
+                    }
+                }
+            }
+
+            // Event listeners para autenticación - BOTÓN LOGIN
+            if (loginBtn) {
+                loginBtn.addEventListener('click', handleLogin);
+            }
+
+            // Event listener para ENTER en el formulario de login
+            if (loginForm) {
+                // Agregar event listener a los campos de input del login
+                const loginInputs = [loginEmailInput, loginPasswordInput];
+                loginInputs.forEach(input => {
+                    if (input) {
+                        input.addEventListener('keypress', (e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleLogin();
+                            }
+                        });
                     }
                 });
             }
 
-            if (registerBtn) {
-                registerBtn.addEventListener('click', async () => {
+            // Función para manejar el registro
+            async function handleRegister() {
                     const username = document.getElementById('registerUsername')?.value?.trim();
                     const email = registerEmailInput?.value;
                     const password = registerPasswordInput?.value;
@@ -3602,6 +3621,26 @@
                             registerError.textContent = errorMessage;
                             registerError.classList.remove('hidden');
                         }
+                    }
+            }
+
+            // Event listener para BOTÓN REGISTRO
+            if (registerBtn) {
+                registerBtn.addEventListener('click', handleRegister);
+            }
+
+            // Event listener para ENTER en el formulario de registro
+            if (registerForm) {
+                const registerUsernameInput = document.getElementById('registerUsername');
+                const registerInputs = [registerUsernameInput, registerEmailInput, registerPasswordInput, confirmPasswordInput];
+                registerInputs.forEach(input => {
+                    if (input) {
+                        input.addEventListener('keypress', (e) => {
+                            if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleRegister();
+                            }
+                        });
                     }
                 });
             }
