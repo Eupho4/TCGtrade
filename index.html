@@ -4474,8 +4474,15 @@
             max-width: 450px;
             position: relative;
             transform: translateY(-20px);
-            transition: transform 0.3s ease;
+            transition: transform 0.3s ease, background-color 0.3s ease;
         }
+        
+        /* Modo oscuro para el modal */
+        .dark-mode .auth-modal-content {
+            background-color: #2d2d2d;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+        }
+        
         .auth-modal-overlay.show .auth-modal-content {
             transform: translateY(0);
         }
@@ -4486,11 +4493,29 @@
             font-size: 1.5rem;
             cursor: pointer;
             color: #4a5568;
+            transition: color 0.3s ease;
+        }
+        
+        .dark-mode .auth-modal-close {
+            color: #cbd5e0;
+        }
+        
+        .dark-mode .auth-modal-close:hover {
+            color: #ffffff;
         }
         .auth-form-toggle {
             color: #2a6f8b;
             cursor: pointer;
             text-decoration: underline;
+            transition: color 0.3s ease;
+        }
+        
+        .dark-mode .auth-form-toggle {
+            color: #60a5fa;
+        }
+        
+        .dark-mode .auth-form-toggle:hover {
+            color: #93bbfc;
         }
 
         .missing-card {
@@ -5601,14 +5626,14 @@
             <span class="auth-modal-close" id="closeAuthModalBtn">&times;</span>
 
             <div id="loginForm">
-                <h2 class="text-2xl font-bold mb-4 text-gray-800">Iniciar Sesión</h2>
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Iniciar Sesión</h2>
                 <div class="mb-4">
-                    <label for="loginEmail" class="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico:</label>
-                    <input type="email" id="loginEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <label for="loginEmail" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Correo Electrónico:</label>
+                    <input type="email" id="loginEmail" class="shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400" required>
                 </div>
                 <div class="mb-6">
-                    <label for="loginPassword" class="block text-gray-700 text-sm font-bold mb-2">Contraseña:</label>
-                    <input type="password" id="loginPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <label for="loginPassword" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Contraseña:</label>
+                    <input type="password" id="loginPassword" class="shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400" required>
                 </div>
                 <div class="flex items-center justify-between">
                     <button id="loginBtn" class="btn-primary px-4 py-2 rounded focus:outline-none focus:shadow-outline" type="button">
@@ -5622,23 +5647,23 @@
             </div>
 
             <div id="registerForm" class="hidden">
-                <h2 class="text-2xl font-bold mb-4 text-gray-800">Registrarse</h2>
+                <h2 class="text-2xl font-bold mb-4 text-gray-800 dark:text-white">Registrarse</h2>
                 <div class="mb-4">
-                    <label for="registerUsername" class="block text-gray-700 text-sm font-bold mb-2">Nombre de Usuario *:</label>
-                    <input type="text" id="registerUsername" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required placeholder="usuario123">
+                    <label for="registerUsername" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Nombre de Usuario *:</label>
+                    <input type="text" id="registerUsername" class="shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400" required placeholder="usuario123">
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Este será tu nombre único en la plataforma</p>
                 </div>
                 <div class="mb-4">
-                    <label for="registerEmail" class="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico:</label>
-                    <input type="email" id="registerEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <label for="registerEmail" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Correo Electrónico:</label>
+                    <input type="email" id="registerEmail" class="shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400" required>
                 </div>
                 <div class="mb-4">
-                    <label for="registerPassword" class="block text-gray-700 text-sm font-bold mb-2">Contraseña:</label>
-                    <input type="password" id="registerPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <label for="registerPassword" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Contraseña:</label>
+                    <input type="password" id="registerPassword" class="shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400" required>
                 </div>
                 <div class="mb-6">
-                    <label for="confirmPassword" class="block text-gray-700 text-sm font-bold mb-2">Confirmar Contraseña:</label>
-                    <input type="password" id="confirmPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                    <label for="confirmPassword" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Confirmar Contraseña:</label>
+                    <input type="password" id="confirmPassword" class="shadow appearance-none border dark:border-gray-600 rounded w-full py-2 px-3 text-gray-700 dark:text-gray-200 dark:bg-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400" required>
                 </div>
                 <div class="flex items-center justify-between">
                     <button id="registerBtn" class="btn-primary px-4 py-2 rounded focus:outline-none focus:shadow-outline" type="button">
