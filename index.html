@@ -817,12 +817,14 @@
                 }
 
                 // Cargar datos en el formulario de perfil personal
+                const profileUsernameInput = document.getElementById('profileUsername');
                 const profileNameInput = document.getElementById('profileName');
                 const profileLastNameInput = document.getElementById('profileLastName');
                 const profileAddressInput = document.getElementById('profileAddress');
                 const profileBirthDateInput = document.getElementById('profileBirthDate');
                 const profileEmailInput = document.getElementById('profileEmail');
 
+                if (profileUsernameInput) profileUsernameInput.value = userData?.username || '';
                 if (profileNameInput) profileNameInput.value = userData?.name || '';
                 if (profileLastNameInput) profileLastNameInput.value = userData?.lastName || '';
                 if (profileAddressInput) profileAddressInput.value = userData?.address || '';
@@ -1009,7 +1011,7 @@
 
         // --- Funciones de Intercambios ---
         
-        // Función helper para obtener el nombre completo del usuario
+        // Función helper para obtener el nombre de usuario para mostrar en intercambios
         async function getUserDisplayName(uid = null) {
             try {
                 const userId = uid || currentUser?.uid;
@@ -1023,15 +1025,19 @@
                         const userData = userDoc.data();
                         
                         if (userData) {
-                            // Priorizar nombre y apellido
+                            // PRIORIDAD 1: Username (nombre de usuario único)
+                            if (userData.username) {
+                                return userData.username;
+                            }
+                            // PRIORIDAD 2: Nombre completo si no hay username
                             if (userData.name && userData.lastName) {
                                 return `${userData.name} ${userData.lastName}`;
                             }
-                            // Si solo hay nombre
+                            // PRIORIDAD 3: Solo nombre
                             if (userData.name) {
                                 return userData.name;
                             }
-                            // Si hay displayName guardado
+                            // PRIORIDAD 4: DisplayName guardado
                             if (userData.displayName) {
                                 return userData.displayName;
                             }
@@ -3443,8 +3449,9 @@
                         // Crear perfil completo en Firestore
                         console.log('💾 Guardando perfil en Firestore...');
                         await setDoc(doc(db, 'users', user.uid), {
-                            name: username,
-                            username: username, // Agregamos también el campo username
+                            username: username, // Username único elegido en el registro
+                            name: '', // Nombre real (se llenará después en el perfil)
+                            lastName: '', // Apellido (se llenará después en el perfil)
                             email: user.email,
                             createdAt: new Date(),
                             updatedAt: new Date()
@@ -5355,11 +5362,11 @@
                         <form id="profilePersonalForm" class="space-y-6">
                             <!-- Usuario (solo lectura) -->
                             <div>
-                                <label for="profileUsername" class="block text-gray-700 text-sm font-bold mb-2">
+                                <label for="profileUsername" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
                                     Nombre de Usuario
                                 </label>
                                 <input type="text" id="profileUsername" name="username" 
-                                       class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-400 leading-tight bg-gray-50 cursor-not-allowed"
+                                       class="shadow appearance-none border dark:border-gray-600 rounded w-full py-3 px-4 text-gray-600 dark:text-gray-400 leading-tight bg-gray-100 dark:bg-gray-800 cursor-not-allowed"
                                        placeholder="usuario123" readonly>
                                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">El nombre de usuario no se puede modificar</p>
                             </div>
