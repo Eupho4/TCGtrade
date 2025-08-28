@@ -3426,41 +3426,62 @@
                     }
 
                     try {
-                        // Verificar si el usuario ya existe
-                        const usernameQuery = await getDocs(collection(db, 'users'));
-                        const existingUser = usernameQuery.docs.find(doc => doc.data().username === username);
+                        console.log('🚀 Iniciando proceso de registro...');
+                        console.log('📝 Username:', username);
+                        console.log('📧 Email:', email);
                         
-                        if (existingUser) {
-                            if (registerError) {
-                                registerError.textContent = 'Este nombre de usuario ya está en uso.';
-                                registerError.classList.remove('hidden');
-                            }
-                            return;
-                        }
+                        // NOTA: La verificación de nombre de usuario duplicado está deshabilitada
+                        // porque requeriría permisos especiales en Firestore para leer todos los usuarios.
+                        // En producción, esto se manejaría con una Cloud Function o un índice especial.
+                        console.log('ℹ️ Saltando verificación de nombre de usuario duplicado (requiere configuración adicional)');
 
+                        console.log('🔐 Creando cuenta con Firebase Auth...');
                         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                         const user = userCredential.user;
+                        console.log('✅ Cuenta creada exitosamente:', user.uid);
 
                         // Crear perfil completo en Firestore
+                        console.log('💾 Guardando perfil en Firestore...');
                         await setDoc(doc(db, 'users', user.uid), {
                             name: username,
+                            username: username, // Agregamos también el campo username
                             email: user.email,
                             createdAt: new Date(),
                             updatedAt: new Date()
                         });
+                        console.log('✅ Perfil guardado en Firestore');
 
                         hideAuthModal();
-                        console.log('Usuario registrado:', user.email, 'Username:', username);
+                        console.log('🎉 Usuario registrado exitosamente:', user.email, 'Username:', username);
+                        
+                        // Mostrar mensaje de éxito
+                        alert(`¡Bienvenido ${username}! Tu cuenta ha sido creada exitosamente.`);
+                        
                     } catch (error) {
-                        console.error('Error al registrar:', error);
-                        let errorMessage = 'Error al registrar.';
+                        console.error('❌ Error detallado al registrar:', error);
+                        console.error('Código de error:', error.code);
+                        console.error('Mensaje de error:', error.message);
+                        
+                        let errorMessage = 'Error al registrar. Por favor, intenta de nuevo.';
+                        
+                        // Errores de Firebase Auth
                         if (error.code === 'auth/email-already-in-use') {
                             errorMessage = 'Este correo ya está registrado.';
                         } else if (error.code === 'auth/invalid-email') {
                             errorMessage = 'Formato de correo inválido.';
                         } else if (error.code === 'auth/weak-password') {
-                            errorMessage = 'La contraseña es demasiado débil.';
+                            errorMessage = 'La contraseña es demasiado débil. Debe tener al menos 6 caracteres.';
+                        } else if (error.code === 'auth/network-request-failed') {
+                            errorMessage = 'Error de conexión. Verifica tu conexión a internet.';
+                        } else if (error.code === 'auth/too-many-requests') {
+                            errorMessage = 'Demasiados intentos. Por favor, espera un momento.';
+                        } else if (error.code === 'auth/operation-not-allowed') {
+                            errorMessage = 'El registro está temporalmente deshabilitado.';
+                        } else if (error.message) {
+                            // Si hay un mensaje de error específico, mostrarlo
+                            errorMessage = `Error: ${error.message}`;
                         }
+                        
                         if (registerError) {
                             registerError.textContent = errorMessage;
                             registerError.classList.remove('hidden');
