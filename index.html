@@ -915,6 +915,9 @@
                 html.classList.remove('dark');
                 document.body.classList.remove('dark-mode');
             }
+            
+            // Guardar también en localStorage para persistencia local
+            localStorage.setItem('darkMode', isDark ? 'true' : 'false');
         }
 
         // Función para guardar preferencia de modo oscuro
@@ -3185,6 +3188,20 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🚀 DOM cargado, configurando eventos...');
+            
+            // CARGAR MODO OSCURO DESDE LOCALSTORAGE AL INICIO
+            const savedDarkMode = localStorage.getItem('darkMode');
+            if (savedDarkMode !== null) {
+                const isDark = savedDarkMode === 'true';
+                console.log('🌙 Cargando modo oscuro desde localStorage:', isDark);
+                applyDarkMode(isDark);
+                
+                // Sincronizar el toggle si existe
+                const darkModeToggle = document.getElementById('darkModeToggle');
+                if (darkModeToggle) {
+                    darkModeToggle.checked = isDark;
+                }
+            }
 
             // Asignar referencias a elementos del DOM
             searchInput = document.getElementById('searchInput');
@@ -3590,7 +3607,7 @@
             }
 
             // Escuchar cambios de autenticación
-            onAuthStateChanged(auth, (user) => {
+            onAuthStateChanged(auth, async (user) => {
                 currentUser = user;
                 console.log('Estado de autenticación:', !!user);
 
@@ -3604,6 +3621,28 @@
                     if (logoutNavLink) logoutNavLink.classList.remove('hidden');
                     // Mi Perfil siempre visible (funciona diferente según estado)
                     if (profileNavLink) profileNavLink.classList.remove('hidden');
+                    
+                    // CARGAR MODO OSCURO INMEDIATAMENTE AL INICIAR SESIÓN
+                    try {
+                        console.log('🌙 Cargando preferencia de modo oscuro del usuario...');
+                        const userDoc = await getDoc(doc(db, 'users', user.uid));
+                        const userData = userDoc.data();
+                        
+                        if (userData && userData.darkMode !== undefined) {
+                            console.log('🌙 Aplicando modo oscuro:', userData.darkMode);
+                            applyDarkMode(userData.darkMode);
+                            
+                            // Sincronizar el toggle si existe
+                            const darkModeToggle = document.getElementById('darkModeToggle');
+                            if (darkModeToggle) {
+                                darkModeToggle.checked = userData.darkMode;
+                            }
+                        } else {
+                            console.log('🌙 No hay preferencia guardada, manteniendo modo actual');
+                        }
+                    } catch (error) {
+                        console.error('Error al cargar preferencia de modo oscuro:', error);
+                    }
                 } else {
                     // Usuario desconectado: mostrar login/register, ocultar logout
                     if (loginNavLink) loginNavLink.classList.remove('hidden');
@@ -3611,6 +3650,12 @@
                     if (logoutNavLink) logoutNavLink.classList.add('hidden');
                     // Mi Perfil siempre visible (redirige a login si no está conectado)
                     if (profileNavLink) profileNavLink.classList.remove('hidden');
+                    
+                    // Opcional: Restaurar modo por defecto al cerrar sesión
+                    // Si quieres que al cerrar sesión vuelva al modo claro, descomenta estas líneas:
+                    // applyDarkMode(false);
+                    // const darkModeToggle = document.getElementById('darkModeToggle');
+                    // if (darkModeToggle) darkModeToggle.checked = false;
                 }
             });
 
