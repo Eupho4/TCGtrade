@@ -2980,10 +2980,62 @@
         // --- Funciones de Autenticación ---
         window.logoutUser = async () => {
             try {
+                console.log('🚪 Cerrando sesión...');
+                
+                // Cerrar sesión en Firebase
                 await signOut(auth);
-                console.log('Usuario cerró sesión');
+                
+                // Limpiar datos del usuario actual
+                currentUser = null;
+                
+                // Limpiar cualquier dato en caché
+                userCardsCache = [];
+                
+                // Limpiar formularios si existen
+                const forms = document.querySelectorAll('form');
+                forms.forEach(form => form.reset());
+                
+                // Limpiar contenido sensible de los contenedores
+                const myCardsContainer = document.getElementById('myCardsContainer');
+                if (myCardsContainer) myCardsContainer.innerHTML = '';
+                
+                const myTradesContainer = document.getElementById('myTradesContainer');
+                if (myTradesContainer) myTradesContainer.innerHTML = '';
+                
+                const availableTradesContainer = document.getElementById('availableTradesContainer');
+                if (availableTradesContainer) availableTradesContainer.innerHTML = '';
+                
+                // Ocultar todas las secciones privadas
+                const profileSection = document.getElementById('profileSection');
+                const myCardsSection = document.getElementById('myCardsSection');
+                const interchangesSection = document.getElementById('interchangesSection');
+                const helpSection = document.getElementById('helpSection');
+                const searchResultsSection = document.getElementById('searchResultsSection');
+                
+                if (profileSection) profileSection.classList.add('hidden');
+                if (myCardsSection) myCardsSection.classList.add('hidden');
+                if (interchangesSection) interchangesSection.classList.add('hidden');
+                if (helpSection) helpSection.classList.add('hidden');
+                if (searchResultsSection) searchResultsSection.classList.add('hidden');
+                
+                // Mostrar la pantalla inicial (hero y how it works)
+                showInitialSections();
+                
+                // Limpiar la barra de búsqueda si existe
+                const searchInput = document.getElementById('searchInput');
+                if (searchInput) searchInput.value = '';
+                
+                // Scroll al inicio de la página
+                window.scrollTo(0, 0);
+                
+                console.log('✅ Sesión cerrada exitosamente');
+                
+                // Opcional: Mostrar mensaje de confirmación
+                // alert('Has cerrado sesión exitosamente');
+                
             } catch (error) {
-                console.error('Error al cerrar sesión:', error);
+                console.error('❌ Error al cerrar sesión:', error);
+                alert('Error al cerrar sesión. Por favor, intenta de nuevo.');
             }
         };
 
