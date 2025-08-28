@@ -1119,32 +1119,8 @@
                 const userTradesKey = `userTrades_${currentUser.uid}`;
                 const savedTrades = JSON.parse(localStorage.getItem(userTradesKey) || '[]');
                 
-                // Combinar con datos de ejemplo si no hay intercambios guardados
+                // Usar solo los intercambios guardados reales, sin datos de ejemplo
                 let allTrades = [...savedTrades];
-                
-                if (allTrades.length === 0) {
-                    // Mostrar datos de ejemplo si no hay intercambios guardados
-                    const exampleTrades = [
-                        {
-                            id: 'trade1',
-                            type: 'created',
-                            status: 'active',
-                            title: 'Intercambio Pikachu por Charizard',
-                            description: 'Busco un Charizard en buen estado',
-                            offeredCards: [
-                                { name: 'Pikachu VMAX', condition: 'NM', language: 'Español' },
-                                { name: 'Pikachu GX', condition: 'EX', language: 'Español' }
-                            ],
-                            wantedCards: [
-                                { name: 'Charizard VMAX', condition: 'NM', language: 'Español' }
-                            ],
-                            createdAt: new Date(),
-                            user: await getUserDisplayName(),
-                            userId: currentUser.uid
-                        }
-                    ];
-                    allTrades = exampleTrades;
-                }
 
                 // Convertir fechas de string a Date si es necesario
                 allTrades = allTrades.map(trade => ({
@@ -1189,46 +1165,7 @@
                     }
                 }
 
-                // Si no hay intercambios reales, mostrar datos de ejemplo
-                if (allAvailableTrades.length === 0) {
-                    const exampleAvailableTrades = [
-                        {
-                            id: 'trade_example_1',
-                            type: 'available',
-                            status: 'active',
-                            title: 'Intercambio Mewtwo por Lugia',
-                            description: 'Tengo un Mewtwo en perfecto estado, busco un Lugia',
-                            offeredCards: [
-                                { name: 'Mewtwo VMAX', condition: 'M', language: 'Español' }
-                            ],
-                            wantedCards: [
-                                { name: 'Lugia VMAX', condition: 'NM', language: 'Español' },
-                                { name: 'Lugia GX', condition: 'EX', language: 'Español' }
-                            ],
-                            createdAt: new Date(),
-                            user: 'pokemon_master',
-                            userId: 'example_user_1'
-                        },
-                        {
-                            id: 'trade_example_2',
-                            type: 'available',
-                            status: 'active',
-                            title: 'Intercambio Blastoise por Venusaur',
-                            description: 'Busco completar mi colección de starters',
-                            offeredCards: [
-                                { name: 'Blastoise VMAX', condition: 'NM', language: 'Español' },
-                                { name: 'Blastoise GX', condition: 'GD', language: 'Español' }
-                            ],
-                            wantedCards: [
-                                { name: 'Venusaur VMAX', condition: 'NM', language: 'Español' }
-                            ],
-                            createdAt: new Date(),
-                            user: 'starter_collector',
-                            userId: 'example_user_2'
-                        }
-                    ];
-                    allAvailableTrades = exampleAvailableTrades;
-                }
+                // No mostrar datos de ejemplo, solo intercambios reales
 
                 // Convertir fechas si es necesario
                 allAvailableTrades = allAvailableTrades.map(trade => ({
