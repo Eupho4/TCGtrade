@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test - Nombre de Usuario en Intercambios</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold mb-8">Prueba de Visualización de Nombre de Usuario</h1>
+        
+        <div class="bg-white rounded-lg shadow p-6 mb-6">
+            <h2 class="text-xl font-semibold mb-4">Simulación de getUserDisplayName()</h2>
+            <div id="testResults" class="space-y-4"></div>
+        </div>
+
+        <div class="bg-white rounded-lg shadow p-6">
+            <h2 class="text-xl font-semibold mb-4">Ejemplo de Tarjeta de Intercambio</h2>
+            <div id="tradeCard"></div>
+        </div>
+    </div>
+
+    <script>
+        // Simulación de la función getUserDisplayName
+        async function getUserDisplayName(testCase) {
+            // Simular diferentes casos de datos de usuario
+            const cases = {
+                fullName: {
+                    name: 'Juan',
+                    lastName: 'Pérez',
+                    displayName: null,
+                    email: 'juan@example.com'
+                },
+                onlyName: {
+                    name: 'María',
+                    lastName: null,
+                    displayName: null,
+                    email: 'maria@example.com'
+                },
+                displayName: {
+                    name: null,
+                    lastName: null,
+                    displayName: 'PokeMaster2024',
+                    email: 'user@example.com'
+                },
+                emailOnly: {
+                    name: null,
+                    lastName: null,
+                    displayName: null,
+                    email: 'collector123@example.com'
+                },
+                noData: {
+                    name: null,
+                    lastName: null,
+                    displayName: null,
+                    email: null
+                }
+            };
+
+            const userData = cases[testCase];
+            
+            // Aplicar la lógica de la función real
+            if (userData.name && userData.lastName) {
+                return `${userData.name} ${userData.lastName}`;
+            }
+            if (userData.name) {
+                return userData.name;
+            }
+            if (userData.displayName) {
+                return userData.displayName;
+            }
+            if (userData.email) {
+                return userData.email.split('@')[0];
+            }
+            return 'Usuario';
+        }
+
+        // Función para crear una tarjeta de intercambio de ejemplo
+        function createTradeCard(userName) {
+            return `
+                <div class="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:border-orange-300 transition-colors">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h4 class="font-semibold text-gray-800">Intercambio Pikachu por Charizard</h4>
+                            <p class="text-sm text-gray-600">Busco un Charizard en buen estado</p>
+                        </div>
+                        <span class="text-xs text-gray-500">24/12/2024 10:30</span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <h5 class="text-sm font-medium text-gray-700 mb-2">📤 Ofrezco:</h5>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between bg-white px-3 py-2 rounded border border-gray-200">
+                                    <span class="text-sm text-gray-700">Pikachu VMAX</span>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xs px-2 py-1 rounded-full text-white font-medium bg-green-600">
+                                            ⭐ NM
+                                        </span>
+                                        <span class="text-xs text-gray-500">Español</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <h5 class="text-sm font-medium text-gray-700 mb-2">📥 Busco:</h5>
+                            <div class="space-y-2">
+                                <div class="flex items-center justify-between bg-white px-3 py-2 rounded border border-gray-200">
+                                    <span class="text-sm text-gray-700">Charizard VMAX</span>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="text-xs px-2 py-1 rounded-full text-white font-medium bg-green-600">
+                                            ⭐ NM
+                                        </span>
+                                        <span class="text-xs text-gray-500">Español</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-between items-center">
+                        <span class="text-xs text-gray-500">
+                            <strong>Por:</strong> 
+                            <span class="text-blue-600 font-semibold">${userName}</span>
+                        </span>
+                        <div class="flex space-x-2">
+                            <button class="bg-orange-500 text-white px-3 py-1 rounded text-xs hover:bg-orange-600">
+                                ✏️ Editar
+                            </button>
+                            <button class="bg-gray-500 text-white px-3 py-1 rounded text-xs hover:bg-gray-600">
+                                🗑️ Eliminar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Ejecutar pruebas
+        async function runTests() {
+            const testCases = [
+                { case: 'fullName', expected: 'Juan Pérez', description: 'Usuario con nombre y apellido' },
+                { case: 'onlyName', expected: 'María', description: 'Usuario solo con nombre' },
+                { case: 'displayName', expected: 'PokeMaster2024', description: 'Usuario con displayName' },
+                { case: 'emailOnly', expected: 'collector123', description: 'Usuario solo con email' },
+                { case: 'noData', expected: 'Usuario', description: 'Usuario sin datos' }
+            ];
+
+            const resultsContainer = document.getElementById('testResults');
+            let resultsHTML = '';
+
+            for (const test of testCases) {
+                const result = await getUserDisplayName(test.case);
+                const passed = result === test.expected;
+                
+                resultsHTML += `
+                    <div class="flex items-center justify-between p-3 rounded ${passed ? 'bg-green-50 border border-green-200' : 'bg-red-50 border border-red-200'}">
+                        <div>
+                            <p class="font-medium">${test.description}</p>
+                            <p class="text-sm text-gray-600">Resultado: <span class="font-mono">${result}</span></p>
+                            <p class="text-sm text-gray-600">Esperado: <span class="font-mono">${test.expected}</span></p>
+                        </div>
+                        <span class="${passed ? 'text-green-600' : 'text-red-600'} text-2xl">
+                            ${passed ? '✅' : '❌'}
+                        </span>
+                    </div>
+                `;
+            }
+
+            resultsContainer.innerHTML = resultsHTML;
+
+            // Mostrar ejemplo de tarjeta con el primer caso (nombre completo)
+            const exampleUserName = await getUserDisplayName('fullName');
+            document.getElementById('tradeCard').innerHTML = createTradeCard(exampleUserName);
+        }
+
+        // Ejecutar las pruebas al cargar la página
+        document.addEventListener('DOMContentLoaded', runTests);
+    </script>
+</body>
+</html>
