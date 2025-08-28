@@ -1009,6 +1009,56 @@
 
         // --- Funciones de Intercambios ---
         
+        // Función helper para obtener el nombre completo del usuario
+        async function getUserDisplayName(uid = null) {
+            try {
+                const userId = uid || currentUser?.uid;
+                if (!userId) return 'Usuario';
+                
+                // Si es el usuario actual y no se proporciona uid
+                if (!uid && currentUser) {
+                    // Primero intentar obtener de Firestore
+                    if (typeof db !== 'undefined' && db) {
+                        const userDoc = await getDoc(doc(db, 'users', userId));
+                        const userData = userDoc.data();
+                        
+                        if (userData) {
+                            // Priorizar nombre y apellido
+                            if (userData.name && userData.lastName) {
+                                return `${userData.name} ${userData.lastName}`;
+                            }
+                            // Si solo hay nombre
+                            if (userData.name) {
+                                return userData.name;
+                            }
+                            // Si hay displayName guardado
+                            if (userData.displayName) {
+                                return userData.displayName;
+                            }
+                        }
+                    }
+                    
+                    // Si no hay datos en Firestore, usar displayName de Auth
+                    if (currentUser.displayName) {
+                        return currentUser.displayName;
+                    }
+                    
+                    // Como último recurso, usar parte del email antes del @
+                    if (currentUser.email) {
+                        return currentUser.email.split('@')[0];
+                    }
+                }
+                
+                return 'Usuario';
+            } catch (error) {
+                console.error('Error obteniendo nombre de usuario:', error);
+                // Si hay error, intentar con el displayName o email del currentUser
+                if (currentUser?.displayName) return currentUser.displayName;
+                if (currentUser?.email) return currentUser.email.split('@')[0];
+                return 'Usuario';
+            }
+        }
+        
         // Función para cargar intercambios del usuario
         async function loadUserTrades() {
             if (!currentUser) return;
@@ -1039,7 +1089,7 @@
                                 { name: 'Charizard VMAX', condition: 'NM', language: 'Español' }
                             ],
                             createdAt: new Date(),
-                            user: currentUser.email || currentUser.displayName || 'coleccionista123'
+                            user: await getUserDisplayName()
                         }
                     ];
                     allTrades = exampleTrades;
@@ -1769,7 +1819,7 @@
                 description: document.getElementById('tradeDescription').value || '',
                 offeredCards: [],
                 wantedCards: [],
-                user: currentUser.email || currentUser.displayName || 'Usuario',
+                user: await getUserDisplayName(),
                 status: 'active',
                 type: 'created'
             };
