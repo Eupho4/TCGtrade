@@ -1202,10 +1202,16 @@
                 if (e.target === modal) modal.remove();
             };
             
+            // Ordenar cartas por set y número
+            const sortedCards = [...userCardsCache].sort((a, b) => {
+                if (a.set !== b.set) return (a.set || '').localeCompare(b.set || '');
+                return parseInt(a.number || 0) - parseInt(b.number || 0);
+            });
+            
             modal.innerHTML = `
-                <div class="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
-                    <div class="p-6 border-b dark:border-gray-700">
-                        <div class="flex items-center justify-between">
+                <div class="bg-white dark:bg-gray-800 rounded-lg max-w-5xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                    <div class="p-4 border-b dark:border-gray-700">
+                        <div class="flex items-center justify-between mb-3">
                             <h3 class="text-xl font-bold text-gray-900 dark:text-white">
                                 Seleccionar de Mis Cartas (${userCardsCache.length} cartas)
                             </h3>
@@ -1214,24 +1220,116 @@
                                 &times;
                             </button>
                         </div>
+                        
+                        <!-- Barra de búsqueda -->
+                        <div class="flex gap-2">
+                            <input type="text" 
+                                   id="myCardsSearchInput"
+                                   placeholder="Buscar en tu colección..."
+                                   class="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                   oninput="filterMyCardsModal(this.value)">
+                            
+                            <select id="myCardsSetFilter" 
+                                    class="px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
+                                    onchange="filterMyCardsModal(document.getElementById('myCardsSearchInput').value)">
+                                <option value="">Todos los sets</option>
+                                ${[...new Set(sortedCards.map(c => c.set))].filter(Boolean).sort().map(set => 
+                                    `<option value="${set}">${set}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
                     </div>
                     
-                    <div class="p-6 overflow-y-auto flex-1">
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            ${userCardsCache.map((card, index) => `
-                                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                                     onclick="selectFromMyCards('${type}', '${card.id}', '${card.name.replace(/'/g, "\\'")}', '${card.imageUrl}', '${(card.set || '').replace(/'/g, "\\'")}', '${card.number || ''}'); this.closest('.fixed').remove();">
-                                    <img src="${card.imageUrl}" alt="${card.name}" class="w-full h-32 object-contain mb-2">
-                                    <div class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">${card.name}</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400 truncate">${card.set || 'Set desconocido'}</div>
+                    <div class="p-4 overflow-y-auto flex-1" id="myCardsListContainer">
+                        <div class="space-y-2" id="myCardsList">
+                            ${sortedCards.map((card, index) => {
+                                const safeCardName = (card.name || '').replace(/'/g, "\\'");
+                                const safeImageUrl = (card.imageUrl || '').replace(/'/g, "\\'");
+                                const safeSet = (card.set || '').replace(/'/g, "\\'");
+                                const safeNumber = (card.number || '').replace(/'/g, "\\'");
+                                
+                                return `
+                                <div class="my-card-row flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer border border-gray-200 dark:border-gray-600"
+                                     data-card-name="${card.name?.toLowerCase() || ''}"
+                                     data-card-set="${card.set?.toLowerCase() || ''}"
+                                     onclick="selectFromMyCards('${type}', '${card.id}', '${safeCardName}', '${safeImageUrl}', '${safeSet}', '${safeNumber}'); this.closest('.fixed').remove();">
+                                    
+                                    <!-- Miniatura con hover para vista previa -->
+                                    <div class="relative group">
+                                        <div class="w-12 h-16 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
+                                            <img src="${card.imageUrl}" 
+                                                 alt="${card.name}" 
+                                                 class="w-full h-full object-contain"
+                                                 loading="lazy">
+                                        </div>
+                                        
+                                        <!-- Vista previa al hover -->
+                                        <div class="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-[100] hidden group-hover:block pointer-events-none">
+                                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-2 border-2 border-gray-300 dark:border-gray-600">
+                                                <img src="${card.imageUrl}" 
+                                                     alt="${card.name}" 
+                                                     class="w-48 h-64 object-contain">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Información de la carta -->
+                                    <div class="flex-1">
+                                        <div class="font-medium text-gray-900 dark:text-white">${card.name || 'Sin nombre'}</div>
+                                        <div class="text-sm text-gray-600 dark:text-gray-400">
+                                            ${card.set || 'Set desconocido'} • #${card.number || 'N/A'} • ${card.language || 'Español'}
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Botón de seleccionar -->
+                                    <button class="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded text-sm font-medium">
+                                        Seleccionar
+                                    </button>
                                 </div>
-                            `).join('')}
+                                `;
+                            }).join('')}
+                        </div>
+                        
+                        <!-- Mensaje cuando no hay resultados -->
+                        <div id="noResultsMessage" class="hidden text-center py-8 text-gray-500 dark:text-gray-400">
+                            No se encontraron cartas que coincidan con tu búsqueda
                         </div>
                     </div>
                 </div>
             `;
             
             document.body.appendChild(modal);
+        };
+        
+        // Función para filtrar cartas en el modal
+        window.filterMyCardsModal = function(searchTerm) {
+            const setFilter = document.getElementById('myCardsSetFilter');
+            const selectedSet = setFilter ? setFilter.value.toLowerCase() : '';
+            const searchLower = searchTerm.toLowerCase();
+            
+            const cardRows = document.querySelectorAll('.my-card-row');
+            const noResultsMsg = document.getElementById('noResultsMessage');
+            let visibleCount = 0;
+            
+            cardRows.forEach(row => {
+                const cardName = row.dataset.cardName || '';
+                const cardSet = row.dataset.cardSet || '';
+                
+                const matchesSearch = !searchLower || cardName.includes(searchLower);
+                const matchesSet = !selectedSet || cardSet === selectedSet;
+                
+                if (matchesSearch && matchesSet) {
+                    row.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+            
+            // Mostrar mensaje si no hay resultados
+            if (noResultsMsg) {
+                noResultsMsg.classList.toggle('hidden', visibleCount > 0);
+            }
         };
         
         // Función para seleccionar carta desde "Mis Cartas"
