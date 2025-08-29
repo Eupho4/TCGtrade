@@ -1167,11 +1167,31 @@
         }
         
         // Función para añadir cartas desde "Mis Cartas"
-        window.addFromMyCards = function(type) {
-            const userCards = JSON.parse(localStorage.getItem('userCards') || '[]');
+        window.addFromMyCards = async function(type) {
+            if (!currentUser) {
+                alert('Debes iniciar sesión para acceder a tu colección');
+                return;
+            }
             
-            if (userCards.length === 0) {
-                alert('No tienes cartas guardadas en tu colección');
+            // Si no hay cache, cargar las cartas desde Firestore
+            if (!userCardsCache || userCardsCache.length === 0) {
+                try {
+                    const myCardsCollectionRef = collection(db, `users/${currentUser.uid}/my_cards`);
+                    const querySnapshot = await getDocs(myCardsCollectionRef);
+                    userCardsCache = [];
+                    
+                    querySnapshot.forEach(doc => {
+                        userCardsCache.push(doc.data());
+                    });
+                } catch (error) {
+                    console.error('Error cargando cartas:', error);
+                    alert('Error al cargar tu colección. Por favor, intenta de nuevo.');
+                    return;
+                }
+            }
+            
+            if (userCardsCache.length === 0) {
+                alert('No tienes cartas guardadas en tu colección. Ve a "Mis Cartas" para añadir algunas.');
                 return;
             }
             
@@ -1187,7 +1207,7 @@
                     <div class="p-6 border-b dark:border-gray-700">
                         <div class="flex items-center justify-between">
                             <h3 class="text-xl font-bold text-gray-900 dark:text-white">
-                                Seleccionar de Mis Cartas
+                                Seleccionar de Mis Cartas (${userCardsCache.length} cartas)
                             </h3>
                             <button onclick="this.closest('.fixed').remove()" 
                                     class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl">
@@ -1198,12 +1218,12 @@
                     
                     <div class="p-6 overflow-y-auto flex-1">
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            ${userCards.map((card, index) => `
+                            ${userCardsCache.map((card, index) => `
                                 <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                                     onclick="selectFromMyCards('${type}', '${card.id}', '${card.name.replace(/'/g, "\\'")}', '${card.imageUrl}', '${(card.setName || '').replace(/'/g, "\\'")}', '${card.number || ''}'); this.closest('.fixed').remove();">
+                                     onclick="selectFromMyCards('${type}', '${card.id}', '${card.name.replace(/'/g, "\\'")}', '${card.imageUrl}', '${(card.set || '').replace(/'/g, "\\'")}', '${card.number || ''}'); this.closest('.fixed').remove();">
                                     <img src="${card.imageUrl}" alt="${card.name}" class="w-full h-32 object-contain mb-2">
                                     <div class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">${card.name}</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400 truncate">${card.setName || 'Set desconocido'}</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400 truncate">${card.set || 'Set desconocido'}</div>
                                 </div>
                             `).join('')}
                         </div>
