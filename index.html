@@ -1054,6 +1054,38 @@
 
         // --- Funciones de Intercambios ---
         
+        // Función para contar cuántas personas ofrecen una carta específica
+        function getCardOffersCount(cardName) {
+            let offersCount = 0;
+            
+            // Buscar en todos los intercambios guardados en localStorage
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                
+                if (key && key.startsWith('userTrades_')) {
+                    try {
+                        const trades = JSON.parse(localStorage.getItem(key) || '[]');
+                        
+                        // Contar las veces que esta carta aparece en las cartas ofrecidas
+                        trades.forEach(trade => {
+                            if (trade.offeredCards && Array.isArray(trade.offeredCards)) {
+                                trade.offeredCards.forEach(offeredCard => {
+                                    const offeredCardName = offeredCard.name || offeredCard;
+                                    if (offeredCardName && offeredCardName.toLowerCase().includes(cardName.toLowerCase())) {
+                                        offersCount++;
+                                    }
+                                });
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Error al procesar intercambios:', error);
+                    }
+                }
+            }
+            
+            return offersCount;
+        }
+        
         // Función helper para obtener el nombre de usuario para mostrar en intercambios
         async function getUserDisplayName(uid = null) {
             try {
@@ -2475,7 +2507,11 @@
                                     <div class="font-semibold text-gray-900 dark:text-white truncate">${card.name || 'Nombre no disponible'}</div>
                                     <div class="text-xs text-gray-600 dark:text-gray-300 truncate">Set: ${card.set?.name || 'N/A'} · Serie: ${card.set?.series || 'N/A'} · Nº: ${card.number || 'N/A'}</div>
                                 </div>
-                                <div class="flex gap-2">
+                                <div class="flex gap-2 items-center">
+                                    <div class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1">
+                                        <span>🤝</span>
+                                        <span>Ofrecidas: ${getCardOffersCount(card.name)}</span>
+                                    </div>
                                     <button class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs"
                                         onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">Ver Detalles</button>
                                     <button class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs"
@@ -2568,6 +2604,10 @@
                                             <p class="text-gray-600 text-sm mb-3">Set: ${card.set?.name || 'N/A'}</p>
                                             <p class="text-gray-600 text-sm mb-3">Serie: ${card.set?.series || 'N/A'}</p>
                                             <p class="text-gray-600 text-sm mb-3">Número: ${card.number || 'N/A'}</p>
+                                            <div class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-3 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 mb-3">
+                                                <span>🤝</span>
+                                                <span>Ofrecidas: ${getCardOffersCount(card.name)}</span>
+                                            </div>
                                             <div class="flex justify-between items-center gap-2">
                                                 <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold"
                                                         onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">
@@ -4442,7 +4482,11 @@
                                 <div class="font-semibold text-gray-900 dark:text-white truncate">${card.name || 'Nombre no disponible'}</div>
                                 <div class="text-xs text-gray-600 dark:text-gray-300 truncate">Set: ${card.set?.name || 'N/A'} · Serie: ${card.set?.series || 'N/A'} · Nº: ${card.number || 'N/A'}</div>
                             </div>
-                            <div class="flex gap-2">
+                            <div class="flex gap-2 items-center">
+                                <div class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1">
+                                    <span>🤝</span>
+                                    <span>Ofrecidas: ${getCardOffersCount(card.name)}</span>
+                                </div>
                                 <button class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs"
                                     onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">Ver Detalles</button>
                                 <button class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs"
