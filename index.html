@@ -3432,19 +3432,28 @@
                     console.log('📧 Enviando email de recuperación a:', email);
                     await sendPasswordResetEmail(auth, email);
                     
-                    // Mostrar mensaje de éxito
+                    // Mostrar mensaje de éxito con aviso de SPAM
                     if (resetPasswordSuccess) {
-                        resetPasswordSuccess.textContent = `¡Email enviado! Revisa tu bandeja de entrada en ${email}`;
+                        resetPasswordSuccess.innerHTML = `
+                            <span class="block font-semibold">✅ ¡Email enviado exitosamente!</span>
+                            <span class="block mt-1">📧 Enviado a: ${email}</span>
+                            <span class="block mt-2 text-yellow-600 font-semibold">
+                                ⚠️ IMPORTANTE: Revisa tu carpeta de SPAM/Correo no deseado
+                            </span>
+                            <span class="block text-xs mt-1">
+                                El email puede tardar 1-2 minutos en llegar
+                            </span>
+                        `;
                         resetPasswordSuccess.classList.remove('hidden');
                     }
                     
                     // Limpiar el campo
                     if (resetEmailInput) resetEmailInput.value = '';
                     
-                    // Volver al login después de 5 segundos
+                    // Volver al login después de 10 segundos (más tiempo para leer el aviso)
                     setTimeout(() => {
                         showAuthModal('login');
-                    }, 5000);
+                    }, 10000);
                     
                 } catch (error) {
                     console.error('❌ Error al enviar email de recuperación:', error);
@@ -5951,8 +5960,8 @@
                         Volver a Iniciar Sesión
                     </a>
                 </div>
-                <p id="resetPasswordError" class="text-red-500 text-xs italic mt-4 hidden">Error al enviar email.</p>
-                <p id="resetPasswordSuccess" class="text-green-500 text-xs italic mt-4 hidden">¡Email enviado! Revisa tu bandeja de entrada.</p>
+                <div id="resetPasswordError" class="text-red-500 text-xs mt-4 hidden p-3 bg-red-50 dark:bg-red-900/20 rounded border border-red-200 dark:border-red-800"></div>
+                <div id="resetPasswordSuccess" class="text-green-600 dark:text-green-400 text-xs mt-4 hidden p-3 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800"></div>
             </div>
 
             <div id="registerForm" class="hidden">
