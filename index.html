@@ -3148,17 +3148,20 @@
                 });
             }
 
-            // Explorar link (sin ID específico)
-            const exploreLinks = document.querySelectorAll('a[href="#"]');
-            exploreLinks.forEach(link => {
-                if (link.textContent.includes('Explorar')) {
-                    link.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        console.log('🔍 Explorar link clicked');
-                        showInitialSections();
-                    });
-                }
-            });
+            // Nuevo link de Inicio (en el navbar)
+            const navHomeLink = document.getElementById('navHomeLink');
+            if (navHomeLink) {
+                navHomeLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('🏠 Inicio (navbar) link clicked');
+                    showInitialSections();
+                    // Limpiar búsqueda si existe
+                    const searchInput = document.getElementById('searchInput');
+                    if (searchInput) searchInput.value = '';
+                    // Scroll al inicio
+                    window.scrollTo(0, 0);
+                });
+            }
 
             // Dark mode toggle
             const darkModeToggle = document.getElementById('darkModeToggle');
@@ -4924,7 +4927,7 @@
 
             <nav class="mt-4 md:mt-0">
                 <ul class="flex space-x-4 text-white" id="authNavLinks">
-                    <li><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap"><span class="icon">🔍</span> <span data-i18n="nav.explore">Explorar</span></a></li>
+                    <li><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="navHomeLink"><span class="icon">🏠</span> <span data-i18n="nav.home">Inicio</span></a></li>
                     <li id="myCardsNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="myCardsLink"><span class="icon">📦</span> <span data-i18n="nav.myCards">Mis Cartas</span></a></li>
                     <li id="interchangesNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="interchangesLink"><span class="icon">🤝</span> <span data-i18n="nav.interchanges">Intercambios</span></a></li>
                     <li id="loginNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="loginLink"><span class="icon">🚪</span> <span data-i18n="nav.login">Iniciar Sesión</span></a></li>

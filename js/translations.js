@@ -5,7 +5,7 @@ const translations = {
     // 🇪🇸 Español (idioma base)
     'es': {
         // Navegación
-        'nav.explore': 'Explorar',
+        'nav.home': 'Inicio',
         'nav.myCards': 'Mis Cartas',
         'nav.interchanges': 'Intercambios',
         'nav.login': 'Iniciar Sesión',
@@ -143,7 +143,7 @@ const translations = {
 
     // 🇺🇸 English
     'en': {
-        'nav.explore': 'Explore',
+        'nav.home': 'Home',
         'nav.myCards': 'My Cards',
         'nav.interchanges': 'Trades',
         'nav.login': 'Login',
@@ -269,7 +269,7 @@ const translations = {
 
     // 🇫🇷 Français
     'fr': {
-        'nav.explore': 'Explorer',
+        'nav.home': 'Accueil',
         'nav.myCards': 'Mes Cartes',
         'nav.interchanges': 'Échanges',
         'nav.login': 'Se Connecter',
@@ -395,7 +395,7 @@ const translations = {
 
     // 🇩🇪 Deutsch
     'de': {
-        'nav.explore': 'Erkunden',
+        'nav.home': 'Startseite',
         'nav.myCards': 'Meine Karten',
         'nav.interchanges': 'Tausch',
         'nav.login': 'Anmelden',
