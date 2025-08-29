@@ -1086,6 +1086,140 @@
             return offersCount;
         }
         
+        // Función para obtener todos los intercambios que ofrecen una carta específica
+        function getCardOfferDetails(cardName) {
+            const offers = [];
+            
+            // Buscar en todos los intercambios guardados en localStorage
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                
+                if (key && key.startsWith('userTrades_')) {
+                    try {
+                        const trades = JSON.parse(localStorage.getItem(key) || '[]');
+                        
+                        trades.forEach(trade => {
+                            if (trade.offeredCards && Array.isArray(trade.offeredCards)) {
+                                const hasCard = trade.offeredCards.some(offeredCard => {
+                                    const offeredCardName = offeredCard.name || offeredCard;
+                                    return offeredCardName && offeredCardName.toLowerCase().includes(cardName.toLowerCase());
+                                });
+                                
+                                if (hasCard) {
+                                    offers.push({
+                                        user: trade.user || 'Usuario desconocido',
+                                        userId: trade.userId || key.replace('userTrades_', ''),
+                                        title: trade.title,
+                                        offeredCards: trade.offeredCards,
+                                        wantedCards: trade.wantedCards,
+                                        createdAt: trade.createdAt
+                                    });
+                                }
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Error al procesar intercambios:', error);
+                    }
+                }
+            }
+            
+            return offers;
+        }
+        
+        // Función para mostrar el modal con las ofertas de una carta
+        window.showCardOffers = function(cardName, cardImageUrl) {
+            const offers = getCardOfferDetails(cardName);
+            
+            if (offers.length === 0) {
+                alert('No hay ofertas disponibles para esta carta en este momento.');
+                return;
+            }
+            
+            // Crear el modal
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            modal.onclick = function(e) {
+                if (e.target === modal) modal.remove();
+            };
+            
+            let offersHTML = offers.map(offer => `
+                <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4 border border-gray-200 dark:border-gray-600">
+                    <div class="flex justify-between items-start mb-3">
+                        <div>
+                            <h4 class="font-semibold text-gray-800 dark:text-white">${offer.title || 'Intercambio sin título'}</h4>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">Por: <span class="font-medium">${offer.user}</span></p>
+                        </div>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">
+                            ${offer.createdAt ? new Date(offer.createdAt).toLocaleDateString('es-ES') : 'Fecha no disponible'}
+                        </span>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">📤 Ofrece:</h5>
+                            <div class="space-y-1">
+                                ${offer.offeredCards.map(card => `
+                                    <div class="bg-white dark:bg-gray-600 px-2 py-1 rounded text-xs">
+                                        <span class="text-gray-700 dark:text-gray-200">${card.name || card}</span>
+                                        ${card.condition ? `<span class="ml-2 text-gray-500 dark:text-gray-400">(${card.condition})</span>` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">📥 Busca:</h5>
+                            <div class="space-y-1">
+                                ${offer.wantedCards.map(card => `
+                                    <div class="bg-white dark:bg-gray-600 px-2 py-1 rounded text-xs">
+                                        <span class="text-gray-700 dark:text-gray-200">${card.name || card}</span>
+                                        ${card.condition ? `<span class="ml-2 text-gray-500 dark:text-gray-400">(${card.condition})</span>` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-3 flex justify-end">
+                        <button class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm"
+                                onclick="alert('Función de contacto en desarrollo')">
+                            💬 Contactar
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+            
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                    <div class="p-6 border-b dark:border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <img src="${cardImageUrl}" alt="${cardName}" class="w-16 h-20 object-contain rounded">
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                                        Ofertas de ${cardName}
+                                    </h3>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">
+                                        ${offers.length} ${offers.length === 1 ? 'persona ofrece' : 'personas ofrecen'} esta carta
+                                    </p>
+                                </div>
+                            </div>
+                            <button onclick="this.closest('.fixed').remove()" 
+                                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl">
+                                &times;
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 overflow-y-auto flex-1">
+                        ${offersHTML}
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        };
+        
         // Función helper para obtener el nombre de usuario para mostrar en intercambios
         async function getUserDisplayName(uid = null) {
             try {
@@ -2508,10 +2642,11 @@
                                     <div class="text-xs text-gray-600 dark:text-gray-300 truncate">Set: ${card.set?.name || 'N/A'} · Serie: ${card.set?.series || 'N/A'} · Nº: ${card.number || 'N/A'}</div>
                                 </div>
                                 <div class="flex gap-2 items-center">
-                                    <div class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1">
+                                    <button class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+                                            onclick="showCardOffers('${safeCardName}', '${safeImageUrl}')">
                                         <span>🤝</span>
                                         <span>Ofrecidas: ${getCardOffersCount(card.name)}</span>
-                                    </div>
+                                    </button>
                                     <button class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs"
                                         onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">Ver Detalles</button>
                                     <button class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs"
@@ -2604,10 +2739,11 @@
                                             <p class="text-gray-600 text-sm mb-3">Set: ${card.set?.name || 'N/A'}</p>
                                             <p class="text-gray-600 text-sm mb-3">Serie: ${card.set?.series || 'N/A'}</p>
                                             <p class="text-gray-600 text-sm mb-3">Número: ${card.number || 'N/A'}</p>
-                                            <div class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-3 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 mb-3">
+                                            <button class="w-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-3 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 mb-3 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+                                                    onclick="showCardOffers('${safeCardName}', '${safeImageUrl}')">
                                                 <span>🤝</span>
                                                 <span>Ofrecidas: ${getCardOffersCount(card.name)}</span>
-                                            </div>
+                                            </button>
                                             <div class="flex justify-between items-center gap-2">
                                                 <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold"
                                                         onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">
@@ -4483,10 +4619,11 @@
                                 <div class="text-xs text-gray-600 dark:text-gray-300 truncate">Set: ${card.set?.name || 'N/A'} · Serie: ${card.set?.series || 'N/A'} · Nº: ${card.number || 'N/A'}</div>
                             </div>
                             <div class="flex gap-2 items-center">
-                                <div class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1">
+                                <button class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
+                                        onclick="showCardOffers('${safeCardName}', '${safeImageUrl}')">
                                     <span>🤝</span>
                                     <span>Ofrecidas: ${getCardOffersCount(card.name)}</span>
-                                </div>
+                                </button>
                                 <button class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs"
                                     onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">Ver Detalles</button>
                                 <button class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs"
