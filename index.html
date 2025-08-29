@@ -1278,7 +1278,7 @@
                                     </div>
                                     
                                     <!-- Botón de seleccionar -->
-                                    <button onclick="selectFromMyCards('${type}', '${card.id}', '${safeCardName}', '${safeImageUrl}', '${safeSet}', '${safeNumber}'); this.closest('.fixed').remove();"
+                                    <button onclick="selectFromMyCards('${type}', '${card.id}', '${safeCardName}', '${safeImageUrl}', '${safeSet}', '${safeNumber}', '${card.language || 'Español'}'); this.closest('.fixed').remove();"
                                             class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-medium">
                                         + Añadir
                                     </button>
@@ -1330,7 +1330,7 @@
         };
         
         // Función para seleccionar carta desde "Mis Cartas"
-        window.selectFromMyCards = function(type, cardId, cardName, cardImage, setName, cardNumber) {
+        window.selectFromMyCards = function(type, cardId, cardName, cardImage, setName, cardNumber, language = 'Español') {
             // Añadir nueva carta al formulario
             addCardToTrade(type);
             
@@ -1338,9 +1338,29 @@
             const container = document.querySelector(`#${type}Cards`);
             const cards = container.querySelectorAll('.trade-card');
             const lastCardIndex = cards.length - 1;
+            const cardElement = cards[lastCardIndex];
             
             // Rellenar los datos de la carta seleccionada
             selectCardForTrade(type, lastCardIndex, cardId, cardName, cardImage, setName, cardNumber);
+            
+            // Establecer el idioma de la carta
+            const languageSelect = cardElement.querySelector(`select[name="${type}_language_${lastCardIndex}"]`);
+            if (languageSelect) {
+                // Buscar la opción que coincida con el idioma
+                const options = languageSelect.options;
+                for (let i = 0; i < options.length; i++) {
+                    if (options[i].value === language) {
+                        languageSelect.selectedIndex = i;
+                        break;
+                    }
+                }
+            }
+            
+            // Por defecto establecer condición como NM (Near Mint) ya que no se guarda en la colección
+            const conditionSelect = cardElement.querySelector(`select[name="${type}_condition_${lastCardIndex}"]`);
+            if (conditionSelect) {
+                conditionSelect.value = 'NM';
+            }
         };
         
         // Función para contar cuántas personas ofrecen una carta específica
