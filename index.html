@@ -1240,8 +1240,8 @@
                         </div>
                     </div>
                     
-                    <div class="p-4 overflow-y-auto flex-1" id="myCardsListContainer">
-                        <div class="space-y-2" id="myCardsList">
+                    <div class="p-3 overflow-y-auto flex-1" id="myCardsListContainer">
+                        <div class="space-y-1" id="myCardsList">
                             ${sortedCards.map((card, index) => {
                                 const safeCardName = (card.name || '').replace(/'/g, "\\'");
                                 const safeImageUrl = (card.imageUrl || '').replace(/'/g, "\\'");
@@ -1249,41 +1249,44 @@
                                 const safeNumber = (card.number || '').replace(/'/g, "\\'");
                                 
                                 return `
-                                <div class="my-card-row flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors cursor-pointer border border-gray-200 dark:border-gray-600"
+                                <div class="my-card-row flex items-center gap-2 p-2 bg-white dark:bg-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-600"
                                      data-card-name="${card.name?.toLowerCase() || ''}"
-                                     data-card-set="${card.set?.toLowerCase() || ''}"
-                                     onclick="selectFromMyCards('${type}', '${card.id}', '${safeCardName}', '${safeImageUrl}', '${safeSet}', '${safeNumber}'); this.closest('.fixed').remove();">
+                                     data-card-set="${card.set?.toLowerCase() || ''}">
                                     
-                                    <!-- Miniatura con hover para vista previa -->
+                                    <!-- Icono de imagen con hover -->
                                     <div class="relative group">
-                                        <div class="w-12 h-16 bg-gray-200 dark:bg-gray-600 rounded overflow-hidden">
-                                            <img src="${card.imageUrl}" 
-                                                 alt="${card.name}" 
-                                                 class="w-full h-full object-contain"
-                                                 loading="lazy">
-                                        </div>
+                                        <button type="button" 
+                                                class="w-8 h-8 bg-gray-100 dark:bg-gray-600 rounded flex items-center justify-center hover:bg-gray-200 dark:hover:bg-gray-500 transition-colors"
+                                                title="Ver carta">
+                                            <span class="text-lg">🖼️</span>
+                                        </button>
                                         
-                                        <!-- Vista previa al hover -->
-                                        <div class="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-[100] hidden group-hover:block pointer-events-none">
-                                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-2 border-2 border-gray-300 dark:border-gray-600">
+                                        <!-- Vista previa al hover (igual que en búsqueda) -->
+                                        <div class="absolute left-full ml-2 top-1/2 -translate-y-1/2 z-[9999] hidden group-hover:block pointer-events-none">
+                                            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-3 border-2 border-gray-300 dark:border-gray-600">
                                                 <img src="${card.imageUrl}" 
                                                      alt="${card.name}" 
-                                                     class="w-48 h-64 object-contain">
+                                                     class="w-64 h-auto max-h-96 object-contain">
+                                                <div class="mt-2 text-center">
+                                                    <div class="font-semibold text-gray-900 dark:text-white">${card.name}</div>
+                                                    <div class="text-sm text-gray-600 dark:text-gray-400">${card.set} - #${card.number}</div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
                                     
-                                    <!-- Información de la carta -->
-                                    <div class="flex-1">
-                                        <div class="font-medium text-gray-900 dark:text-white">${card.name || 'Sin nombre'}</div>
-                                        <div class="text-sm text-gray-600 dark:text-gray-400">
+                                    <!-- Información de la carta (más compacta) -->
+                                    <div class="flex-1 min-w-0">
+                                        <div class="font-medium text-sm text-gray-900 dark:text-white truncate">${card.name || 'Sin nombre'}</div>
+                                        <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
                                             ${card.set || 'Set desconocido'} • #${card.number || 'N/A'} • ${card.language || 'Español'}
                                         </div>
                                     </div>
                                     
                                     <!-- Botón de seleccionar -->
-                                    <button class="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white rounded text-sm font-medium">
-                                        Seleccionar
+                                    <button onclick="selectFromMyCards('${type}', '${card.id}', '${safeCardName}', '${safeImageUrl}', '${safeSet}', '${safeNumber}'); this.closest('.fixed').remove();"
+                                            class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-medium">
+                                        + Añadir
                                     </button>
                                 </div>
                                 `;
