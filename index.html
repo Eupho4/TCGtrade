@@ -2135,7 +2135,7 @@
             
             // Generar HTML para las cartas ofrecidas
             const offeredCardsHTML = trade.offeredCards.map(card => `
-                <div class="bg-white dark:bg-gray-700 rounded-lg p-5 shadow-xl flex flex-col items-center hover:shadow-2xl transition-shadow">
+                <div class="bg-white dark:bg-gray-700 rounded-lg p-5 shadow-xl flex flex-col items-center hover:shadow-2xl transition-shadow w-full max-w-sm">
                     ${card.image ? `
                         <img src="${card.image}" alt="${card.name}" 
                              class="w-full h-64 object-contain mb-3 rounded">
@@ -2159,9 +2159,16 @@
                 </div>
             `).join('');
             
+            // Determinar el grid layout basado en el número de cartas ofrecidas
+            const offeredGridClass = trade.offeredCards.length === 1 
+                ? 'flex justify-center' 
+                : trade.offeredCards.length === 2 
+                    ? 'grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center'
+                    : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center';
+            
             // Generar HTML para las cartas buscadas
             const wantedCardsHTML = trade.wantedCards.map(card => `
-                <div class="bg-white dark:bg-gray-700 rounded-lg p-5 shadow-xl flex flex-col items-center hover:shadow-2xl transition-shadow">
+                <div class="bg-white dark:bg-gray-700 rounded-lg p-5 shadow-xl flex flex-col items-center hover:shadow-2xl transition-shadow w-full max-w-sm">
                     ${card.image ? `
                         <img src="${card.image}" alt="${card.name}" 
                              class="w-full h-64 object-contain mb-3 rounded">
@@ -2184,6 +2191,13 @@
                     </div>
                 </div>
             `).join('');
+            
+            // Determinar el grid layout basado en el número de cartas buscadas
+            const wantedGridClass = trade.wantedCards.length === 1 
+                ? 'flex justify-center' 
+                : trade.wantedCards.length === 2 
+                    ? 'grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center'
+                    : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center';
             
             modal.innerHTML = `
                 <div class="bg-white dark:bg-gray-800 rounded-lg max-w-7xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
@@ -2215,8 +2229,8 @@
                                 <h3 class="text-xl font-bold text-blue-600 dark:text-blue-400 mb-4 text-center">
                                     📤 Cartas Ofrecidas
                                 </h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center">
-                                    ${offeredCardsHTML || '<p class="text-gray-500 text-center col-span-full italic">No hay cartas ofrecidas</p>'}
+                                <div class="${offeredGridClass}">
+                                    ${offeredCardsHTML || '<p class="text-gray-500 text-center italic">No hay cartas ofrecidas</p>'}
                                 </div>
                             </div>
                             
@@ -2232,8 +2246,8 @@
                                 <h3 class="text-xl font-bold text-green-600 dark:text-green-400 mb-4 text-center">
                                     📥 Cartas Buscadas
                                 </h3>
-                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center">
-                                    ${wantedCardsHTML || '<p class="text-gray-500 text-center col-span-full italic">No hay cartas buscadas</p>'}
+                                <div class="${wantedGridClass}">
+                                    ${wantedCardsHTML || '<p class="text-gray-500 text-center italic">No hay cartas buscadas</p>'}
                                 </div>
                             </div>
                         </div>
