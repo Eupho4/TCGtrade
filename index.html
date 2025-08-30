@@ -2135,7 +2135,7 @@
             
             // Generar HTML para las cartas ofrecidas
             const offeredCardsHTML = trade.offeredCards.map(card => `
-                <div class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-lg">
+                <div class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-lg flex flex-col items-center">
                     ${card.image ? `
                         <img src="${card.image}" alt="${card.name}" 
                              class="w-full h-64 object-contain mb-3 rounded">
@@ -2144,15 +2144,15 @@
                             <span class="text-6xl">🎴</span>
                         </div>
                     `}
-                    <h4 class="font-bold text-lg text-gray-900 dark:text-white mb-2">${card.name || 'Sin nombre'}</h4>
-                    <div class="space-y-1 text-sm">
-                        ${card.set ? `<p class="text-gray-600 dark:text-gray-300"><span class="font-semibold">Set:</span> ${card.set}</p>` : ''}
-                        ${card.number ? `<p class="text-gray-600 dark:text-gray-300"><span class="font-semibold">Número:</span> #${card.number}</p>` : ''}
-                        <p class="text-gray-600 dark:text-gray-300">
+                    <h4 class="font-bold text-lg text-gray-900 dark:text-white mb-2 text-center">${card.name || 'Sin nombre'}</h4>
+                    <div class="space-y-1 text-sm w-full">
+                        ${card.set ? `<p class="text-gray-600 dark:text-gray-300 text-center"><span class="font-semibold">Set:</span> ${card.set}</p>` : ''}
+                        ${card.number ? `<p class="text-gray-600 dark:text-gray-300 text-center"><span class="font-semibold">Número:</span> #${card.number}</p>` : ''}
+                        <p class="text-gray-600 dark:text-gray-300 text-center">
                             <span class="font-semibold">Estado:</span> 
                             ${CARD_CONDITIONS[card.condition]?.icon || ''} ${CARD_CONDITIONS[card.condition]?.label || card.condition || 'No especificado'}
                         </p>
-                        <p class="text-gray-600 dark:text-gray-300">
+                        <p class="text-gray-600 dark:text-gray-300 text-center">
                             <span class="font-semibold">Idioma:</span> ${card.language || 'Español'}
                         </p>
                     </div>
@@ -2161,7 +2161,7 @@
             
             // Generar HTML para las cartas buscadas
             const wantedCardsHTML = trade.wantedCards.map(card => `
-                <div class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-lg">
+                <div class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-lg flex flex-col items-center">
                     ${card.image ? `
                         <img src="${card.image}" alt="${card.name}" 
                              class="w-full h-64 object-contain mb-3 rounded">
@@ -2170,15 +2170,15 @@
                             <span class="text-6xl">🎴</span>
                         </div>
                     `}
-                    <h4 class="font-bold text-lg text-gray-900 dark:text-white mb-2">${card.name || 'Sin nombre'}</h4>
-                    <div class="space-y-1 text-sm">
-                        ${card.set ? `<p class="text-gray-600 dark:text-gray-300"><span class="font-semibold">Set:</span> ${card.set}</p>` : ''}
-                        ${card.number ? `<p class="text-gray-600 dark:text-gray-300"><span class="font-semibold">Número:</span> #${card.number}</p>` : ''}
-                        <p class="text-gray-600 dark:text-gray-300">
+                    <h4 class="font-bold text-lg text-gray-900 dark:text-white mb-2 text-center">${card.name || 'Sin nombre'}</h4>
+                    <div class="space-y-1 text-sm w-full">
+                        ${card.set ? `<p class="text-gray-600 dark:text-gray-300 text-center"><span class="font-semibold">Set:</span> ${card.set}</p>` : ''}
+                        ${card.number ? `<p class="text-gray-600 dark:text-gray-300 text-center"><span class="font-semibold">Número:</span> #${card.number}</p>` : ''}
+                        <p class="text-gray-600 dark:text-gray-300 text-center">
                             <span class="font-semibold">Estado:</span> 
                             ${CARD_CONDITIONS[card.condition]?.icon || ''} ${CARD_CONDITIONS[card.condition]?.label || card.condition || 'No especificado'}
                         </p>
-                        <p class="text-gray-600 dark:text-gray-300">
+                        <p class="text-gray-600 dark:text-gray-300 text-center">
                             <span class="font-semibold">Idioma:</span> ${card.language || 'Español'}
                         </p>
                     </div>
@@ -2209,31 +2209,31 @@
                     <!-- Content -->
                     <div class="p-6">
                         <!-- Trade Flow -->
-                        <div class="flex flex-col lg:flex-row items-center justify-center gap-8 mb-8">
+                        <div class="flex flex-col lg:flex-row items-stretch justify-center gap-6 mb-8">
                             <!-- Offered Cards -->
-                            <div class="flex-1 w-full">
-                                <h3 class="text-lg font-bold text-blue-600 dark:text-blue-400 mb-4 text-center">
-                                    📤 Ofrece
+                            <div class="flex-1 w-full max-w-2xl mx-auto">
+                                <h3 class="text-xl font-bold text-blue-600 dark:text-blue-400 mb-4 text-center">
+                                    📤 Cartas Ofrecidas
                                 </h3>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    ${offeredCardsHTML || '<p class="text-gray-500 text-center col-span-2">No hay cartas ofrecidas</p>'}
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center">
+                                    ${offeredCardsHTML || '<p class="text-gray-500 text-center col-span-full italic">No hay cartas ofrecidas</p>'}
                                 </div>
                             </div>
                             
                             <!-- Arrow -->
-                            <div class="flex items-center justify-center">
-                                <div class="text-6xl text-orange-500 animate-pulse">
+                            <div class="flex items-center justify-center px-4">
+                                <div class="text-5xl lg:text-6xl text-orange-500 animate-pulse">
                                     ⇄
                                 </div>
                             </div>
                             
                             <!-- Wanted Cards -->
-                            <div class="flex-1 w-full">
-                                <h3 class="text-lg font-bold text-green-600 dark:text-green-400 mb-4 text-center">
-                                    📥 Busca
+                            <div class="flex-1 w-full max-w-2xl mx-auto">
+                                <h3 class="text-xl font-bold text-green-600 dark:text-green-400 mb-4 text-center">
+                                    📥 Cartas Buscadas
                                 </h3>
-                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    ${wantedCardsHTML || '<p class="text-gray-500 text-center col-span-2">No hay cartas buscadas</p>'}
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center">
+                                    ${wantedCardsHTML || '<p class="text-gray-500 text-center col-span-full italic">No hay cartas buscadas</p>'}
                                 </div>
                             </div>
                         </div>
