@@ -1204,8 +1204,15 @@
                 const nameInput = cardElement.querySelector(`input[name="${type}_name_${cardIndex}"]`);
                 if (nameInput) {
                     nameInput.value = cardName;
-                    // NO bloquear el input - el usuario puede editarlo si quiere
-                    console.log('✅ Nombre establecido en selectCardForTrade:', cardName);
+                    // Bloquear el input para indicar que esta carta está confirmada
+                    nameInput.readOnly = true;
+                    nameInput.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                    console.log('✅ Nombre establecido y bloqueado en selectCardForTrade:', cardName);
+                    
+                    // Automáticamente añadir una nueva fila vacía
+                    setTimeout(() => {
+                        addCardToTrade(type);
+                    }, 100);
                 } else {
                     console.error('❌ No se encontró el input de nombre');
                 }
@@ -1288,7 +1295,16 @@
             const cardElement = container.querySelectorAll('.trade-card')[cardIndex];
             if (!cardElement) return;
             
-            // Limpiar campos ocultos (pero mantener el nombre si el usuario lo quiere)
+            // Limpiar el input de nombre y desbloquearlo
+            const nameInput = cardElement.querySelector(`input[name="${type}_name_${cardIndex}"]`);
+            if (nameInput) {
+                nameInput.value = '';
+                nameInput.readOnly = false;
+                nameInput.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                nameInput.focus();
+            }
+            
+            // Limpiar campos ocultos
             const idInput = cardElement.querySelector(`input[name="${type}_id_${cardIndex}"]`);
             const imageInput = cardElement.querySelector(`input[name="${type}_image_${cardIndex}"]`);
             const setInput = cardElement.querySelector(`input[name="${type}_set_${cardIndex}"]`);
@@ -1304,14 +1320,68 @@
             if (thumbnailContainer) {
                 thumbnailContainer.remove();
                 // Restaurar el padding del input
-                const nameInput = cardElement.querySelector('.card-name-input');
-                if (nameInput) {
-                    nameInput.style.paddingRight = '';
+                const nameInput2 = cardElement.querySelector('.card-name-input');
+                if (nameInput2) {
+                    nameInput2.style.paddingRight = '';
                 }
             }
             
             // Actualizar título generado
             updateGeneratedTitle();
+        };
+        
+        // Función para manejar Enter en el input de carta
+        window.handleCardInputKeypress = function(event, type, cardIndex) {
+            if (event.key === 'Enter') {
+                event.preventDefault();
+                const input = event.target;
+                
+                // Si hay texto en el input, bloquear y añadir nueva fila
+                if (input.value.trim() && !input.readOnly) {
+                    // Bloquear el input actual
+                    input.readOnly = true;
+                    input.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                    
+                    // Añadir nueva fila vacía
+                    addCardToTrade(type);
+                    
+                    // Enfocar la nueva fila
+                    setTimeout(() => {
+                        const containerId = type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer';
+                        const container = document.getElementById(containerId);
+                        const newCards = container.querySelectorAll('.trade-card');
+                        const lastCard = newCards[newCards.length - 1];
+                        const newInput = lastCard?.querySelector('.card-name-input');
+                        if (newInput) {
+                            newInput.focus();
+                        }
+                    }, 100);
+                }
+            }
+        };
+        
+        // Función para manejar cuando el input pierde el foco
+        window.handleCardInputBlur = function(input, type, cardIndex) {
+            // Si hay texto y no está bloqueado, y no hay una siguiente fila vacía, añadir una
+            if (input.value.trim() && !input.readOnly) {
+                const containerId = type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer';
+                const container = document.getElementById(containerId);
+                const cards = container.querySelectorAll('.trade-card');
+                
+                // Verificar si esta es la última carta
+                const isLastCard = cardIndex === cards.length - 1;
+                
+                if (isLastCard) {
+                    // Bloquear el input actual
+                    input.readOnly = true;
+                    input.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                    
+                    // Añadir nueva fila vacía
+                    setTimeout(() => {
+                        addCardToTrade(type);
+                    }, 100);
+                }
+            }
         };
         
         // Función para añadir cartas desde "Mis Cartas"
@@ -1481,9 +1551,6 @@
         window.selectFromMyCards = function(type, cardId, cardName, cardImage, setName, cardNumber, language = 'Español', condition = 'NM') {
             console.log('📋 selectFromMyCards llamada con:', { type, cardId, cardName, cardImage, setName, cardNumber, language, condition });
             
-            // Añadir nueva carta al formulario
-            addCardToTrade(type);
-            
             // Obtener el contenedor correcto
             const containerId = type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer';
             const container = document.getElementById(containerId);
@@ -1494,19 +1561,38 @@
             }
             
             const cards = container.querySelectorAll('.trade-card');
-            const lastCardIndex = cards.length - 1;
-            const cardElement = cards[lastCardIndex];
+            
+            // Buscar la primera fila vacía
+            let targetCardIndex = -1;
+            let cardElement = null;
+            
+            for (let i = 0; i < cards.length; i++) {
+                const nameInput = cards[i].querySelector(`input[name="${type}_name_${i}"]`);
+                if (nameInput && !nameInput.value && !nameInput.readOnly) {
+                    targetCardIndex = i;
+                    cardElement = cards[i];
+                    break;
+                }
+            }
+            
+            // Si no hay filas vacías, añadir una nueva
+            if (targetCardIndex === -1) {
+                addCardToTrade(type);
+                const newCards = container.querySelectorAll('.trade-card');
+                targetCardIndex = newCards.length - 1;
+                cardElement = newCards[targetCardIndex];
+            }
             
             if (!cardElement) {
-                console.error('❌ No se encontró el elemento de carta en índice:', lastCardIndex);
+                console.error('❌ No se encontró el elemento de carta');
                 return;
             }
             
             // Rellenar los datos de la carta seleccionada
-            selectCardForTrade(type, lastCardIndex, cardId, cardName, cardImage, setName, cardNumber);
+            selectCardForTrade(type, targetCardIndex, cardId, cardName, cardImage, setName, cardNumber);
             
             // Establecer el idioma de la carta
-            const languageSelect = cardElement.querySelector(`select[name="${type}_language_${lastCardIndex}"]`);
+            const languageSelect = cardElement.querySelector(`select[name="${type}_language_${targetCardIndex}"]`);
             if (languageSelect) {
                 console.log('✅ Selector de idioma encontrado, estableciendo:', language);
                 // Buscar la opción que coincida con el idioma
@@ -1523,7 +1609,7 @@
             }
             
             // Establecer la condición de la carta
-            const conditionSelect = cardElement.querySelector(`select[name="${type}_condition_${lastCardIndex}"]`);
+            const conditionSelect = cardElement.querySelector(`select[name="${type}_condition_${targetCardIndex}"]`);
             if (conditionSelect) {
                 console.log('✅ Selector de condición encontrado, estableciendo:', condition);
                 conditionSelect.value = condition;
@@ -1532,7 +1618,7 @@
             }
             
             // Verificar que el nombre se haya establecido correctamente
-            const nameInput = cardElement.querySelector(`input[name="${type}_name_${lastCardIndex}"]`);
+            const nameInput = cardElement.querySelector(`input[name="${type}_name_${targetCardIndex}"]`);
             if (nameInput) {
                 console.log('✅ Nombre establecido:', nameInput.value);
             } else {
@@ -2292,6 +2378,8 @@
                                    value=""
                                    class="card-name-input w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-400"
                                    oninput="searchCardForTrade(this, '${type}', ${cardIndex})"
+                                   onkeypress="handleCardInputKeypress(event, '${type}', ${cardIndex})"
+                                   onblur="handleCardInputBlur(this, '${type}', ${cardIndex})"
                                    title="Buscar carta en la base de datos">
                             <input type="hidden" name="${type}_id_${cardIndex}" value="">
                             <input type="hidden" name="${type}_image_${cardIndex}" value="">
