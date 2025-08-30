@@ -1115,13 +1115,28 @@
         
         // Función para seleccionar una carta del autocompletado
         window.selectCardForTrade = function(type, cardIndex, cardId, cardName, cardImage, setName, cardNumber) {
-            const container = document.querySelector(`#${type}Cards`);
+            // Usar el ID correcto del contenedor
+            const containerId = type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer';
+            const container = document.getElementById(containerId);
+            
+            if (!container) {
+                console.error('❌ selectCardForTrade: No se encontró el contenedor:', containerId);
+                return;
+            }
+            
             const cardElement = container.querySelectorAll('.trade-card')[cardIndex];
             
             if (cardElement) {
+                console.log('✅ Elemento de carta encontrado en índice:', cardIndex);
+                
                 // Actualizar el input visible
                 const nameInput = cardElement.querySelector(`input[name="${type}_name_${cardIndex}"]`);
-                nameInput.value = cardName;
+                if (nameInput) {
+                    nameInput.value = cardName;
+                    console.log('✅ Nombre establecido en selectCardForTrade:', cardName);
+                } else {
+                    console.error('❌ No se encontró el input de nombre');
+                }
                 
                 // Actualizar los campos ocultos
                 const idInput = cardElement.querySelector(`input[name="${type}_id_${cardIndex}"]`);
@@ -1134,10 +1149,12 @@
                 if (setInput) setInput.value = setName;
                 if (numberInput) numberInput.value = cardNumber;
                 
-                // Ocultar resultados
-                const resultsContainer = nameInput.parentElement.nextElementSibling;
-                resultsContainer.classList.add('hidden');
-                resultsContainer.innerHTML = '';
+                // Ocultar resultados (solo si existe nameInput)
+                if (nameInput && nameInput.parentElement && nameInput.parentElement.nextElementSibling) {
+                    const resultsContainer = nameInput.parentElement.nextElementSibling;
+                    resultsContainer.classList.add('hidden');
+                    resultsContainer.innerHTML = '';
+                }
                 
                 // Mostrar miniatura de la carta seleccionada
                 showCardThumbnail(cardElement, cardImage, cardName);
