@@ -1176,8 +1176,10 @@
             }
             
             thumbnailContainer.innerHTML = `
-                <div class="p-2 bg-gray-50 dark:bg-gray-700 rounded inline-block">
-                    <img src="${imageUrl}" alt="${cardName}" class="w-12 h-16 object-contain">
+                <div class="flex justify-center">
+                    <div class="p-2 bg-gray-50 dark:bg-gray-700 rounded inline-block">
+                        <img src="${imageUrl}" alt="${cardName}" class="w-12 h-16 object-contain">
+                    </div>
                 </div>
             `;
         }
