@@ -2950,7 +2950,7 @@
                 const timeoutId = setTimeout(() => {
                     console.log('⏰ Timeout alcanzado, abortando petición...');
                     controller.abort();
-                }, 30000); // Reducido a 30s
+                }, 60000); // Aumentado a 60s para dar más tiempo al API
 
                 let response;
                 try {
@@ -3084,7 +3084,7 @@
                         const retryTimeoutId = setTimeout(() => {
                             console.log('⏰ Retry timeout alcanzado');
                             retryController.abort();
-                        }, 10000); // 10 segundos para retry
+                        }, 30000); // 30 segundos para retry
                         
                         let retryResponse;
                         try {
@@ -3167,23 +3167,42 @@
                     }
                 }
 
-                let errorMsg = 'Error al buscar cartas. ';
+                let errorMsg = '';
+                let suggestions = '';
                 
                 if (error.name === 'AbortError' || error.message === 'TIMEOUT') {
-                    errorMsg += 'La API de Pokemon TCG está experimentando problemas de conectividad.';
+                    errorMsg = '⏰ La búsqueda está tardando demasiado tiempo.';
+                    suggestions = `
+                        <div class="mt-2 text-sm">
+                            <strong>Sugerencias:</strong>
+                            <ul class="list-disc list-inside mt-1 text-gray-600 dark:text-gray-400">
+                                <li>Intenta con un nombre más corto o específico</li>
+                                <li>Busca solo una palabra (ej: "Pikachu" en vez de "Pikachu VMAX")</li>
+                                <li>Espera unos segundos antes de reintentar</li>
+                            </ul>
+                        </div>
+                    `;
                 } else if (error.message.includes('Failed to fetch')) {
-                    errorMsg += 'Problema de conexión con la API de Pokemon TCG.';
+                    errorMsg = '🌐 Problema de conexión con el servidor.';
+                    suggestions = '<small class="text-gray-600 dark:text-gray-400">Verifica tu conexión a internet.</small>';
                 } else if (error.message.includes('504')) {
-                    errorMsg += 'La API de Pokemon TCG no está respondiendo.';
+                    errorMsg = '⚠️ El servidor de Pokémon TCG no responde.';
+                    suggestions = '<small class="text-gray-600 dark:text-gray-400">El servicio puede estar sobrecargado. Intenta más tarde.</small>';
                 } else {
-                    errorMsg += 'Las APIs pueden estar experimentando problemas temporales.';
+                    errorMsg = '❌ Error al buscar cartas.';
+                    suggestions = '<small class="text-gray-600 dark:text-gray-400">Intenta de nuevo en unos momentos.</small>';
                 }
 
                 if (errorMessage) {
                     errorMessage.innerHTML = `
-                        ❌ ${errorMsg}<br>
-                        <small class="text-gray-500">🔧 Las APIs de Pokemon TCG están experimentando problemas técnicos.</small><br>
-                        <small class="text-blue-600">💡 Esto es temporal - intenta de nuevo en unos minutos.</small>
+                        <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+                            <div class="text-yellow-800 dark:text-yellow-200 font-semibold">${errorMsg}</div>
+                            ${suggestions}
+                            <button onclick="fetchCards('${query}')" 
+                                    class="mt-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors">
+                                🔄 Reintentar Búsqueda
+                            </button>
+                        </div>
                     `;
                     errorMessage.classList.remove('hidden');
                 }
