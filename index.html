@@ -1260,10 +1260,12 @@
                     <button type="button" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
                         <span class="text-xl">🖼️</span>
                     </button>
-                    <!-- Preview on hover -->
-                    <div class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000] hidden group-hover:block pointer-events-none">
-                        <img src="${imageUrl}" alt="${cardName}" 
-                             class="w-80 h-auto shadow-2xl rounded-lg">
+                    <!-- Preview on hover - Tamaño grande y centrado -->
+                    <div class="fixed inset-0 z-[10000] hidden group-hover:flex items-center justify-center pointer-events-none">
+                        <div class="relative">
+                            <img src="${imageUrl}" alt="${cardName}" 
+                                 class="max-w-[400px] max-h-[560px] w-auto h-auto shadow-2xl rounded-lg border-2 border-white dark:border-gray-700">
+                        </div>
                     </div>
                 </div>
             `;
