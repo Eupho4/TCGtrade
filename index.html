@@ -1245,19 +1245,26 @@
             let thumbnailContainer = cardElement.querySelector('.card-thumbnail-inline');
             
             if (!thumbnailContainer) {
-                // Crear contenedor inline para la miniatura a la izquierda
+                // Crear contenedor inline para el icono con hover
                 thumbnailContainer = document.createElement('div');
-                thumbnailContainer.className = 'card-thumbnail-inline absolute left-2 top-1/2 -translate-y-1/2 z-10';
+                thumbnailContainer.className = 'card-thumbnail-inline absolute right-2 top-1/2 -translate-y-1/2 z-10';
                 nameInput.parentElement.style.position = 'relative';
                 nameInput.parentElement.appendChild(thumbnailContainer);
                 
-                // Ajustar padding del input para hacer espacio a la miniatura (izquierda ahora)
-                nameInput.style.paddingLeft = '3.5rem';
+                // Ajustar padding del input para hacer espacio al icono
+                nameInput.style.paddingRight = '2.5rem';
             }
             
             thumbnailContainer.innerHTML = `
-                <div class="w-10 h-12 bg-gray-100 dark:bg-gray-600 rounded overflow-hidden border border-gray-300 dark:border-gray-500 shadow-sm">
-                    <img src="${imageUrl}" alt="${cardName}" class="w-full h-full object-contain">
+                <div class="relative group">
+                    <button type="button" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+                        <span class="text-xl">🖼️</span>
+                    </button>
+                    <!-- Preview on hover -->
+                    <div class="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000] hidden group-hover:block pointer-events-none">
+                        <img src="${imageUrl}" alt="${cardName}" 
+                             class="w-80 h-auto shadow-2xl rounded-lg">
+                    </div>
                 </div>
             `;
         }
