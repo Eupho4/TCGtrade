@@ -2135,7 +2135,7 @@
             
             // Generar HTML para las cartas ofrecidas
             const offeredCardsHTML = trade.offeredCards.map(card => `
-                <div class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-lg flex flex-col items-center">
+                <div class="bg-white dark:bg-gray-700 rounded-lg p-5 shadow-xl flex flex-col items-center hover:shadow-2xl transition-shadow">
                     ${card.image ? `
                         <img src="${card.image}" alt="${card.name}" 
                              class="w-full h-64 object-contain mb-3 rounded">
@@ -2161,7 +2161,7 @@
             
             // Generar HTML para las cartas buscadas
             const wantedCardsHTML = trade.wantedCards.map(card => `
-                <div class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-lg flex flex-col items-center">
+                <div class="bg-white dark:bg-gray-700 rounded-lg p-5 shadow-xl flex flex-col items-center hover:shadow-2xl transition-shadow">
                     ${card.image ? `
                         <img src="${card.image}" alt="${card.name}" 
                              class="w-full h-64 object-contain mb-3 rounded">
