@@ -1204,7 +1204,10 @@
                 const nameInput = cardElement.querySelector(`input[name="${type}_name_${cardIndex}"]`);
                 if (nameInput) {
                     nameInput.value = cardName;
-                    console.log('✅ Nombre establecido en selectCardForTrade:', cardName);
+                    // Deshabilitar el input para indicar que la carta está seleccionada
+                    nameInput.readOnly = true;
+                    nameInput.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                    console.log('✅ Nombre establecido y bloqueado en selectCardForTrade:', cardName);
                 } else {
                     console.error('❌ No se encontró el input de nombre');
                 }
@@ -1255,9 +1258,16 @@
                 nameInput.style.paddingRight = '2.5rem';
             }
             
+            // Obtener el índice de la carta
+            const cardIndex = Array.from(cardElement.parentElement.children).indexOf(cardElement);
+            const type = cardElement.closest('#offeredCardsContainer') ? 'offered' : 'wanted';
+            
             thumbnailContainer.innerHTML = `
                 <div class="relative group">
-                    <button type="button" class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors">
+                    <button type="button" 
+                            class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
+                            title="Ver carta / Cambiar selección"
+                            onclick="event.stopPropagation(); clearCardSelection('${type}', ${cardIndex});">
                         <span class="text-xl">🖼️</span>
                     </button>
                     <!-- Preview on hover - Tamaño grande y centrado -->
@@ -1270,6 +1280,45 @@
                 </div>
             `;
         }
+        
+        // Función para limpiar la selección de una carta y permitir buscar otra
+        window.clearCardSelection = function(type, cardIndex) {
+            const containerId = type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer';
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            
+            const cardElement = container.querySelectorAll('.trade-card')[cardIndex];
+            if (!cardElement) return;
+            
+            // Limpiar el input de nombre y habilitarlo
+            const nameInput = cardElement.querySelector(`input[name="${type}_name_${cardIndex}"]`);
+            if (nameInput) {
+                nameInput.value = '';
+                nameInput.readOnly = false;
+                nameInput.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                nameInput.focus();
+            }
+            
+            // Limpiar campos ocultos
+            const idInput = cardElement.querySelector(`input[name="${type}_id_${cardIndex}"]`);
+            const imageInput = cardElement.querySelector(`input[name="${type}_image_${cardIndex}"]`);
+            const setInput = cardElement.querySelector(`input[name="${type}_set_${cardIndex}"]`);
+            const numberInput = cardElement.querySelector(`input[name="${type}_number_${cardIndex}"]`);
+            
+            if (idInput) idInput.value = '';
+            if (imageInput) imageInput.value = '';
+            if (setInput) setInput.value = '';
+            if (numberInput) numberInput.value = '';
+            
+            // Quitar el icono de miniatura
+            const thumbnailContainer = cardElement.querySelector('.card-thumbnail-inline');
+            if (thumbnailContainer) {
+                thumbnailContainer.remove();
+            }
+            
+            // Actualizar título generado
+            updateGeneratedTitle();
+        };
         
         // Función para añadir cartas desde "Mis Cartas"
         window.addFromMyCards = async function(type) {
