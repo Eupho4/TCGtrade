@@ -1273,12 +1273,12 @@
                                     <div class="flex-1 min-w-0">
                                         <div class="font-medium text-sm text-gray-900 dark:text-white truncate">${card.name || 'Sin nombre'}</div>
                                         <div class="text-xs text-gray-500 dark:text-gray-400 truncate">
-                                            ${card.set || 'Set desconocido'} • #${card.number || 'N/A'} • ${card.language || 'Español'}
+                                            ${card.set || 'Set desconocido'} • #${card.number || 'N/A'} • ${card.language || 'Español'} ${card.condition ? `• ${CARD_CONDITIONS[card.condition]?.icon || ''} ${card.condition}` : ''}
                                         </div>
                                     </div>
                                     
                                     <!-- Botón de seleccionar -->
-                                    <button onclick="selectFromMyCards('${type}', '${card.id}', '${safeCardName}', '${safeImageUrl}', '${safeSet}', '${safeNumber}', '${card.language || 'Español'}'); this.closest('.fixed').remove();"
+                                    <button onclick="selectFromMyCards('${type}', '${card.id}', '${safeCardName}', '${safeImageUrl}', '${safeSet}', '${safeNumber}', '${card.language || 'Español'}', '${card.condition || 'NM'}'); this.closest('.fixed').remove();"
                                             class="px-2 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-xs font-medium">
                                         + Añadir
                                     </button>
@@ -1330,7 +1330,7 @@
         };
         
         // Función para seleccionar carta desde "Mis Cartas"
-        window.selectFromMyCards = function(type, cardId, cardName, cardImage, setName, cardNumber, language = 'Español') {
+        window.selectFromMyCards = function(type, cardId, cardName, cardImage, setName, cardNumber, language = 'Español', condition = 'NM') {
             // Añadir nueva carta al formulario
             addCardToTrade(type);
             
@@ -1356,10 +1356,10 @@
                 }
             }
             
-            // Por defecto establecer condición como NM (Near Mint) ya que no se guarda en la colección
+            // Establecer la condición de la carta
             const conditionSelect = cardElement.querySelector(`select[name="${type}_condition_${lastCardIndex}"]`);
             if (conditionSelect) {
-                conditionSelect.value = 'NM';
+                conditionSelect.value = condition;
             }
         };
         
@@ -4410,15 +4410,55 @@
         window.showAddCardModal = (cardId, cardName, imageUrl, setName, series, number) => {
             return new Promise((resolve) => {
                 const modal = document.createElement('div');
-                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
                 modal.innerHTML = `
-                    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
-                        <div class="text-center mb-6">
-                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Añadir a Colección</h3>
-                            <p class="text-gray-700 dark:text-gray-300">
-                                ¿Quieres añadir "<strong>${cardName}</strong>" a tu colección?
-                            </p>
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-lg w-full shadow-xl">
+                        <div class="mb-6">
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4 text-center">Añadir a Colección</h3>
+                            
+                            <!-- Vista previa de la carta -->
+                            <div class="flex gap-4 mb-4">
+                                <img src="${imageUrl}" alt="${cardName}" class="w-24 h-32 object-contain rounded">
+                                <div class="flex-1">
+                                    <p class="font-semibold text-gray-900 dark:text-white">${cardName}</p>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400">${setName} • #${number}</p>
+                                </div>
+                            </div>
+                            
+                            <!-- Selector de condición -->
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Condición de la carta
+                                </label>
+                                <select id="cardConditionSelect" 
+                                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-400">
+                                    ${Object.values(CARD_CONDITIONS).map(condition => 
+                                        `<option value="${condition.code}" ${condition.code === 'NM' ? 'selected' : ''}>
+                                            ${condition.icon} ${condition.code} - ${condition.name}
+                                        </option>`
+                                    ).join('')}
+                                </select>
+                            </div>
+                            
+                            <!-- Selector de idioma -->
+                            <div class="mb-4">
+                                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                    Idioma de la carta
+                                </label>
+                                <select id="cardLanguageSelect" 
+                                        class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-400">
+                                    <option value="Español" selected>🇪🇸 Español</option>
+                                    <option value="Inglés">🇺🇸 Inglés</option>
+                                    <option value="Francés">🇫🇷 Francés</option>
+                                    <option value="Italiano">🇮🇹 Italiano</option>
+                                    <option value="Alemán">🇩🇪 Alemán</option>
+                                    <option value="Portugués">🇵🇹 Portugués</option>
+                                    <option value="Japonés">🇯🇵 Japonés</option>
+                                    <option value="Otro">🌍 Otro</option>
+                                </select>
+                            </div>
                         </div>
+                        
                         <div class="flex gap-3 justify-end">
                             <button id="cancelAddCard" 
                                     class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg transition-colors">
@@ -4426,7 +4466,7 @@
                             </button>
                             <button id="confirmAddCard" 
                                     class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors">
-                                Añadir
+                                Añadir a Colección
                             </button>
                         </div>
                     </div>
@@ -4437,22 +4477,26 @@
                 // Event listeners
                 const cancelBtn = modal.querySelector('#cancelAddCard');
                 const confirmBtn = modal.querySelector('#confirmAddCard');
+                const conditionSelect = modal.querySelector('#cardConditionSelect');
+                const languageSelect = modal.querySelector('#cardLanguageSelect');
                 
                 cancelBtn.addEventListener('click', () => {
                     modal.remove();
-                    resolve(false);
+                    resolve(null);
                 });
                 
                 confirmBtn.addEventListener('click', () => {
+                    const selectedCondition = conditionSelect.value;
+                    const selectedLanguage = languageSelect.value;
                     modal.remove();
-                    resolve(true);
+                    resolve({ condition: selectedCondition, language: selectedLanguage });
                 });
                 
                 // Cerrar con ESC o click fuera
                 modal.addEventListener('click', (e) => {
                     if (e.target === modal) {
                         modal.remove();
-                        resolve(false);
+                        resolve(null);
                     }
                 });
                 
@@ -4460,7 +4504,7 @@
                     if (e.key === 'Escape') {
                         modal.remove();
                         document.removeEventListener('keydown', escHandler);
-                        resolve(false);
+                        resolve(null);
                     }
                 });
             });
@@ -4474,10 +4518,10 @@
                 return;
             }
 
-            const confirmed = await showAddCardModal(cardId, cardName, imageUrl, setName, series, number);
+            const result = await showAddCardModal(cardId, cardName, imageUrl, setName, series, number);
             
-            if (confirmed) {
-                addCardToCollection(cardId, cardName, imageUrl, setName, series, number);
+            if (result) {
+                addCardToCollection(cardId, cardName, imageUrl, setName, series, number, result.condition, result.language);
                 if (typeof loadUserCollection === 'function') {
                     loadUserCollection();
                 }
@@ -4491,13 +4535,10 @@
         window.showCardDetails = window.addCardDirectly;
 
         // Función para añadir carta a la colección
-        async function addCardToCollection(cardId, cardName, imageUrl, setName, series, number) {
+        async function addCardToCollection(cardId, cardName, imageUrl, setName, series, number, condition = 'NM', language = 'Español') {
             if (!currentUser) return;
 
             try {
-                // Pedir idioma al usuario
-                const language = prompt('¿En qué idioma es esta carta?', 'Español') || 'Español';
-
                 const cardData = {
                     id: cardId,
                     name: cardName,
@@ -4505,6 +4546,7 @@
                     set: setName,
                     series: series,
                     number: number,
+                    condition: condition,
                     language: language,
                     setId: cardId.split('-')[0], // Extraer setId del cardId
                     addedAt: new Date()
