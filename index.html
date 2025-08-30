@@ -2105,7 +2105,171 @@
 
         function viewTradeDetails(tradeId) {
             console.log('👁️ Viendo detalles del intercambio:', tradeId);
-            alert('Función de detalles en desarrollo');
+            
+            // Buscar el intercambio
+            const trade = findTradeById(tradeId);
+            if (!trade) {
+                showNotification('No se encontró el intercambio', 'error');
+                return;
+            }
+            
+            // Crear modal de detalles
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            
+            // Generar HTML para las cartas ofrecidas
+            const offeredCardsHTML = trade.offeredCards.map(card => `
+                <div class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-lg">
+                    ${card.image ? `
+                        <img src="${card.image}" alt="${card.name}" 
+                             class="w-full h-64 object-contain mb-3 rounded">
+                    ` : `
+                        <div class="w-full h-64 bg-gray-200 dark:bg-gray-600 rounded mb-3 flex items-center justify-center">
+                            <span class="text-6xl">🎴</span>
+                        </div>
+                    `}
+                    <h4 class="font-bold text-lg text-gray-900 dark:text-white mb-2">${card.name || 'Sin nombre'}</h4>
+                    <div class="space-y-1 text-sm">
+                        ${card.set ? `<p class="text-gray-600 dark:text-gray-300"><span class="font-semibold">Set:</span> ${card.set}</p>` : ''}
+                        ${card.number ? `<p class="text-gray-600 dark:text-gray-300"><span class="font-semibold">Número:</span> #${card.number}</p>` : ''}
+                        <p class="text-gray-600 dark:text-gray-300">
+                            <span class="font-semibold">Estado:</span> 
+                            ${CARD_CONDITIONS[card.condition]?.icon || ''} ${CARD_CONDITIONS[card.condition]?.label || card.condition || 'No especificado'}
+                        </p>
+                        <p class="text-gray-600 dark:text-gray-300">
+                            <span class="font-semibold">Idioma:</span> ${card.language || 'Español'}
+                        </p>
+                    </div>
+                </div>
+            `).join('');
+            
+            // Generar HTML para las cartas buscadas
+            const wantedCardsHTML = trade.wantedCards.map(card => `
+                <div class="bg-white dark:bg-gray-700 rounded-lg p-4 shadow-lg">
+                    ${card.image ? `
+                        <img src="${card.image}" alt="${card.name}" 
+                             class="w-full h-64 object-contain mb-3 rounded">
+                    ` : `
+                        <div class="w-full h-64 bg-gray-200 dark:bg-gray-600 rounded mb-3 flex items-center justify-center">
+                            <span class="text-6xl">🎴</span>
+                        </div>
+                    `}
+                    <h4 class="font-bold text-lg text-gray-900 dark:text-white mb-2">${card.name || 'Sin nombre'}</h4>
+                    <div class="space-y-1 text-sm">
+                        ${card.set ? `<p class="text-gray-600 dark:text-gray-300"><span class="font-semibold">Set:</span> ${card.set}</p>` : ''}
+                        ${card.number ? `<p class="text-gray-600 dark:text-gray-300"><span class="font-semibold">Número:</span> #${card.number}</p>` : ''}
+                        <p class="text-gray-600 dark:text-gray-300">
+                            <span class="font-semibold">Estado:</span> 
+                            ${CARD_CONDITIONS[card.condition]?.icon || ''} ${CARD_CONDITIONS[card.condition]?.label || card.condition || 'No especificado'}
+                        </p>
+                        <p class="text-gray-600 dark:text-gray-300">
+                            <span class="font-semibold">Idioma:</span> ${card.language || 'Español'}
+                        </p>
+                    </div>
+                </div>
+            `).join('');
+            
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 rounded-lg max-w-7xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
+                    <!-- Header -->
+                    <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 z-10">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                                    🔄 ${trade.title || 'Intercambio sin título'}
+                                </h2>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">
+                                    Creado por: <span class="font-semibold">${trade.userName || 'Usuario'}</span> • 
+                                    ${trade.createdAt ? new Date(trade.createdAt).toLocaleDateString('es-ES') : 'Fecha desconocida'}
+                                </p>
+                            </div>
+                            <button onclick="this.closest('.fixed').remove()" 
+                                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-3xl">
+                                &times;
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="p-6">
+                        <!-- Trade Flow -->
+                        <div class="flex flex-col lg:flex-row items-center justify-center gap-8 mb-8">
+                            <!-- Offered Cards -->
+                            <div class="flex-1 w-full">
+                                <h3 class="text-lg font-bold text-blue-600 dark:text-blue-400 mb-4 text-center">
+                                    📤 Ofrece
+                                </h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    ${offeredCardsHTML || '<p class="text-gray-500 text-center col-span-2">No hay cartas ofrecidas</p>'}
+                                </div>
+                            </div>
+                            
+                            <!-- Arrow -->
+                            <div class="flex items-center justify-center">
+                                <div class="text-6xl text-orange-500 animate-pulse">
+                                    ⇄
+                                </div>
+                            </div>
+                            
+                            <!-- Wanted Cards -->
+                            <div class="flex-1 w-full">
+                                <h3 class="text-lg font-bold text-green-600 dark:text-green-400 mb-4 text-center">
+                                    📥 Busca
+                                </h3>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    ${wantedCardsHTML || '<p class="text-gray-500 text-center col-span-2">No hay cartas buscadas</p>'}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Description -->
+                        ${trade.description ? `
+                            <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-6">
+                                <h3 class="font-bold text-gray-900 dark:text-white mb-2">📝 Descripción</h3>
+                                <p class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">${trade.description}</p>
+                            </div>
+                        ` : ''}
+                        
+                        <!-- Action Buttons -->
+                        <div class="flex gap-3 justify-center">
+                            ${currentUser && trade.userId !== currentUser.uid ? `
+                                <button onclick="proposeTrade('${tradeId}')" 
+                                        class="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors">
+                                    <span>💬</span> Proponer Intercambio
+                                </button>
+                                <button onclick="contactUser('${trade.userId}')" 
+                                        class="bg-blue-500 hover:bg-blue-600 text-white px-6 py-3 rounded-lg font-semibold flex items-center gap-2 transition-colors">
+                                    <span>📧</span> Contactar
+                                </button>
+                            ` : ''}
+                            <button onclick="this.closest('.fixed').remove()" 
+                                    class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                                Cerrar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Cerrar con ESC o click fuera
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
+            
+            document.addEventListener('keydown', function escHandler(e) {
+                if (e.key === 'Escape') {
+                    modal.remove();
+                    document.removeEventListener('keydown', escHandler);
+                }
+            });
+        }
+        
+        // Función para contactar con un usuario
+        function contactUser(userId) {
+            console.log('📧 Contactando con usuario:', userId);
+            showNotification('Función de contacto en desarrollo', 'info');
         }
 
         // Función para mostrar modal de crear intercambio
