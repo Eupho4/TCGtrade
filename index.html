@@ -1204,10 +1204,8 @@
                 const nameInput = cardElement.querySelector(`input[name="${type}_name_${cardIndex}"]`);
                 if (nameInput) {
                     nameInput.value = cardName;
-                    // Deshabilitar el input para indicar que la carta está seleccionada
-                    nameInput.readOnly = true;
-                    nameInput.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
-                    console.log('✅ Nombre establecido y bloqueado en selectCardForTrade:', cardName);
+                    // NO bloquear el input - el usuario puede editarlo si quiere
+                    console.log('✅ Nombre establecido en selectCardForTrade:', cardName);
                 } else {
                     console.error('❌ No se encontró el input de nombre');
                 }
@@ -1281,7 +1279,7 @@
             `;
         }
         
-        // Función para limpiar la selección de una carta y permitir buscar otra
+        // Función para limpiar la selección de una carta
         window.clearCardSelection = function(type, cardIndex) {
             const containerId = type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer';
             const container = document.getElementById(containerId);
@@ -1290,16 +1288,7 @@
             const cardElement = container.querySelectorAll('.trade-card')[cardIndex];
             if (!cardElement) return;
             
-            // Limpiar el input de nombre y habilitarlo
-            const nameInput = cardElement.querySelector(`input[name="${type}_name_${cardIndex}"]`);
-            if (nameInput) {
-                nameInput.value = '';
-                nameInput.readOnly = false;
-                nameInput.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
-                nameInput.focus();
-            }
-            
-            // Limpiar campos ocultos
+            // Limpiar campos ocultos (pero mantener el nombre si el usuario lo quiere)
             const idInput = cardElement.querySelector(`input[name="${type}_id_${cardIndex}"]`);
             const imageInput = cardElement.querySelector(`input[name="${type}_image_${cardIndex}"]`);
             const setInput = cardElement.querySelector(`input[name="${type}_set_${cardIndex}"]`);
@@ -1314,6 +1303,11 @@
             const thumbnailContainer = cardElement.querySelector('.card-thumbnail-inline');
             if (thumbnailContainer) {
                 thumbnailContainer.remove();
+                // Restaurar el padding del input
+                const nameInput = cardElement.querySelector('.card-name-input');
+                if (nameInput) {
+                    nameInput.style.paddingRight = '';
+                }
             }
             
             // Actualizar título generado
