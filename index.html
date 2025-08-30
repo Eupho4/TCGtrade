@@ -2030,10 +2030,26 @@
         // Funciones de acción para intercambios
         // Función para encontrar un intercambio por ID
         function findTradeById(tradeId) {
-            if (!currentUser) return null;
-            const userTradesKey = `userTrades_${currentUser.uid}`;
-            const savedTrades = JSON.parse(localStorage.getItem(userTradesKey) || '[]');
-            return savedTrades.find(trade => trade.id === tradeId);
+            // Primero buscar en los intercambios del usuario actual
+            if (currentUser) {
+                const userTradesKey = `userTrades_${currentUser.uid}`;
+                const userTrades = JSON.parse(localStorage.getItem(userTradesKey) || '[]');
+                const userTrade = userTrades.find(trade => trade.id === tradeId);
+                if (userTrade) return userTrade;
+            }
+            
+            // Si no se encuentra, buscar en todos los intercambios disponibles
+            // Esto incluye intercambios de otros usuarios
+            const allKeys = Object.keys(localStorage);
+            for (const key of allKeys) {
+                if (key.startsWith('userTrades_')) {
+                    const trades = JSON.parse(localStorage.getItem(key) || '[]');
+                    const trade = trades.find(t => t.id === tradeId);
+                    if (trade) return trade;
+                }
+            }
+            
+            return null;
         }
 
         // Función para editar intercambio (abre modal con datos pre-cargados)
