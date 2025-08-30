@@ -1331,14 +1331,28 @@
         
         // Función para seleccionar carta desde "Mis Cartas"
         window.selectFromMyCards = function(type, cardId, cardName, cardImage, setName, cardNumber, language = 'Español', condition = 'NM') {
+            console.log('📋 selectFromMyCards llamada con:', { type, cardId, cardName, cardImage, setName, cardNumber, language, condition });
+            
             // Añadir nueva carta al formulario
             addCardToTrade(type);
             
-            // Obtener el último índice de carta añadida
-            const container = document.querySelector(`#${type}Cards`);
+            // Obtener el contenedor correcto
+            const containerId = type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer';
+            const container = document.getElementById(containerId);
+            
+            if (!container) {
+                console.error('❌ No se encontró el contenedor:', containerId);
+                return;
+            }
+            
             const cards = container.querySelectorAll('.trade-card');
             const lastCardIndex = cards.length - 1;
             const cardElement = cards[lastCardIndex];
+            
+            if (!cardElement) {
+                console.error('❌ No se encontró el elemento de carta en índice:', lastCardIndex);
+                return;
+            }
             
             // Rellenar los datos de la carta seleccionada
             selectCardForTrade(type, lastCardIndex, cardId, cardName, cardImage, setName, cardNumber);
@@ -1346,20 +1360,35 @@
             // Establecer el idioma de la carta
             const languageSelect = cardElement.querySelector(`select[name="${type}_language_${lastCardIndex}"]`);
             if (languageSelect) {
+                console.log('✅ Selector de idioma encontrado, estableciendo:', language);
                 // Buscar la opción que coincida con el idioma
                 const options = languageSelect.options;
                 for (let i = 0; i < options.length; i++) {
                     if (options[i].value === language) {
                         languageSelect.selectedIndex = i;
+                        console.log('✅ Idioma establecido en índice:', i);
                         break;
                     }
                 }
+            } else {
+                console.error('❌ No se encontró el selector de idioma');
             }
             
             // Establecer la condición de la carta
             const conditionSelect = cardElement.querySelector(`select[name="${type}_condition_${lastCardIndex}"]`);
             if (conditionSelect) {
+                console.log('✅ Selector de condición encontrado, estableciendo:', condition);
                 conditionSelect.value = condition;
+            } else {
+                console.error('❌ No se encontró el selector de condición');
+            }
+            
+            // Verificar que el nombre se haya establecido correctamente
+            const nameInput = cardElement.querySelector(`input[name="${type}_name_${lastCardIndex}"]`);
+            if (nameInput) {
+                console.log('✅ Nombre establecido:', nameInput.value);
+            } else {
+                console.error('❌ No se encontró el input de nombre');
             }
         };
         
