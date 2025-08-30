@@ -1237,20 +1237,27 @@
         
         // Función para mostrar miniatura de carta seleccionada
         function showCardThumbnail(cardElement, imageUrl, cardName) {
-            // Buscar o crear contenedor de miniatura
-            let thumbnailContainer = cardElement.querySelector('.card-thumbnail');
+            // Buscar el input de nombre
+            const nameInput = cardElement.querySelector('.card-name-input');
+            if (!nameInput) return;
+            
+            // Buscar o crear contenedor de miniatura al lado del input
+            let thumbnailContainer = cardElement.querySelector('.card-thumbnail-inline');
             
             if (!thumbnailContainer) {
+                // Crear contenedor inline para la miniatura
                 thumbnailContainer = document.createElement('div');
-                thumbnailContainer.className = 'card-thumbnail mt-2';
-                cardElement.querySelector('.relative').appendChild(thumbnailContainer);
+                thumbnailContainer.className = 'card-thumbnail-inline absolute right-2 top-1/2 -translate-y-1/2';
+                nameInput.parentElement.style.position = 'relative';
+                nameInput.parentElement.appendChild(thumbnailContainer);
+                
+                // Ajustar padding del input para hacer espacio a la miniatura
+                nameInput.style.paddingRight = '3rem';
             }
             
             thumbnailContainer.innerHTML = `
-                <div class="flex justify-center">
-                    <div class="p-2 bg-gray-50 dark:bg-gray-700 rounded inline-block">
-                        <img src="${imageUrl}" alt="${cardName}" class="w-12 h-16 object-contain">
-                    </div>
+                <div class="w-8 h-10 bg-gray-100 dark:bg-gray-600 rounded overflow-hidden border border-gray-300 dark:border-gray-500">
+                    <img src="${imageUrl}" alt="${cardName}" class="w-full h-full object-contain">
                 </div>
             `;
         }
