@@ -36,13 +36,9 @@ app.use('/js', express.static(path.join(__dirname, 'js')));
 app.use('/css', express.static(path.join(__dirname, 'css')));
 app.use('/api', express.static(path.join(__dirname, 'api')));
 
-// Servir archivos HTML desde la carpeta html
+// Servir archivo HTML principal
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'html', 'index.html'));
-});
-
-app.get('/spa', (req, res) => {
-  res.sendFile(path.join(__dirname, 'html', 'index-spa.html'));
 });
 
 // Función de rate limiting
