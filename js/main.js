@@ -666,7 +666,7 @@ async function loadUserInfo() {
     if (!currentUser) return;
 
     try {
-        const userDoc = await .get(db.collection('users').doc(currentUser.uid));
+        const userDoc = await db.collection('users').doc(currentUser.uid).get();
         let userData = userDoc.data();
 
         // MIGRACIÓN AUTOMÁTICA: Si el usuario tiene un name pero no username,
@@ -685,7 +685,7 @@ async function loadUserInfo() {
                 
                 // Actualizar en Firestore
                 try {
-                    await .set(db.collection('users').doc(currentUser.uid), {
+                    await db.collection('users').doc(currentUser.uid).set({
                         username: nameValue,
                         name: ''
                     }, { merge: true });
@@ -805,7 +805,7 @@ async function saveDarkModePreference(isDark) {
     if (!currentUser) return;
 
     try {
-        await .set(db.collection('users').doc(currentUser.uid), {
+        await db.collection('users').doc(currentUser.uid).set({
             darkMode: isDark,
             updatedAt: new Date()
         }, { merge: true });
@@ -852,8 +852,8 @@ async function loadProfileStats() {
         console.log('📊 Cargando estadísticas del perfil...');
 
         // Obtener colección del usuario
-        const userCardsRef = db.collection( 'users', currentUser.uid, 'my_cards');
-        const userCardsSnapshot = await .get(userCardsRef);
+        const userCardsRef = db.collection('users').doc(currentUser.uid).collection('my_cards');
+        const userCardsSnapshot = await userCardsRef.get();
         
         const cards = [];
         userCardsSnapshot.forEach(doc => {
@@ -1275,7 +1275,7 @@ window.addFromMyCards = async function(type) {
     if (!userCardsCache || userCardsCache.length === 0) {
         try {
             const myCardsCollectionRef = db.collection( `users/${currentUser.uid}/my_cards`);
-            const querySnapshot = await .get(myCardsCollectionRef);
+            const querySnapshot = await myCardsCollectionRef.get();
             userCardsCache = [];
             
             querySnapshot.forEach(doc => {
@@ -1684,7 +1684,7 @@ async function getUserDisplayName(uid = null) {
         if (!uid && currentUser) {
             // Primero intentar obtener de Firestore
             if (typeof db !== 'undefined' && db) {
-                const userDoc = await .get(db.collection('users').doc(userId));
+                const userDoc = await db.collection('users').doc(userId).get();
                 const userData = userDoc.data();
                 
                 if (userData) {
@@ -3540,7 +3540,7 @@ async function loadMyCollection(userId) {
 
     try {
         const myCardsCollectionRef = db.collection( `users/${userId}/my_cards`);
-        const querySnapshot = await .get(myCardsCollectionRef);
+        const querySnapshot = await myCardsCollectionRef.get();
         userCardsCache = [];
 
         querySnapshot.forEach(doc => {
@@ -3731,7 +3731,7 @@ window.removeCardFromCollection = async (cardId) => {
     }
 
     try {
-        await .delete(db.collection(`users/${currentUser.uid}/my_cards/${cardId}`));
+        await db.collection('users').doc(currentUser.uid).collection('my_cards').doc(cardId).delete();
         showNotification('Carta eliminada de tu colección', 'success', 3000);
         await loadMyCollection(currentUser.uid);
     } catch (error) {
@@ -4549,7 +4549,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Crear perfil completo en Firestore
                 console.log('💾 Guardando perfil en Firestore...');
-                await .set(db.collection('users', user.uid), {
+                await db.collection('users').doc(user.uid).set({
                     username: username, // Username único elegido en el registro
                     name: '', // Nombre real (se llenará después en el perfil)
                     lastName: '', // Apellido (se llenará después en el perfil)
@@ -4637,7 +4637,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // CARGAR MODO OSCURO INMEDIATAMENTE AL INICIAR SESIÓN
             try {
                 console.log('🌙 Cargando preferencia de modo oscuro del usuario...');
-                const userDoc = await .get(db.collection('users', user.uid));
+                const userDoc = await db.collection('users').doc(user.uid).get();
                 const userData = userDoc.data();
                 
                 if (userData && userData.darkMode !== undefined) {
@@ -4908,7 +4908,7 @@ async function addCardToCollection(cardId, cardName, imageUrl, setName, series, 
             addedAt: new Date()
         };
 
-        await .set(db.collection(`users/${currentUser.uid}/my_cards/${cardId}`), cardData);
+        await db.collection('users').doc(currentUser.uid).collection('my_cards').doc(cardId).set(cardData);
         showNotification(`¡Carta "${cardName}" añadida a tu colección!`, 'success', 4000);
     } catch (error) {
         console.error('Error al añadir carta:', error);
@@ -5144,8 +5144,8 @@ async function loadUserCollection() {
 
     try {
         if (status) status.textContent = 'Cargando tu colección...';
-        const cardsRef = db.collection( 'users', currentUser.uid, 'my_cards');
-        const snap = await .get(cardsRef);
+        const cardsRef = db.collection('users').doc(currentUser.uid).collection('my_cards');
+        const snap = await cardsRef.get();
         const cards = [];
         snap.forEach(d => cards.push({ id: d.id, ...d.data() }));
 
