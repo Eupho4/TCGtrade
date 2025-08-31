@@ -63,7 +63,6 @@ export async function loginUser(email, password) {
         closeAuthModal();
         return userCredential.user;
     } catch (error) {
-        console.error('Login error:', error);
         let errorMessage = ERROR_MESSAGES.INVALID_CREDENTIALS;
         
         if (error.code === 'auth/user-not-found') {
@@ -110,7 +109,6 @@ export async function registerUser(email, password, username) {
         closeAuthModal();
         return user;
     } catch (error) {
-        console.error('Registration error:', error);
         let errorMessage = ERROR_MESSAGES.GENERIC_ERROR;
         
         if (error.code === 'auth/email-already-in-use') {
@@ -139,7 +137,6 @@ export async function logoutUser() {
         window.location.href = '#';
         location.reload();
     } catch (error) {
-        console.error('Logout error:', error);
         showNotification('Error al cerrar sesión', 'error');
     }
 }
@@ -153,7 +150,6 @@ export async function resetPassword(email) {
         showNotification(SUCCESS_MESSAGES.PASSWORD_RESET, 'success');
         return true;
     } catch (error) {
-        console.error('Password reset error:', error);
         let errorMessage = 'Error al enviar el email de recuperación.';
         
         if (error.code === 'auth/user-not-found') {
@@ -188,7 +184,6 @@ export async function updateUserEmail(newEmail, currentPassword) {
         showNotification('Email actualizado correctamente', 'success');
         return true;
     } catch (error) {
-        console.error('Email update error:', error);
         showNotification('Error al actualizar el email', 'error');
         throw error;
     }
@@ -212,7 +207,6 @@ export async function updateUserPassword(currentPassword, newPassword) {
         showNotification('Contraseña actualizada correctamente', 'success');
         return true;
     } catch (error) {
-        console.error('Password update error:', error);
         showNotification('Error al actualizar la contraseña', 'error');
         throw error;
     }
@@ -229,7 +223,6 @@ export async function getUserProfile(uid) {
         }
         return null;
     } catch (error) {
-        console.error('Error getting user profile:', error);
         return null;
     }
 }
@@ -243,7 +236,6 @@ export async function updateUserProfile(uid, profileData) {
         showNotification(SUCCESS_MESSAGES.PROFILE_UPDATED, 'success');
         return true;
     } catch (error) {
-        console.error('Error updating profile:', error);
         showNotification('Error al actualizar el perfil', 'error');
         throw error;
     }

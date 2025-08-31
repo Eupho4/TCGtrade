@@ -19,7 +19,6 @@ class I18n {
         // Aplicar idioma actual
         this.applyLanguage(this.currentLanguage);
         
-        console.log('🌍 Sistema de internacionalización inicializado:', this.currentLanguage);
     }
 
     // Detectar idioma del navegador
@@ -66,7 +65,6 @@ class I18n {
     // Cambiar idioma
     changeLanguage(langCode) {
         if (!this.translations[langCode]) {
-            console.error('❌ Idioma no soportado:', langCode);
             return false;
         }
 
@@ -74,7 +72,6 @@ class I18n {
         this.saveLanguage(langCode);
         this.applyLanguage(langCode);
         
-        console.log('🌍 Idioma cambiado a:', langCode);
         return true;
     }
 

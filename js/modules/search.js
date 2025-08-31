@@ -49,7 +49,6 @@ export async function searchCards(query, filters = {}) {
         return results;
     } catch (error) {
         if (error.name !== 'AbortError') {
-            console.error('Search error:', error);
             showNotification('Error al buscar cartas. Por favor intenta de nuevo.', 'error');
         }
         return [];
@@ -104,7 +103,6 @@ async function fetchCards(query, filters = {}, signal) {
         
     } catch (error) {
         if (error.message === 'TIMEOUT') {
-            console.log('🔄 Timeout detectado, reintentando con búsqueda optimizada...');
             
             // Retry with simpler query
             const retryParams = new URLSearchParams();
@@ -127,7 +125,6 @@ async function fetchCards(query, filters = {}, signal) {
                 return retryData.data || [];
                 
             } catch (retryError) {
-                console.error('❌ Retry también falló:', retryError);
                 throw retryError;
             }
         }
@@ -183,7 +180,6 @@ export async function searchCardForTrade(inputElement, type, cardIndex) {
             `;
         }
     } catch (error) {
-        console.error('Error buscando cartas:', error);
         resultsContainer.innerHTML = `
             <div class="p-3 text-center text-red-500">
                 Error al buscar cartas
@@ -341,7 +337,6 @@ function getCardOfferCount(cardName) {
                     }
                 });
             } catch (e) {
-                console.error('Error parsing trades:', e);
             }
         }
     }

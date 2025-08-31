@@ -43,7 +43,6 @@ export async function loadMyCollection(userId) {
         
         return userCardsCache;
     } catch (error) {
-        console.error('Error loading collection:', error);
         showNotification('Error al cargar tu colección', 'error');
         return [];
     }
@@ -84,7 +83,6 @@ export async function addCardToCollection(cardId, cardName, imageUrl, setName, s
         showNotification(SUCCESS_MESSAGES.CARD_ADDED, 'success');
         return true;
     } catch (error) {
-        console.error('Error adding card:', error);
         showNotification('Error al añadir la carta', 'error');
         return false;
     }
@@ -112,7 +110,6 @@ export async function removeCardFromCollection(cardId) {
         showNotification(SUCCESS_MESSAGES.CARD_REMOVED, 'success');
         return true;
     } catch (error) {
-        console.error('Error removing card:', error);
         showNotification('Error al eliminar la carta', 'error');
         return false;
     }
@@ -130,7 +127,6 @@ export async function checkIfUserHasCard(cardId) {
         const docSnap = await getDoc(docRef);
         return docSnap.exists();
     } catch (error) {
-        console.error('Error checking card:', error);
         return false;
     }
 }
@@ -150,7 +146,6 @@ async function updateUserCardCount(userId, increment) {
             }, { merge: true });
         }
     } catch (error) {
-        console.error('Error updating card count:', error);
     }
 }
 
@@ -196,7 +191,6 @@ export async function getCardStatistics(userId) {
         
         return stats;
     } catch (error) {
-        console.error('Error getting statistics:', error);
         return null;
     }
 }
