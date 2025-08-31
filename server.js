@@ -41,6 +41,11 @@ app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'html', 'index.html'));
 });
 
+// Página de prueba
+app.get('/test', (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'test-firebase.html'));
+});
+
 // Función de rate limiting
 function checkRateLimit(identifier) {
   const now = Date.now();

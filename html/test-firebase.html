@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Firebase - TCGtrade</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <h1>Test de Firebase</h1>
+    <div id="status">Cargando...</div>
+    
+    <hr>
+    
+    <h2>Test de Botones</h2>
+    <button onclick="testButton()">Test Botón Simple</button>
+    <button onclick="testFirebase()">Test Firebase</button>
+    <button onclick="testLogin()">Test Login</button>
+    
+    <hr>
+    
+    <h2>Login</h2>
+    <input type="email" id="email" placeholder="Email" value="test@test.com">
+    <input type="password" id="password" placeholder="Password" value="test123">
+    <button onclick="login()">Iniciar Sesión</button>
+    
+    <div id="result"></div>
+
+    <script>
+        // Test simple para verificar que JavaScript funciona
+        console.log('JavaScript cargado correctamente');
+        
+        function testButton() {
+            alert('¡El botón funciona!');
+            document.getElementById('result').innerHTML = 'Botón clickeado a las ' + new Date().toLocaleTimeString();
+        }
+        
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyCkgz6_Zpu0VOW6GgJxOxd9QlVccsBXnog",
+            authDomain: "tcgtrade-7ba27.firebaseapp.com",
+            projectId: "tcgtrade-7ba27",
+            storageBucket: "tcgtrade-7ba27.firebasestorage.app",
+            messagingSenderId: "207150886257",
+            appId: "1:207150886257:web:26edebbeb7df7a1d935ad0",
+        };
+        
+        let auth, db;
+        
+        // Inicializar Firebase cuando el DOM esté listo
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM cargado');
+            document.getElementById('status').innerHTML = 'DOM cargado, inicializando Firebase...';
+            
+            try {
+                // Inicializar Firebase
+                firebase.initializeApp(firebaseConfig);
+                auth = firebase.auth();
+                db = firebase.firestore();
+                
+                console.log('Firebase inicializado correctamente');
+                document.getElementById('status').innerHTML = '✅ Firebase inicializado correctamente';
+                document.getElementById('status').style.color = 'green';
+                
+                // Verificar estado de autenticación
+                auth.onAuthStateChanged(function(user) {
+                    if (user) {
+                        console.log('Usuario autenticado:', user.email);
+                        document.getElementById('result').innerHTML = 'Usuario actual: ' + user.email;
+                    } else {
+                        console.log('No hay usuario autenticado');
+                        document.getElementById('result').innerHTML = 'No hay usuario autenticado';
+                    }
+                });
+                
+            } catch (error) {
+                console.error('Error inicializando Firebase:', error);
+                document.getElementById('status').innerHTML = '❌ Error: ' + error.message;
+                document.getElementById('status').style.color = 'red';
+            }
+        });
+        
+        function testFirebase() {
+            if (typeof firebase === 'undefined') {
+                alert('Firebase NO está cargado');
+            } else {
+                alert('Firebase está cargado correctamente');
+                console.log('Firebase:', firebase);
+            }
+        }
+        
+        function testLogin() {
+            if (!auth) {
+                alert('Auth no está inicializado');
+                return;
+            }
+            alert('Auth está listo para usar');
+        }
+        
+        async function login() {
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            
+            if (!auth) {
+                alert('Firebase Auth no está inicializado');
+                return;
+            }
+            
+            try {
+                document.getElementById('result').innerHTML = 'Iniciando sesión...';
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                document.getElementById('result').innerHTML = '✅ Sesión iniciada: ' + userCredential.user.email;
+                alert('¡Sesión iniciada correctamente!');
+            } catch (error) {
+                console.error('Error al iniciar sesión:', error);
+                document.getElementById('result').innerHTML = '❌ Error: ' + error.message;
+                alert('Error: ' + error.message);
+            }
+        }
+        
+        // Exponer funciones globalmente
+        window.testButton = testButton;
+        window.testFirebase = testFirebase;
+        window.testLogin = testLogin;
+        window.login = login;
+    </script>
+</body>
+</html>
