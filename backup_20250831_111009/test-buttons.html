@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Botones - TCGtrade</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; }
+        .test-btn { padding: 10px 20px; margin: 5px; background: #007bff; color: white; border: none; cursor: pointer; }
+        .test-btn:hover { background: #0056b3; }
+        .log { background: #f8f9fa; padding: 10px; margin: 10px 0; border-left: 4px solid #007bff; }
+        .error { border-left-color: #dc3545; background: #f8d7da; }
+        .success { border-left-color: #28a745; background: #d4edda; }
+    </style>
+</head>
+<body>
+    <h1>🔧 Test de Botones - TCGtrade</h1>
+    
+    <div class="test-section">
+        <h2>1. Test de Elementos del DOM</h2>
+        <button class="test-btn" onclick="testDOMElements()">Verificar Elementos</button>
+        <div id="dom-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test de Event Listeners</h2>
+        <button class="test-btn" onclick="testEventListeners()">Verificar Event Listeners</button>
+        <div id="listeners-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test de Funciones</h2>
+        <button class="test-btn" onclick="testFunctions()">Verificar Funciones</button>
+        <div id="functions-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Test de Búsqueda</h2>
+        <input type="text" id="testSearch" placeholder="Escribe 'pikachu' para probar">
+        <button class="test-btn" onclick="testSearch()">Test Búsqueda</button>
+        <div id="search-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>5. Test de Navegación</h2>
+        <button class="test-btn" onclick="testNavigation()">Test Navegación</button>
+        <div id="nav-result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>6. Consola de Logs</h2>
+        <div id="console-log" style="background: #000; color: #0f0; padding: 10px; font-family: monospace; height: 200px; overflow-y: auto;"></div>
+        <button class="test-btn" onclick="clearConsole()">Limpiar Consola</button>
+    </div>
+
+    <script>
+        // Capturar logs de la consola
+        const originalLog = console.log;
+        const originalError = console.error;
+        const consoleDiv = document.getElementById('console-log');
+
+        function addToConsole(message, type = 'log') {
+            const timestamp = new Date().toLocaleTimeString();
+            const color = type === 'error' ? '#f00' : '#0f0';
+            consoleDiv.innerHTML += `<div style="color: ${color}">[${timestamp}] ${message}</div>`;
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            addToConsole(args.join(' '), 'log');
+        };
+
+        console.error = function(...args) {
+            originalError.apply(console, args);
+            addToConsole(args.join(' '), 'error');
+        };
+
+        function clearConsole() {
+            consoleDiv.innerHTML = '';
+        }
+
+        function testDOMElements() {
+            const result = document.getElementById('dom-result');
+            let html = '<h3>Elementos del DOM:</h3>';
+            
+            const elements = [
+                'searchInput',
+                'homeLink', 
+                'loginLink',
+                'registerLink',
+                'profileLink',
+                'myCardsLink',
+                'interchangesLink',
+                'logoutLink',
+                'startTradingBtn',
+                'cardsContainer',
+                'authModal'
+            ];
+
+            elements.forEach(id => {
+                const element = document.getElementById(id);
+                const exists = element !== null;
+                const visible = element && !element.classList.contains('hidden');
+                const color = exists ? (visible ? 'success' : 'warning') : 'error';
+                
+                html += `<div class="log ${color === 'error' ? 'error' : color === 'success' ? 'success' : ''}">
+                    ${id}: ${exists ? '✅ Existe' : '❌ No existe'} 
+                    ${exists ? (visible ? '👁️ Visible' : '🙈 Oculto') : ''}
+                </div>`;
+            });
+
+            result.innerHTML = html;
+        }
+
+        function testEventListeners() {
+            const result = document.getElementById('listeners-result');
+            let html = '<h3>Event Listeners:</h3>';
+            
+            // Test manual de clicks
+            const buttons = [
+                { id: 'homeLink', name: 'Home' },
+                { id: 'loginLink', name: 'Login' },
+                { id: 'registerLink', name: 'Register' },
+                { id: 'profileLink', name: 'Profile' },
+                { id: 'myCardsLink', name: 'My Cards' },
+                { id: 'startTradingBtn', name: 'Start Trading' }
+            ];
+
+            buttons.forEach(btn => {
+                const element = document.getElementById(btn.id);
+                if (element) {
+                    // Simular click para ver si hay listener
+                    try {
+                        element.click();
+                        html += `<div class="log success">${btn.name}: ✅ Click funciona</div>`;
+                    } catch (error) {
+                        html += `<div class="log error">${btn.name}: ❌ Error en click - ${error.message}</div>`;
+                    }
+                } else {
+                    html += `<div class="log error">${btn.name}: ❌ Elemento no encontrado</div>`;
+                }
+            });
+
+            result.innerHTML = html;
+        }
+
+        function testFunctions() {
+            const result = document.getElementById('functions-result');
+            let html = '<h3>Funciones Globales:</h3>';
+            
+            const functions = [
+                'showAuthModal',
+                'hideAuthModal', 
+                'showMyCardsSection',
+                'showInterchangesSection',
+                'showProfileSection',
+                'showInitialSections',
+                'fetchCards'
+            ];
+
+            functions.forEach(funcName => {
+                const exists = typeof window[funcName] === 'function';
+                html += `<div class="log ${exists ? 'success' : 'error'}">
+                    ${funcName}: ${exists ? '✅ Existe' : '❌ No existe'}
+                </div>`;
+            });
+
+            result.innerHTML = html;
+        }
+
+        function testSearch() {
+            const result = document.getElementById('search-result');
+            const searchInput = document.getElementById('testSearch');
+            const query = searchInput.value || 'pikachu';
+            
+            result.innerHTML = '<div class="log">🔍 Iniciando test de búsqueda...</div>';
+            
+            // Test de la API directamente
+            fetch(`/api/pokemontcg/cards?q=name:*${query}*&pageSize=3`)
+                .then(response => {
+                    console.log('API Response Status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    const cards = data.data || [];
+                    result.innerHTML += `<div class="log success">✅ API funciona: ${cards.length} cartas encontradas</div>`;
+                    
+                    // Test de la función fetchCards si existe
+                    if (typeof window.fetchCards === 'function') {
+                        result.innerHTML += `<div class="log">🔄 Probando función fetchCards...</div>`;
+                        window.fetchCards(query);
+                    } else {
+                        result.innerHTML += `<div class="log error">❌ Función fetchCards no existe</div>`;
+                    }
+                })
+                .catch(error => {
+                    console.error('API Error:', error);
+                    result.innerHTML += `<div class="log error">❌ Error en API: ${error.message}</div>`;
+                });
+        }
+
+        function testNavigation() {
+            const result = document.getElementById('nav-result');
+            let html = '<h3>Test de Navegación:</h3>';
+            
+            // Simular clicks en navegación
+            const navItems = [
+                { id: 'homeLink', name: 'Home', expected: 'showInitialSections' },
+                { id: 'myCardsLink', name: 'Mis Cartas', expected: 'showMyCardsSection' },
+                { id: 'profileLink', name: 'Mi Perfil', expected: 'showProfileSection o showAuthModal' }
+            ];
+
+            navItems.forEach(item => {
+                const element = document.getElementById(item.id);
+                if (element) {
+                    html += `<div class="log success">✅ ${item.name}: Elemento encontrado</div>`;
+                    
+                    // Verificar si tiene onclick o event listener
+                    const hasOnclick = element.getAttribute('onclick');
+                    const hasListener = element.onclick || element._listeners;
+                    
+                    if (hasOnclick || hasListener) {
+                        html += `<div class="log success">  ✅ Tiene event handler</div>`;
+                    } else {
+                        html += `<div class="log error">  ❌ No tiene event handler</div>`;
+                    }
+                } else {
+                    html += `<div class="log error">❌ ${item.name}: Elemento no encontrado</div>`;
+                }
+            });
+
+            result.innerHTML = html;
+        }
+
+        // Auto-ejecutar tests al cargar
+        window.addEventListener('load', () => {
+            console.log('🔧 Página de test cargada');
+            console.log('🔍 Esperando a que el DOM esté listo...');
+            
+            // Esperar un poco más para que el DOM esté completamente listo
+            setTimeout(() => {
+                console.log('🔍 Verificando elementos...');
+                testDOMElements();
+            }, 2000); // Esperar 2 segundos
+        });
+    </script>
+</body>
+</html>
