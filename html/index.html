@@ -1193,8 +1193,8 @@
         };
         
         // Función para seleccionar una carta del autocompletado
-        window.selectCardForTrade = function(type, cardIndex, cardId, cardName, cardImage, setName, cardNumber) {
-            console.log('🎯 selectCardForTrade llamado:', { type, cardIndex, cardName });
+        window.selectCardForTrade = function(type, cardIndex, cardId, cardName, cardImage, setName, cardNumber, shouldLock = false) {
+            console.log('🎯 selectCardForTrade llamado:', { type, cardIndex, cardName, shouldLock });
             
             // Usar el ID correcto del contenedor
             const containerId = type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer';
@@ -1215,33 +1215,21 @@
                 const nameInput = cardElement.querySelector(`input[name="${type}_name_${cardIndex}"]`);
                 if (nameInput) {
                     nameInput.value = cardName;
-                    // Bloquear el input para indicar que esta carta está confirmada
-                    nameInput.readOnly = true;
-                    nameInput.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
-                    nameInput.classList.remove('bg-white');
-                    console.log('✅ Carta seleccionada y bloqueada:', cardName);
                     
-                    // Verificar si necesitamos añadir una nueva fila
-                    const allCards = container.querySelectorAll('.trade-card');
-                    let hasEmptyRow = false;
-                    
-                    // Buscar si ya hay una fila vacía al final
-                    for (let i = allCards.length - 1; i >= 0; i--) {
-                        const input = allCards[i].querySelector('input[name*="_name_"]');
-                        if (input && !input.value.trim() && !input.readOnly) {
-                            hasEmptyRow = true;
-                            break;
-                        }
-                    }
-                    
-                    // Solo añadir nueva fila si no hay una vacía
-                    if (!hasEmptyRow) {
-                        console.log('➕ Añadiendo nueva fila vacía');
+                    // Solo bloquear si viene de "Mis Cartas" (shouldLock = true)
+                    if (shouldLock) {
+                        nameInput.readOnly = true;
+                        nameInput.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                        nameInput.classList.remove('bg-white');
+                        console.log('✅ Carta seleccionada desde Mis Cartas y BLOQUEADA:', cardName);
+                        
+                        // Añadir nueva fila vacía después de bloquear
                         setTimeout(() => {
                             addCardToTrade(type);
                         }, 100);
                     } else {
-                        console.log('✓ Ya hay una fila vacía disponible');
+                        // Desde el buscador API - NO bloquear
+                        console.log('✅ Carta seleccionada desde buscador (sin bloquear):', cardName);
                     }
                 } else {
                     console.error('❌ No se encontró el input de nombre');
@@ -1619,7 +1607,8 @@
             }
             
             // Rellenar los datos de la carta seleccionada
-            selectCardForTrade(type, targetCardIndex, cardId, cardName, cardImage, setName, cardNumber);
+            // Pasar shouldLock = true porque viene de "Mis Cartas"
+            selectCardForTrade(type, targetCardIndex, cardId, cardName, cardImage, setName, cardNumber, true);
             
             // Establecer el idioma de la carta
             const languageSelect = cardElement.querySelector(`select[name="${type}_language_${targetCardIndex}"]`);
@@ -2575,11 +2564,18 @@
         function addCardToTrade(type) {
             const container = document.getElementById(type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer');
             
-            // IMPORTANTE: Bloquear todas las cartas existentes antes de añadir una nueva
-            console.log(`🔒 Bloqueando cartas existentes de tipo: ${type}`);
-            Array.from(container.children).forEach(existingCard => {
-                lockExistingCard(existingCard);
-            });
+            // Bloquear solo la última carta si tiene contenido
+            const allCards = container.querySelectorAll('.trade-card');
+            if (allCards.length > 0) {
+                const lastCard = allCards[allCards.length - 1];
+                const lastInput = lastCard.querySelector('input[name*="_name_"]');
+                
+                // Solo bloquear si tiene contenido y no está ya bloqueada
+                if (lastInput && lastInput.value.trim() && !lastInput.readOnly) {
+                    console.log(`🔒 Bloqueando última carta con contenido: ${lastInput.value}`);
+                    lockExistingCard(lastCard);
+                }
+            }
             
             const cardIndex = container.children.length;
             const cardId = `${type}_card_${cardIndex}`;
