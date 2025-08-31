@@ -2576,23 +2576,10 @@
             if (cardData.image && cardData.name) {
                 console.log(`🖼️ Mostrando miniatura para carta pre-cargada: ${cardData.name}`);
                 showCardThumbnail(cardElement, cardData.image, cardData.name);
-                
-                // También bloquear la carta ya que viene de datos guardados
-                if (nameInput) {
-                    nameInput.readOnly = true;
-                    nameInput.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
-                }
-                if (conditionSelect) {
-                    conditionSelect.disabled = true;
-                    conditionSelect.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
-                }
-                if (languageSelect) {
-                    languageSelect.disabled = true;
-                    languageSelect.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
-                }
             }
             
-            console.log(`✅ Carta ${type} ${cardIndex} pre-cargada con miniatura y bloqueada (modo edición)`);
+            // NO bloquear en modo edición - el usuario debe poder modificar
+            console.log(`✅ Carta ${type} ${cardIndex} pre-cargada con miniatura y EDITABLE (modo edición)`);
         }
 
         // Función para añadir carta al intercambio
