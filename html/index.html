@@ -505,6 +505,9 @@
                 // Cargar estadísticas
                 await loadProfileStats();
                 
+                // Cargar valoraciones del usuario
+                loadUserRating();
+                
                 console.log('✅ Datos del perfil cargados correctamente');
             } catch (error) {
                 console.error('❌ Error al cargar datos del perfil:', error);
@@ -3691,6 +3694,108 @@
             }
             
             return display;
+        };
+        
+        // Función para cargar y mostrar valoraciones del usuario
+        function loadUserRating() {
+            if (!currentUser) return;
+            
+            const userStatsKey = `userStats_${currentUser.uid}`;
+            const userStats = JSON.parse(localStorage.getItem(userStatsKey) || '{}');
+            
+            const ratingDisplay = document.getElementById('userRatingDisplay');
+            const ratingStats = document.getElementById('userRatingStats');
+            
+            if (ratingDisplay && ratingStats) {
+                if (userStats.averageRating && userStats.totalRatings > 0) {
+                    ratingDisplay.innerHTML = displayPokeballRating(userStats.averageRating, true);
+                    ratingStats.innerHTML = `
+                        <div>
+                            <span class="font-semibold">${userStats.totalRatings}</span> valoración${userStats.totalRatings !== 1 ? 'es' : ''}
+                        </div>
+                        <div class="text-xs">
+                            Promedio: ${userStats.averageRating.toFixed(1)}/5.0
+                        </div>
+                    `;
+                } else {
+                    ratingDisplay.innerHTML = `
+                        <span class="text-gray-400">Sin valoraciones aún</span>
+                    `;
+                    ratingStats.innerHTML = `
+                        <span class="text-xs">Completa tu primer intercambio para recibir valoraciones</span>
+                    `;
+                }
+            }
+        }
+        
+        // Función para mostrar historial de valoraciones
+        window.showRatingHistory = function() {
+            if (!currentUser) return;
+            
+            const ratingsKey = `ratings_${currentUser.uid}`;
+            const userRatings = JSON.parse(localStorage.getItem(ratingsKey) || '[]');
+            
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 rounded-xl max-w-3xl w-full max-h-[80vh] overflow-hidden shadow-2xl">
+                    <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-6 text-white">
+                        <div class="flex justify-between items-center">
+                            <h2 class="text-2xl font-bold">🏆 Historial de Valoraciones</h2>
+                            <button onclick="this.closest('.fixed').remove()" 
+                                    class="text-white hover:text-purple-200 transition-colors">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="p-6 overflow-y-auto max-h-[60vh]">
+                        ${userRatings.length === 0 ? `
+                            <div class="text-center py-8">
+                                <span class="text-6xl">📭</span>
+                                <p class="mt-4 text-gray-500 dark:text-gray-400">
+                                    No has recibido valoraciones aún
+                                </p>
+                            </div>
+                        ` : `
+                            <div class="space-y-4">
+                                ${userRatings.map(rating => `
+                                    <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                                        <div class="flex items-start justify-between">
+                                            <div class="flex-1">
+                                                <div class="flex items-center gap-3 mb-2">
+                                                    <span class="font-semibold text-gray-900 dark:text-white">
+                                                        ${rating.fromUserName}
+                                                    </span>
+                                                    <div class="text-lg">
+                                                        ${displayPokeballRating(rating.rating)}
+                                                    </div>
+                                                </div>
+                                                ${rating.comment ? `
+                                                    <p class="text-gray-600 dark:text-gray-300 text-sm italic">
+                                                        "${rating.comment}"
+                                                    </p>
+                                                ` : ''}
+                                                <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                                    ${formatRelativeTime(rating.timestamp)}
+                                                </p>
+                                            </div>
+                                            <div class="text-2xl">
+                                                ${POKEBALL_RATINGS[rating.rating].emoji}
+                                            </div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        `}
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
         };
 
         function viewTradeDetails(tradeId) {
@@ -8571,6 +8676,29 @@
                         <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
                             <span class="icon mr-2">👤</span> Información Personal
                         </h3>
+                        
+                        <!-- Sección de Valoración -->
+                        <div class="bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-900/20 dark:to-indigo-900/20 rounded-lg p-6 mb-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                                        🏆 Tu Valoración
+                                    </h4>
+                                    <div class="flex items-center gap-3">
+                                        <div class="text-2xl" id="userRatingDisplay">
+                                            <!-- Se llenará con JavaScript -->
+                                        </div>
+                                        <div class="text-sm text-gray-600 dark:text-gray-400" id="userRatingStats">
+                                            <!-- Se llenará con JavaScript -->
+                                        </div>
+                                    </div>
+                                </div>
+                                <button onclick="showRatingHistory()" 
+                                        class="px-4 py-2 bg-purple-500 hover:bg-purple-600 text-white rounded-lg text-sm font-semibold">
+                                    Ver Historial
+                                </button>
+                            </div>
+                        </div>
                         
                         <form id="profilePersonalForm" class="space-y-6">
                             <!-- Usuario (solo lectura) -->
