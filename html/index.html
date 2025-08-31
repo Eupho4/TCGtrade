@@ -2507,11 +2507,38 @@
                 setTimeout(() => {
                     updateGeneratedTitle();
                     
-                    // Añadir una fila vacía al final de cada sección para poder añadir más cartas
-                    addCardToTrade('offered', false); // No forzar, solo si no hay vacía
-                    addCardToTrade('wanted', false);  // No forzar, solo si no hay vacía
+                    // En modo edición, solo añadir fila vacía si no hay ninguna
+                    // IMPORTANTE: Usar forceAdd=true para evitar bloquear las cartas existentes
+                    const offeredContainer = document.getElementById('offeredCardsContainer');
+                    const wantedContainer = document.getElementById('wantedCardsContainer');
                     
-                    console.log('✅ Pre-carga completada en modo edición con filas vacías al final');
+                    // Verificar si necesitamos añadir fila vacía para ofertas
+                    const offeredCards = offeredContainer.querySelectorAll('.trade-card');
+                    let hasEmptyOffered = false;
+                    offeredCards.forEach(card => {
+                        const input = card.querySelector('input[name*="_name_"]');
+                        if (input && !input.value.trim()) {
+                            hasEmptyOffered = true;
+                        }
+                    });
+                    if (!hasEmptyOffered) {
+                        addCardToTrade('offered', true); // Forzar para no bloquear
+                    }
+                    
+                    // Verificar si necesitamos añadir fila vacía para búsquedas
+                    const wantedCards = wantedContainer.querySelectorAll('.trade-card');
+                    let hasEmptyWanted = false;
+                    wantedCards.forEach(card => {
+                        const input = card.querySelector('input[name*="_name_"]');
+                        if (input && !input.value.trim()) {
+                            hasEmptyWanted = true;
+                        }
+                    });
+                    if (!hasEmptyWanted) {
+                        addCardToTrade('wanted', true); // Forzar para no bloquear
+                    }
+                    
+                    console.log('✅ Pre-carga completada en modo edición - campos EDITABLES');
                 }, 600);
             } else {
                 // Modo crear nuevo: añadir cartas vacías
@@ -2537,6 +2564,10 @@
             const nameInput = cardElement.querySelector(`input[name*="${type}_name_"]`);
             if (nameInput && cardData.name) {
                 nameInput.value = cardData.name;
+                // Asegurar que NO esté bloqueado en modo edición
+                nameInput.readOnly = false;
+                nameInput.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                nameInput.classList.add('bg-white', 'dark:bg-gray-700');
             }
             
             // Pre-cargar campos ocultos (IMPORTANTE para que funcione la miniatura)
@@ -2564,12 +2595,20 @@
             const conditionSelect = cardElement.querySelector(`select[name*="${type}_condition_"]`);
             if (conditionSelect && cardData.condition) {
                 conditionSelect.value = cardData.condition;
+                // Asegurar que NO esté bloqueado en modo edición
+                conditionSelect.disabled = false;
+                conditionSelect.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                conditionSelect.classList.add('bg-white', 'dark:bg-gray-700');
             }
             
             // Pre-cargar idioma
             const languageSelect = cardElement.querySelector(`select[name*="${type}_language_"]`);
             if (languageSelect && cardData.language) {
                 languageSelect.value = cardData.language;
+                // Asegurar que NO esté bloqueado en modo edición
+                languageSelect.disabled = false;
+                languageSelect.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                languageSelect.classList.add('bg-white', 'dark:bg-gray-700');
             }
             
             // Mostrar miniatura si hay imagen
