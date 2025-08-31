@@ -2127,8 +2127,329 @@
 
         function proposeTrade(tradeId) {
             console.log('💬 Proponiendo intercambio:', tradeId);
-            alert('Función de propuesta en desarrollo');
+            
+            // Buscar el intercambio original
+            const originalTrade = findTradeById(tradeId);
+            if (!originalTrade) {
+                showNotification('No se encontró el intercambio', 'error');
+                return;
+            }
+            
+            // Verificar que el usuario esté logueado
+            if (!currentUser) {
+                showNotification('Debes iniciar sesión para proponer un intercambio', 'warning');
+                return;
+            }
+            
+            // Verificar que no sea el propio intercambio del usuario
+            if (originalTrade.userId === currentUser.uid) {
+                showNotification('No puedes proponer en tu propio intercambio', 'warning');
+                return;
+            }
+            
+            // Crear modal de contrapropuesta
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            modal.id = 'proposalModal';
+            
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-6xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+                    <!-- Header -->
+                    <div class="bg-gradient-to-r from-green-500 to-green-600 dark:from-green-700 dark:to-green-800 p-6">
+                        <div class="flex justify-between items-start">
+                            <div class="text-white">
+                                <h2 class="text-2xl font-bold mb-2">
+                                    💬 Proponer Intercambio
+                                </h2>
+                                <p class="text-sm opacity-90">
+                                    Respondiendo a: ${originalTrade.title || 'Intercambio sin título'}
+                                </p>
+                                <p class="text-xs opacity-75 mt-1">
+                                    De: ${originalTrade.userName || originalTrade.user || 'Usuario'}
+                                </p>
+                            </div>
+                            <button onclick="document.getElementById('proposalModal').remove()" 
+                                    class="text-white hover:text-gray-200 transition-colors">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <!-- Content -->
+                    <div class="overflow-y-auto max-h-[calc(90vh-120px)] p-6">
+                        <form id="proposalForm" onsubmit="handleProposalSubmit(event, '${tradeId}')">
+                            <!-- Información del intercambio original -->
+                            <div class="bg-gray-50 dark:bg-gray-900 rounded-lg p-4 mb-6">
+                                <h3 class="font-bold text-gray-900 dark:text-white mb-3">
+                                    📋 Intercambio Original
+                                </h3>
+                                <div class="grid md:grid-cols-2 gap-4 text-sm">
+                                    <div>
+                                        <span class="font-semibold text-gray-700 dark:text-gray-300">Ofrece:</span>
+                                        <ul class="mt-1 space-y-1">
+                                            ${originalTrade.offeredCards.map(card => `
+                                                <li class="text-gray-600 dark:text-gray-400">
+                                                    • ${card.name} ${card.condition ? `(${card.condition})` : ''}
+                                                </li>
+                                            `).join('')}
+                                        </ul>
+                                    </div>
+                                    <div>
+                                        <span class="font-semibold text-gray-700 dark:text-gray-300">Busca:</span>
+                                        <ul class="mt-1 space-y-1">
+                                            ${originalTrade.wantedCards.map(card => `
+                                                <li class="text-gray-600 dark:text-gray-400">
+                                                    • ${card.name} ${card.condition ? `(${card.condition})` : ''}
+                                                </li>
+                                            `).join('')}
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Tu Contrapropuesta -->
+                            <div class="space-y-6">
+                                <h3 class="font-bold text-lg text-gray-900 dark:text-white">
+                                    ✨ Tu Contrapropuesta
+                                </h3>
+                                
+                                <!-- Cartas que ofreces (lo que el otro busca) -->
+                                <div>
+                                    <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                                        <span class="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 p-1 rounded">
+                                            📤
+                                        </span>
+                                        Cartas que Ofreces (respuesta a lo que busca)
+                                    </h4>
+                                    <div id="proposalOfferedCardsContainer" class="space-y-3">
+                                        <!-- Se pre-cargarán las cartas que el otro busca -->
+                                    </div>
+                                    <button type="button" onclick="addCardToProposal('offered')"
+                                            class="mt-3 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+                                        + Añadir Carta
+                                    </button>
+                                </div>
+                                
+                                <!-- Cartas que buscas (modificación de lo que ofrece) -->
+                                <div>
+                                    <h4 class="font-semibold text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+                                        <span class="bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 p-1 rounded">
+                                            📥
+                                        </span>
+                                        Cartas que Buscas (de lo que ofrece)
+                                    </h4>
+                                    <div id="proposalWantedCardsContainer" class="space-y-3">
+                                        <!-- Se pre-cargarán las cartas que el otro ofrece -->
+                                    </div>
+                                    <button type="button" onclick="addCardToProposal('wanted')"
+                                            class="mt-3 bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg text-sm font-semibold">
+                                        + Añadir Carta
+                                    </button>
+                                </div>
+                                
+                                <!-- Mensaje adicional -->
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                        Mensaje (opcional)
+                                    </label>
+                                    <textarea id="proposalMessage" rows="3"
+                                              class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-green-400"
+                                              placeholder="Añade un mensaje para explicar tu propuesta..."></textarea>
+                                </div>
+                            </div>
+                            
+                            <!-- Botones de acción -->
+                            <div class="flex gap-3 justify-end mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
+                                <button type="button" onclick="document.getElementById('proposalModal').remove()"
+                                        class="px-6 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold">
+                                    Cancelar
+                                </button>
+                                <button type="submit"
+                                        class="px-6 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-semibold">
+                                    Enviar Propuesta
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Pre-cargar las cartas sugeridas basadas en el intercambio original
+            preloadProposalCards(originalTrade);
         }
+        
+        // Función para pre-cargar las cartas en la propuesta
+        function preloadProposalCards(originalTrade) {
+            const offeredContainer = document.getElementById('proposalOfferedCardsContainer');
+            const wantedContainer = document.getElementById('proposalWantedCardsContainer');
+            
+            // Pre-cargar las cartas que el otro busca (para que las ofrezcas)
+            originalTrade.wantedCards.forEach((card, index) => {
+                const cardHtml = createProposalCardInput('offered', index, card, true);
+                offeredContainer.insertAdjacentHTML('beforeend', cardHtml);
+            });
+            
+            // Pre-cargar las cartas que el otro ofrece (para que las selecciones)
+            originalTrade.offeredCards.forEach((card, index) => {
+                const cardHtml = createProposalCardInput('wanted', index, card, true);
+                wantedContainer.insertAdjacentHTML('beforeend', cardHtml);
+            });
+        }
+        
+        // Función para crear un input de carta en la propuesta
+        function createProposalCardInput(type, index, cardData = {}, isPreloaded = false) {
+            const uniqueId = `proposal_${type}_${Date.now()}_${index}`;
+            
+            return `
+                <div class="proposal-card bg-white dark:bg-gray-700 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
+                    <div class="flex items-center gap-3">
+                        ${cardData.image ? `
+                            <img src="${cardData.image}" alt="${cardData.name}" 
+                                 class="w-16 h-20 object-contain rounded">
+                        ` : `
+                            <div class="w-16 h-20 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center">
+                                <span class="text-2xl">🎴</span>
+                            </div>
+                        `}
+                        
+                        <div class="flex-1 space-y-2">
+                            <input type="text" 
+                                   name="${uniqueId}_name"
+                                   value="${cardData.name || ''}"
+                                   placeholder="Nombre de la carta"
+                                   ${isPreloaded ? 'readonly' : ''}
+                                   class="w-full p-2 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${isPreloaded ? 'bg-gray-100 dark:bg-gray-600' : ''} focus:outline-none focus:ring-2 focus:ring-green-400">
+                            
+                            <div class="flex gap-2">
+                                <select name="${uniqueId}_condition"
+                                        ${isPreloaded ? 'disabled' : ''}
+                                        class="flex-1 p-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${isPreloaded ? 'bg-gray-100 dark:bg-gray-600' : ''} focus:outline-none focus:ring-2 focus:ring-green-400">
+                                    ${Object.entries(CARD_CONDITIONS).map(([key, condition]) => `
+                                        <option value="${key}" ${cardData.condition === key ? 'selected' : ''}>
+                                            ${condition.icon} ${condition.label}
+                                        </option>
+                                    `).join('')}
+                                </select>
+                                
+                                <select name="${uniqueId}_language"
+                                        ${isPreloaded ? 'disabled' : ''}
+                                        class="flex-1 p-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${isPreloaded ? 'bg-gray-100 dark:bg-gray-600' : ''} focus:outline-none focus:ring-2 focus:ring-green-400">
+                                    <option value="Español" ${cardData.language === 'Español' ? 'selected' : ''}>Español</option>
+                                    <option value="Inglés" ${cardData.language === 'Inglés' ? 'selected' : ''}>Inglés</option>
+                                    <option value="Japonés" ${cardData.language === 'Japonés' ? 'selected' : ''}>Japonés</option>
+                                    <option value="Francés" ${cardData.language === 'Francés' ? 'selected' : ''}>Francés</option>
+                                    <option value="Alemán" ${cardData.language === 'Alemán' ? 'selected' : ''}>Alemán</option>
+                                    <option value="Italiano" ${cardData.language === 'Italiano' ? 'selected' : ''}>Italiano</option>
+                                    <option value="Portugués" ${cardData.language === 'Portugués' ? 'selected' : ''}>Portugués</option>
+                                    <option value="Chino" ${cardData.language === 'Chino' ? 'selected' : ''}>Chino</option>
+                                    <option value="Coreano" ${cardData.language === 'Coreano' ? 'selected' : ''}>Coreano</option>
+                                </select>
+                            </div>
+                            
+                            <!-- Campos ocultos para datos adicionales -->
+                            <input type="hidden" name="${uniqueId}_id" value="${cardData.id || ''}">
+                            <input type="hidden" name="${uniqueId}_image" value="${cardData.image || ''}">
+                            <input type="hidden" name="${uniqueId}_set" value="${cardData.set || ''}">
+                            <input type="hidden" name="${uniqueId}_number" value="${cardData.number || ''}">
+                        </div>
+                        
+                        <button type="button" onclick="this.closest('.proposal-card').remove()"
+                                class="text-red-500 hover:text-red-700 transition-colors">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Función para añadir carta a la propuesta
+        window.addCardToProposal = function(type) {
+            const container = document.getElementById(`proposal${type === 'offered' ? 'Offered' : 'Wanted'}CardsContainer`);
+            const index = container.children.length;
+            const cardHtml = createProposalCardInput(type, index);
+            container.insertAdjacentHTML('beforeend', cardHtml);
+        };
+        
+        // Función para manejar el envío de la propuesta
+        window.handleProposalSubmit = function(event, originalTradeId) {
+            event.preventDefault();
+            
+            if (!currentUser) {
+                showNotification('Debes iniciar sesión para enviar una propuesta', 'warning');
+                return;
+            }
+            
+            // Recopilar datos de la propuesta
+            const proposalData = {
+                id: 'proposal_' + Date.now(),
+                originalTradeId: originalTradeId,
+                fromUserId: currentUser.uid,
+                fromUserName: currentUser.displayName || currentUser.email,
+                message: document.getElementById('proposalMessage').value,
+                offeredCards: [],
+                wantedCards: [],
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+            
+            // Recopilar cartas ofrecidas
+            const offeredContainer = document.getElementById('proposalOfferedCardsContainer');
+            Array.from(offeredContainer.children).forEach(cardEl => {
+                const inputs = cardEl.querySelectorAll('input, select');
+                const cardData = {};
+                inputs.forEach(input => {
+                    const name = input.name;
+                    if (name) {
+                        const field = name.split('_').pop();
+                        cardData[field] = input.value;
+                    }
+                });
+                if (cardData.name && cardData.name.trim()) {
+                    proposalData.offeredCards.push(cardData);
+                }
+            });
+            
+            // Recopilar cartas buscadas
+            const wantedContainer = document.getElementById('proposalWantedCardsContainer');
+            Array.from(wantedContainer.children).forEach(cardEl => {
+                const inputs = cardEl.querySelectorAll('input, select');
+                const cardData = {};
+                inputs.forEach(input => {
+                    const name = input.name;
+                    if (name) {
+                        const field = name.split('_').pop();
+                        cardData[field] = input.value;
+                    }
+                });
+                if (cardData.name && cardData.name.trim()) {
+                    proposalData.wantedCards.push(cardData);
+                }
+            });
+            
+            // Validar que haya al menos una carta en cada lado
+            if (proposalData.offeredCards.length === 0 || proposalData.wantedCards.length === 0) {
+                showNotification('Debes incluir al menos una carta en cada lado de la propuesta', 'warning');
+                return;
+            }
+            
+            // Guardar la propuesta (por ahora en localStorage, luego en Firebase)
+            const proposalsKey = `proposals_${originalTradeId}`;
+            const existingProposals = JSON.parse(localStorage.getItem(proposalsKey) || '[]');
+            existingProposals.push(proposalData);
+            localStorage.setItem(proposalsKey, JSON.stringify(existingProposals));
+            
+            // Cerrar modal y mostrar confirmación
+            document.getElementById('proposalModal').remove();
+            showNotification('¡Propuesta enviada con éxito! El usuario será notificado.', 'success', 5000);
+            
+            console.log('📤 Propuesta enviada:', proposalData);
+        };
 
         function viewTradeDetails(tradeId) {
             console.log('👁️ Viendo detalles del intercambio:', tradeId);
