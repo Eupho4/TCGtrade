@@ -3174,10 +3174,64 @@
             }
         };
         
-        // Función para aceptar propuesta (placeholder por ahora)
+        // Función para aceptar propuesta
         window.acceptProposal = function(proposalId, tradeId) {
-            showNotification('Función de aceptar propuesta en desarrollo...', 'info', 3000);
-            // TODO: Implementar lógica de aceptación
+            if (!currentUser) return;
+            
+            // Buscar la propuesta
+            const proposalsKey = `proposals_${tradeId}`;
+            const proposals = JSON.parse(localStorage.getItem(proposalsKey) || '[]');
+            const proposal = proposals.find(p => p.id === proposalId);
+            
+            if (proposal) {
+                // Actualizar estado de la propuesta
+                proposal.status = 'accepted';
+                proposal.acceptedAt = new Date().toISOString();
+                localStorage.setItem(proposalsKey, JSON.stringify(proposals));
+                
+                // Crear notificación para el usuario que envió la propuesta
+                const notification = {
+                    id: `notif_${Date.now()}`,
+                    type: 'proposal_accepted',
+                    title: '✅ Propuesta aceptada',
+                    message: `Tu propuesta para el intercambio ha sido aceptada. ¡Es hora de valorar el intercambio!`,
+                    tradeId: tradeId,
+                    proposalId: proposalId,
+                    from: localStorage.getItem(`username_${currentUser.uid}`) || currentUser.email.split('@')[0],
+                    timestamp: new Date().toISOString(),
+                    read: false
+                };
+                
+                // Guardar notificación para el proponente
+                const proponentNotificationsKey = `notifications_${proposal.fromUserId}`;
+                const proponentNotifications = JSON.parse(localStorage.getItem(proponentNotificationsKey) || '[]');
+                proponentNotifications.unshift(notification);
+                localStorage.setItem(proponentNotificationsKey, JSON.stringify(proponentNotifications));
+                
+                // Marcar el intercambio como completado
+                const allTrades = [];
+                const userKeys = Object.keys(localStorage).filter(key => key.startsWith('userTrades_'));
+                userKeys.forEach(key => {
+                    const trades = JSON.parse(localStorage.getItem(key) || '[]');
+                    const tradeIndex = trades.findIndex(t => t.id === tradeId);
+                    if (tradeIndex !== -1) {
+                        trades[tradeIndex].status = 'completed';
+                        trades[tradeIndex].completedAt = new Date().toISOString();
+                        trades[tradeIndex].completedWith = proposal.fromUserId;
+                        localStorage.setItem(key, JSON.stringify(trades));
+                    }
+                });
+                
+                // Mostrar modal de valoración para ambos usuarios
+                setTimeout(() => {
+                    showRatingModal(proposal.fromUserId, proposal.fromUserName, tradeId);
+                }, 500);
+                
+                showNotification('✅ Propuesta aceptada. ¡Ahora puedes valorar el intercambio!', 'success', 4000);
+                
+                // Recargar la lista de propuestas
+                loadReceivedProposals();
+            }
         };
         
         // Función para ver detalles de propuesta
@@ -3416,6 +3470,227 @@
                 // Recargar la lista de propuestas enviadas
                 loadSentProposals();
             }
+        };
+        
+        // Sistema de valoración con Pokéballs
+        const POKEBALL_RATINGS = {
+            0: { name: 'Sin valorar', icon: '⚪', color: 'gray' },
+            1: { name: 'Premier Ball', icon: '⚪', color: 'white', emoji: '⚪' },
+            2: { name: 'Poké Ball', icon: '🔴', color: 'red', emoji: '🔴' },
+            3: { name: 'Great Ball', icon: '🔵', color: 'blue', emoji: '🔵' },
+            4: { name: 'Ultra Ball', icon: '⚫', color: 'black', emoji: '⚫' },
+            5: { name: 'Master Ball', icon: '🟣', color: 'purple', emoji: '🟣' }
+        };
+        
+        // Función para mostrar el modal de valoración
+        function showRatingModal(userId, userName, tradeId) {
+            const modal = document.createElement('div');
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            modal.id = 'ratingModal';
+            
+            let selectedRating = 0;
+            
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-gray-800 rounded-xl max-w-md w-full p-6 shadow-2xl">
+                    <div class="text-center mb-6">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+                            🎉 ¡Intercambio Completado!
+                        </h2>
+                        <p class="text-gray-600 dark:text-gray-300">
+                            ¿Cómo fue tu experiencia con <strong>${userName}</strong>?
+                        </p>
+                    </div>
+                    
+                    <!-- Sistema de Pokéballs -->
+                    <div class="mb-6">
+                        <div class="flex justify-center gap-3 mb-4" id="pokeballRating">
+                            ${[1, 2, 3, 4, 5].map(rating => `
+                                <button onclick="selectRating(${rating})" 
+                                        class="pokeball-rating transform transition-all hover:scale-125"
+                                        data-rating="${rating}"
+                                        title="${POKEBALL_RATINGS[rating].name}">
+                                    <span class="text-4xl opacity-30 grayscale transition-all">
+                                        ${POKEBALL_RATINGS[rating].emoji}
+                                    </span>
+                                </button>
+                            `).join('')}
+                        </div>
+                        <p class="text-center text-sm text-gray-500 dark:text-gray-400" id="ratingText">
+                            Selecciona una valoración
+                        </p>
+                    </div>
+                    
+                    <!-- Comentario opcional -->
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Comentario (opcional)
+                        </label>
+                        <textarea id="ratingComment" 
+                                  rows="3" 
+                                  class="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-400"
+                                  placeholder="Comparte tu experiencia..."></textarea>
+                    </div>
+                    
+                    <!-- Botones -->
+                    <div class="flex gap-3">
+                        <button onclick="submitRating('${userId}', '${userName}', '${tradeId}')"
+                                id="submitRatingBtn"
+                                disabled
+                                class="flex-1 px-4 py-2 bg-purple-500 hover:bg-purple-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white rounded-lg font-semibold transition-colors">
+                            Enviar Valoración
+                        </button>
+                        <button onclick="document.getElementById('ratingModal').remove()"
+                                class="px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold">
+                            Omitir
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        }
+        
+        // Función para seleccionar rating
+        window.selectRating = function(rating) {
+            // Actualizar visual de las Pokéballs
+            const pokeballs = document.querySelectorAll('.pokeball-rating');
+            pokeballs.forEach((ball, index) => {
+                const ballRating = index + 1;
+                const span = ball.querySelector('span');
+                
+                if (ballRating <= rating) {
+                    // Pokéball seleccionada
+                    span.classList.remove('opacity-30', 'grayscale');
+                    span.classList.add('opacity-100');
+                    
+                    // Añadir animación de rebote
+                    ball.classList.add('animate-bounce');
+                    setTimeout(() => ball.classList.remove('animate-bounce'), 500);
+                } else {
+                    // Pokéball no seleccionada
+                    span.classList.add('opacity-30', 'grayscale');
+                    span.classList.remove('opacity-100');
+                }
+            });
+            
+            // Actualizar texto
+            const ratingText = document.getElementById('ratingText');
+            ratingText.innerHTML = `
+                <span class="font-semibold">${POKEBALL_RATINGS[rating].name}</span>
+                <span class="text-lg ml-2">${POKEBALL_RATINGS[rating].emoji}</span>
+            `;
+            
+            // Habilitar botón de enviar
+            const submitBtn = document.getElementById('submitRatingBtn');
+            submitBtn.disabled = false;
+            submitBtn.setAttribute('data-rating', rating);
+        };
+        
+        // Función para enviar valoración
+        window.submitRating = function(userId, userName, tradeId) {
+            const submitBtn = document.getElementById('submitRatingBtn');
+            const rating = parseInt(submitBtn.getAttribute('data-rating'));
+            const comment = document.getElementById('ratingComment').value;
+            
+            if (!rating) {
+                showNotification('Por favor selecciona una valoración', 'warning');
+                return;
+            }
+            
+            // Crear objeto de valoración
+            const ratingData = {
+                id: `rating_${Date.now()}`,
+                fromUserId: currentUser.uid,
+                fromUserName: localStorage.getItem(`username_${currentUser.uid}`) || currentUser.email.split('@')[0],
+                toUserId: userId,
+                toUserName: userName,
+                rating: rating,
+                ratingName: POKEBALL_RATINGS[rating].name,
+                comment: comment,
+                tradeId: tradeId,
+                timestamp: new Date().toISOString()
+            };
+            
+            // Guardar valoración
+            const ratingsKey = `ratings_${userId}`;
+            const userRatings = JSON.parse(localStorage.getItem(ratingsKey) || '[]');
+            userRatings.push(ratingData);
+            localStorage.setItem(ratingsKey, JSON.stringify(userRatings));
+            
+            // Actualizar promedio de valoración del usuario
+            updateUserRatingAverage(userId);
+            
+            // Crear notificación para el usuario valorado
+            const notification = {
+                id: `notif_${Date.now()}`,
+                type: 'new_rating',
+                title: `${POKEBALL_RATINGS[rating].emoji} Nueva valoración recibida`,
+                message: `${ratingData.fromUserName} te ha valorado con ${rating} ${rating === 1 ? 'Pokéball' : 'Pokéballs'}`,
+                rating: rating,
+                from: ratingData.fromUserName,
+                timestamp: new Date().toISOString(),
+                read: false
+            };
+            
+            const notificationsKey = `notifications_${userId}`;
+            const notifications = JSON.parse(localStorage.getItem(notificationsKey) || '[]');
+            notifications.unshift(notification);
+            localStorage.setItem(notificationsKey, JSON.stringify(notifications));
+            
+            // Cerrar modal y mostrar confirmación
+            document.getElementById('ratingModal').remove();
+            showNotification(`✅ Valoración enviada: ${rating} ${POKEBALL_RATINGS[rating].emoji}`, 'success', 3000);
+        };
+        
+        // Función para actualizar el promedio de valoración
+        function updateUserRatingAverage(userId) {
+            const ratingsKey = `ratings_${userId}`;
+            const userRatings = JSON.parse(localStorage.getItem(ratingsKey) || '[]');
+            
+            if (userRatings.length === 0) return;
+            
+            // Calcular promedio
+            const totalRating = userRatings.reduce((sum, r) => sum + r.rating, 0);
+            const averageRating = totalRating / userRatings.length;
+            
+            // Guardar promedio
+            const userStatsKey = `userStats_${userId}`;
+            const userStats = JSON.parse(localStorage.getItem(userStatsKey) || '{}');
+            userStats.averageRating = averageRating;
+            userStats.totalRatings = userRatings.length;
+            userStats.lastUpdated = new Date().toISOString();
+            
+            localStorage.setItem(userStatsKey, JSON.stringify(userStats));
+        }
+        
+        // Función para mostrar valoración con Pokéballs
+        window.displayPokeballRating = function(rating, showNumber = false) {
+            const fullBalls = Math.floor(rating);
+            const hasHalf = rating % 1 >= 0.5;
+            
+            let display = '';
+            
+            // Mostrar Pokéballs llenas
+            for (let i = 1; i <= fullBalls; i++) {
+                display += `<span title="${POKEBALL_RATINGS[i].name}">${POKEBALL_RATINGS[i].emoji}</span>`;
+            }
+            
+            // Mostrar media Pokéball si aplica
+            if (hasHalf && fullBalls < 5) {
+                display += `<span class="opacity-50">${POKEBALL_RATINGS[fullBalls + 1].emoji}</span>`;
+            }
+            
+            // Mostrar Pokéballs vacías
+            const emptyCount = 5 - Math.ceil(rating);
+            for (let i = 0; i < emptyCount; i++) {
+                display += `<span class="opacity-20">⚪</span>`;
+            }
+            
+            if (showNumber) {
+                display += ` <span class="text-sm text-gray-500">(${rating.toFixed(1)})</span>`;
+            }
+            
+            return display;
         };
 
         function viewTradeDetails(tradeId) {
