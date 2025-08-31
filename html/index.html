@@ -1152,7 +1152,11 @@
             // Debounce de 300ms
             searchTimeout = setTimeout(async () => {
                 try {
-                    const response = await fetch(`https://api.pokemontcg.io/v2/cards?q=name:"${query}*"&pageSize=10`);
+                    // Usar el proxy en lugar de la API directa
+                    const encodedQuery = encodeURIComponent(query);
+                    const response = await fetch(`/api/pokemontcg/cards?q=name:${encodedQuery}*&pageSize=10`, {
+                        headers: { 'Content-Type': 'application/json' }
+                    });
                     const data = await response.json();
                     
                     if (data.data && data.data.length > 0) {
@@ -1177,21 +1181,28 @@
                     console.error('Error buscando cartas:', error);
                     resultsContainer.innerHTML = `
                         <div class="p-3 text-center text-red-500">
-                            Error al buscar cartas
+                            Error al buscar cartas. Intenta de nuevo.
                         </div>
                     `;
+                    // Reintentar con timeout más largo
+                    setTimeout(() => {
+                        resultsContainer.classList.add('hidden');
+                    }, 3000);
                 }
-            }, 300);
+            }, 500); // Aumentar debounce a 500ms para evitar demasiadas peticiones
         };
         
         // Función para seleccionar una carta del autocompletado
         window.selectCardForTrade = function(type, cardIndex, cardId, cardName, cardImage, setName, cardNumber) {
+            console.log('🎯 selectCardForTrade llamado:', { type, cardIndex, cardName });
+            
             // Usar el ID correcto del contenedor
             const containerId = type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer';
             const container = document.getElementById(containerId);
             
             if (!container) {
                 console.error('❌ selectCardForTrade: No se encontró el contenedor:', containerId);
+                alert('Error: No se pudo encontrar el contenedor de cartas. Recarga la página.');
                 return;
             }
             
@@ -1207,12 +1218,31 @@
                     // Bloquear el input para indicar que esta carta está confirmada
                     nameInput.readOnly = true;
                     nameInput.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
-                    console.log('✅ Nombre establecido y bloqueado en selectCardForTrade:', cardName);
+                    nameInput.classList.remove('bg-white');
+                    console.log('✅ Carta seleccionada y bloqueada:', cardName);
                     
-                    // Automáticamente añadir una nueva fila vacía
-                    setTimeout(() => {
-                        addCardToTrade(type);
-                    }, 100);
+                    // Verificar si necesitamos añadir una nueva fila
+                    const allCards = container.querySelectorAll('.trade-card');
+                    let hasEmptyRow = false;
+                    
+                    // Buscar si ya hay una fila vacía al final
+                    for (let i = allCards.length - 1; i >= 0; i--) {
+                        const input = allCards[i].querySelector('input[name*="_name_"]');
+                        if (input && !input.value.trim() && !input.readOnly) {
+                            hasEmptyRow = true;
+                            break;
+                        }
+                    }
+                    
+                    // Solo añadir nueva fila si no hay una vacía
+                    if (!hasEmptyRow) {
+                        console.log('➕ Añadiendo nueva fila vacía');
+                        setTimeout(() => {
+                            addCardToTrade(type);
+                        }, 100);
+                    } else {
+                        console.log('✓ Ya hay una fila vacía disponible');
+                    }
                 } else {
                     console.error('❌ No se encontró el input de nombre');
                 }
