@@ -17,7 +17,6 @@ let currentView = 'grid';
  * Initialize application
  */
 async function initApp() {
-    console.log('🚀 Initializing TCGtrade application...');
     
     // Initialize DOM elements
     const elements = initializeElements();
@@ -29,10 +28,8 @@ async function initApp() {
     initAuth((user) => {
         currentUser = user;
         if (user) {
-            console.log('✅ User authenticated:', user.email);
             updateUIForAuthenticatedUser(user);
         } else {
-            console.log('❌ User not authenticated');
             updateUIForUnauthenticatedUser();
         }
     });
@@ -46,7 +43,6 @@ async function initApp() {
     // Load initial content
     loadInitialContent();
     
-    console.log('✅ Application initialized successfully');
 }
 
 /**
@@ -353,7 +349,6 @@ function loadInitialContent() {
  */
 async function loadProfileData() {
     // This would be implemented in profile module
-    console.log('Loading profile data...');
 }
 
 /**
@@ -361,7 +356,6 @@ async function loadProfileData() {
  */
 async function loadTradesData() {
     // This would be implemented in trades module
-    console.log('Loading trades data...');
 }
 
 // Initialize app when DOM is ready

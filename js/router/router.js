@@ -19,7 +19,6 @@ export class Router {
         this.contentContainer = document.getElementById(contentContainerId);
         
         if (!this.contentContainer) {
-            console.error(`Container with id "${contentContainerId}" not found`);
             return;
         }
 
@@ -69,7 +68,6 @@ export class Router {
         
         // Check if route exists
         if (!this.routes[path] && !this.routes['*']) {
-            console.error(`Route "${path}" not found`);
             path = '/404';
         }
 
@@ -138,7 +136,6 @@ export class Router {
             window.scrollTo(0, 0);
 
         } catch (error) {
-            console.error('Error loading route:', error);
             this.contentContainer.innerHTML = `
                 <div class="error-page">
                     <h1>Error loading page</h1>

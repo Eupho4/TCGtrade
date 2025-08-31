@@ -160,7 +160,6 @@ export default {
     },
 
     afterRender: async () => {
-        console.log('Search page loaded');
         
         // Get elements
         const searchInput = document.getElementById('pageSearchInput');
@@ -203,7 +202,6 @@ export default {
                 document.getElementById('noResultsMessage').classList.toggle('hidden', currentResults.length > 0);
                 
             } catch (error) {
-                console.error('Search error:', error);
                 showNotification('Error al buscar cartas', 'error');
             } finally {
                 document.getElementById('loadingSpinner').classList.add('hidden');
@@ -285,6 +283,5 @@ export default {
         
         // Load sets and series for filters (placeholder)
         // This would be loaded from API
-        console.log('Loading filter options...');
     }
 };

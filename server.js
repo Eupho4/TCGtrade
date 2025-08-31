@@ -32,6 +32,15 @@ app.use(cors());
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static('.'));
 
+// Servir archivos HTML desde la carpeta html
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'index.html'));
+});
+
+app.get('/spa', (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'index-spa.html'));
+});
+
 // Función de rate limiting
 function checkRateLimit(identifier) {
   const now = Date.now();

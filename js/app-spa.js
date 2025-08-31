@@ -20,7 +20,6 @@ import { FooterComponent } from './components/footer.component.js';
  * Initialize the SPA
  */
 async function initApp() {
-    console.log('🚀 Initializing TCGtrade SPA...');
     
     // Apply dark mode preference
     applyDarkMode();
@@ -33,7 +32,6 @@ async function initApp() {
     
     // Initialize authentication
     initAuth((user) => {
-        console.log('Auth state changed:', user ? 'Logged in' : 'Logged out');
         // Re-render header to update user menu
         renderHeader();
     });
@@ -47,7 +45,6 @@ async function initApp() {
     // Set up route guards
     setupRouteGuards();
     
-    console.log('✅ SPA initialized successfully');
 }
 
 /**
@@ -222,7 +219,6 @@ function setupGlobalEventListeners() {
 function setupRouteGuards() {
     // Before route change
     router.setBeforeRouteChange(async (from, to) => {
-        console.log(`Navigating from ${from} to ${to}`);
         
         // Check authentication for protected routes
         const protectedRoutes = ['/profile', '/collection', '/trades'];
@@ -240,7 +236,6 @@ function setupRouteGuards() {
     
     // After route change
     router.setAfterRouteChange(async (to) => {
-        console.log(`Route changed to ${to}`);
         
         // Update page title
         const titles = {

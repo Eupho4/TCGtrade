@@ -117,7 +117,6 @@ export default {
     },
 
     afterRender: async () => {
-        console.log('Home page loaded');
         
         // Add any home-specific event listeners or initialization here
         

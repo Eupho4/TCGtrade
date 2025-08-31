@@ -104,6 +104,5 @@ export class FooterComponent {
     
     static afterRender() {
         // Footer doesn't need special initialization
-        console.log('Footer rendered');
     }
 }
