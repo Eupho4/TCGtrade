@@ -1195,6 +1195,7 @@
         // Función para seleccionar una carta del autocompletado
         window.selectCardForTrade = function(type, cardIndex, cardId, cardName, cardImage, setName, cardNumber, shouldLock = false) {
             console.log('🎯 selectCardForTrade llamado:', { type, cardIndex, cardName, shouldLock });
+            console.log('📍 Llamado desde:', shouldLock ? 'MIS CARTAS' : 'BUSCADOR API');
             
             // Usar el ID correcto del contenedor
             const containerId = type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer';
@@ -1242,6 +1243,7 @@
                     } else {
                         // Desde el buscador API - NO bloquear y NO crear nueva línea
                         console.log('✅ Carta seleccionada desde buscador (sin bloquear, sin nueva línea):', cardName);
+                        // NO hacer nada más, solo llenar los datos
                     }
                 } else {
                     console.error('❌ No se encontró el input de nombre');
@@ -2574,41 +2576,47 @@
 
         // Función para añadir carta al intercambio
         function addCardToTrade(type) {
+            console.log(`📝 addCardToTrade llamado para tipo: ${type}`);
             const container = document.getElementById(type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer');
             
-            // Verificar todas las filas y bloquear las que tienen contenido
-            const allCards = container.querySelectorAll('.trade-card');
-            let hasEmptyRow = false;
-            
-            if (allCards.length > 0) {
-                // Revisar todas las filas
-                allCards.forEach((card, index) => {
-                    const nameInput = card.querySelector('input[name*="_name_"]');
-                    
-                    if (nameInput && !nameInput.readOnly) {
-                        if (nameInput.value.trim()) {
-                            // Si tiene contenido y no está bloqueada, bloquearla
-                            console.log(`🔒 Bloqueando carta ${index} con contenido: ${nameInput.value}`);
-                            lockExistingCard(card);
-                            
-                            // Mostrar miniatura si hay imagen
-                            const imageInput = card.querySelector('input[name*="_image_"]');
-                            if (imageInput && imageInput.value) {
-                                showCardThumbnail(card, imageInput.value, nameInput.value);
-                            }
-                        } else {
-                            // Hay una fila vacía
-                            hasEmptyRow = true;
-                        }
-                    }
-                });
-            }
-            
-            // Solo añadir nueva fila si no hay una vacía
-            if (hasEmptyRow) {
-                console.log('ℹ️ No se añade nueva fila porque ya hay una vacía');
+            if (!container) {
+                console.error('❌ No se encontró el contenedor');
                 return;
             }
+            
+            // Bloquear todas las filas con contenido no bloqueadas
+            const allCards = container.querySelectorAll('.trade-card');
+            let needNewRow = true;
+            
+            allCards.forEach((card, index) => {
+                const nameInput = card.querySelector('input[name*="_name_"]');
+                
+                if (nameInput && !nameInput.readOnly) {
+                    if (nameInput.value.trim()) {
+                        // Si tiene contenido y no está bloqueada, bloquearla
+                        console.log(`🔒 Bloqueando carta ${index}: ${nameInput.value}`);
+                        lockExistingCard(card);
+                        
+                        // Mostrar miniatura si hay imagen
+                        const imageInput = card.querySelector('input[name*="_image_"]');
+                        if (imageInput && imageInput.value) {
+                            showCardThumbnail(card, imageInput.value, nameInput.value);
+                        }
+                    } else {
+                        // Hay una fila vacía no bloqueada
+                        needNewRow = false;
+                        console.log(`ℹ️ Fila ${index} está vacía, no se necesita nueva fila`);
+                    }
+                }
+            });
+            
+            // Solo añadir nueva fila si todas tienen contenido o están bloqueadas
+            if (!needNewRow) {
+                console.log('✓ Ya hay una fila vacía disponible');
+                return;
+            }
+            
+            console.log('➕ Creando nueva fila vacía');
             
             const cardIndex = container.children.length;
             const cardId = `${type}_card_${cardIndex}`;
