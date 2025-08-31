@@ -1279,6 +1279,11 @@
         
         // Función para mostrar miniatura de carta seleccionada
         function showCardThumbnail(cardElement, imageUrl, cardName) {
+            if (!imageUrl) {
+                console.log('⚠️ No hay URL de imagen para mostrar miniatura');
+                return;
+            }
+            
             // Buscar el input de nombre
             const nameInput = cardElement.querySelector('.card-name-input');
             if (!nameInput) return;
@@ -1297,16 +1302,15 @@
                 nameInput.style.paddingRight = '2.5rem';
             }
             
-            // Obtener el índice de la carta
-            const cardIndex = Array.from(cardElement.parentElement.children).indexOf(cardElement);
-            const type = cardElement.closest('#offeredCardsContainer') ? 'offered' : 'wanted';
+            // Usar un ID único en lugar del índice para evitar problemas
+            const uniqueId = `card_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            thumbnailContainer.setAttribute('data-card-id', uniqueId);
             
             thumbnailContainer.innerHTML = `
                 <div class="relative group">
                     <button type="button" 
                             class="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
-                            title="Ver carta / Cambiar selección"
-                            onclick="event.stopPropagation(); clearCardSelection('${type}', ${cardIndex});">
+                            title="Ver carta">
                         <span class="text-xl">🖼️</span>
                     </button>
                     <!-- Preview on hover - Tamaño grande y centrado -->
@@ -1318,6 +1322,8 @@
                     </div>
                 </div>
             `;
+            
+            console.log('🖼️ Miniatura mostrada para:', cardName);
         }
         
         // Función para limpiar la selección de una carta
@@ -2524,6 +2530,27 @@
                 nameInput.value = cardData.name;
             }
             
+            // Pre-cargar campos ocultos (IMPORTANTE para que funcione la miniatura)
+            const idInput = cardElement.querySelector(`input[name*="${type}_id_"]`);
+            if (idInput && cardData.id) {
+                idInput.value = cardData.id;
+            }
+            
+            const imageInput = cardElement.querySelector(`input[name*="${type}_image_"]`);
+            if (imageInput && cardData.image) {
+                imageInput.value = cardData.image;
+            }
+            
+            const setInput = cardElement.querySelector(`input[name*="${type}_set_"]`);
+            if (setInput && cardData.set) {
+                setInput.value = cardData.set;
+            }
+            
+            const numberInput = cardElement.querySelector(`input[name*="${type}_number_"]`);
+            if (numberInput && cardData.number) {
+                numberInput.value = cardData.number;
+            }
+            
             // Pre-cargar condición
             const conditionSelect = cardElement.querySelector(`select[name*="${type}_condition_"]`);
             if (conditionSelect && cardData.condition) {
@@ -2536,7 +2563,27 @@
                 languageSelect.value = cardData.language;
             }
             
-            console.log(`✅ Carta ${type} ${cardIndex} pre-cargada y EDITABLE (modo edición)`);
+            // Mostrar miniatura si hay imagen
+            if (cardData.image && cardData.name) {
+                console.log(`🖼️ Mostrando miniatura para carta pre-cargada: ${cardData.name}`);
+                showCardThumbnail(cardElement, cardData.image, cardData.name);
+                
+                // También bloquear la carta ya que viene de datos guardados
+                if (nameInput) {
+                    nameInput.readOnly = true;
+                    nameInput.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                }
+                if (conditionSelect) {
+                    conditionSelect.disabled = true;
+                    conditionSelect.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                }
+                if (languageSelect) {
+                    languageSelect.disabled = true;
+                    languageSelect.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                }
+            }
+            
+            console.log(`✅ Carta ${type} ${cardIndex} pre-cargada con miniatura y bloqueada (modo edición)`);
         }
 
         // Función para añadir carta al intercambio
