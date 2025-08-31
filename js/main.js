@@ -242,6 +242,7 @@
                 try {
                     loadProfileStats();
                 } catch (e) {
+                    console.error('Error al cargar estadísticas al abrir Dashboard:', e);
                 }
             }
 
@@ -352,10 +353,12 @@
         // Función para cargar datos del perfil
         async function loadProfileData() {
             if (!currentUser) {
+                console.log('❌ No hay usuario conectado');
                 return;
             }
 
             try {
+                console.log('🔄 Cargando datos del perfil...');
                 
                 // Cargar información del usuario
                 await loadUserInfo();
@@ -363,7 +366,9 @@
                 // Cargar estadísticas
                 await loadProfileStats();
                 
+                console.log('✅ Datos del perfil cargados correctamente');
             } catch (error) {
+                console.error('❌ Error al cargar datos del perfil:', error);
             }
         }
 
@@ -397,30 +402,37 @@
 
         // Función para guardar datos del perfil
         async function saveProfileData() {
+            console.log('🔧 saveProfileData iniciada');
             
             if (!currentUser) {
+                console.error('❌ No hay usuario conectado');
                 showProfileSaveMessage('Debes iniciar sesión para guardar cambios', 'error');
                 return;
             }
 
             try {
+                console.log('🔧 Obteniendo valores del formulario...');
                 const name = document.getElementById('profileName')?.value?.trim();
                 const lastName = document.getElementById('profileLastName')?.value?.trim();
                 const address = document.getElementById('profileAddress')?.value?.trim();
                 const birthDate = document.getElementById('profileBirthDate')?.value;
                 const email = document.getElementById('profileEmail')?.value?.trim();
 
+                console.log('🔧 Valores obtenidos:', { name, lastName, address, birthDate, email });
 
                 // Validaciones básicas
                 if (!name) {
+                    console.error('❌ Nombre vacío');
                     showProfileSaveMessage('El nombre es obligatorio', 'error');
                     return;
                 }
                 if (!lastName) {
+                    console.error('❌ Apellidos vacíos');
                     showProfileSaveMessage('Los apellidos son obligatorios', 'error');
                     return;
                 }
                 if (!email) {
+                    console.error('❌ Email vacío');
                     showProfileSaveMessage('El correo electrónico es obligatorio', 'error');
                     return;
                 }
@@ -428,6 +440,7 @@
                 // Validar formato de email
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
                 if (!emailRegex.test(email)) {
+                    console.error('❌ Formato de email inválido');
                     showProfileSaveMessage('El formato del correo electrónico no es válido', 'error');
                     return;
                 }
@@ -442,6 +455,10 @@
                     updatedAt: new Date()
                 };
 
+                console.log('🔧 Datos a guardar:', profileData);
+                console.log('🔧 Usuario UID:', currentUser.uid);
+                console.log('🔧 Firebase db disponible:', !!db);
+                console.log('🔧 Firebase auth disponible:', !!auth);
 
                 // Verificar que Firebase esté inicializado correctamente
                 if (!db) {
@@ -449,18 +466,25 @@
                 }
 
                 // Guardar en Firestore
+                console.log('🔧 Guardando en Firestore...');
                 const userDocRef = doc(db, 'users', currentUser.uid);
+                console.log('🔧 Referencia del documento:', userDocRef);
                 
                 await setDoc(userDocRef, profileData, { merge: true });
+                console.log('✅ Datos guardados en Firestore');
 
                 // Actualizar el nombre en el header del perfil
                 const userNameElement = document.getElementById('profileUserName');
                 if (userNameElement) {
                     userNameElement.textContent = `${name} ${lastName}`;
+                    console.log('✅ Nombre actualizado en header');
                 }
 
                 // Actualizar email en Firebase Auth si ha cambiado
                 if (email !== currentUser.email) {
+                    console.log('🔧 Email ha cambiado, actualizando en Auth...');
+                    console.log('🔧 Email actual:', currentUser.email);
+                    console.log('🔧 Email nuevo:', email);
                     
                     if (!auth) {
                         throw new Error('Firebase Auth no está inicializado');
@@ -468,9 +492,13 @@
                     
                     try {
                         await updateEmail(currentUser, email);
+                        console.log('✅ Email actualizado en Firebase Auth');
                         // Actualizar el objeto currentUser localmente
                         currentUser.email = email;
                     } catch (authError) {
+                        console.error('❌ Error al actualizar email en Auth:', authError);
+                        console.error('❌ Código de error:', authError.code);
+                        console.error('❌ Mensaje de error:', authError.message);
                         
                         if (authError.code === 'auth/requires-recent-login') {
                             showProfileSaveMessage('⚠️ Datos guardados pero el email no se pudo actualizar. Por seguridad, debes volver a iniciar sesión para cambiar el email.', 'info');
@@ -481,8 +509,10 @@
                 }
 
                 showProfileSaveMessage('✅ Perfil actualizado correctamente', 'success');
+                console.log('✅ Datos del perfil guardados exitosamente');
 
             } catch (error) {
+                console.error('❌ Error al guardar datos del perfil:', error);
                 
                 // Manejo específico de errores de permisos
                 if (error.code === 'permission-denied') {
@@ -499,6 +529,7 @@
         function showPasswordChangeMessage(message, type = 'success') {
             const messageElement = document.getElementById('passwordChangeMessage');
             if (!messageElement) {
+                console.error('❌ Elemento passwordChangeMessage no encontrado');
                 return;
             }
 
@@ -530,17 +561,21 @@
 
         // Función para cambiar contraseña
         async function changePassword() {
+            console.log('🔧 changePassword iniciada');
             
             if (!currentUser) {
+                console.error('❌ No hay usuario conectado');
                 showPasswordChangeMessage('Debes iniciar sesión para cambiar la contraseña', 'error');
                 return;
             }
 
             try {
+                console.log('🔧 Obteniendo valores del formulario...');
                 const currentPassword = document.getElementById('currentPassword')?.value;
                 const newPassword = document.getElementById('newPassword')?.value;
                 const confirmNewPassword = document.getElementById('confirmNewPassword')?.value;
 
+                console.log('🔧 Valores obtenidos:', { 
                     hasCurrentPassword: !!currentPassword, 
                     hasNewPassword: !!newPassword, 
                     hasConfirmPassword: !!confirmNewPassword 
@@ -548,26 +583,34 @@
 
                 // Validaciones
                 if (!currentPassword) {
+                    console.error('❌ Contraseña actual vacía');
                     showPasswordChangeMessage('Debes ingresar tu contraseña actual', 'error');
                     return;
                 }
                 if (!newPassword) {
+                    console.error('❌ Nueva contraseña vacía');
                     showPasswordChangeMessage('Debes ingresar una nueva contraseña', 'error');
                     return;
                 }
                 if (newPassword.length < 6) {
+                    console.error('❌ Nueva contraseña muy corta');
                     showPasswordChangeMessage('La nueva contraseña debe tener al menos 6 caracteres', 'error');
                     return;
                 }
                 if (newPassword !== confirmNewPassword) {
+                    console.error('❌ Contraseñas no coinciden');
                     showPasswordChangeMessage('Las contraseñas nuevas no coinciden', 'error');
                     return;
                 }
                 if (newPassword === currentPassword) {
+                    console.error('❌ Nueva contraseña igual a la actual');
                     showPasswordChangeMessage('La nueva contraseña debe ser diferente a la actual', 'error');
                     return;
                 }
 
+                console.log('🔧 Validaciones pasadas, reautenticando...');
+                console.log('🔧 Email del usuario:', currentUser.email);
+                console.log('🔧 Firebase Auth disponible:', !!auth);
 
                 // Verificar que Firebase Auth esté inicializado
                 if (!auth) {
@@ -575,19 +618,31 @@
                 }
 
                 // Reautenticar al usuario antes de cambiar la contraseña
+                console.log('🔧 Creando credenciales...');
                 const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+                console.log('🔧 Credenciales creadas:', !!credential);
                 
+                console.log('🔧 Iniciando reautenticación...');
                 await reauthenticateWithCredential(currentUser, credential);
+                console.log('✅ Reautenticación exitosa');
 
                 // Cambiar la contraseña
+                console.log('🔧 Cambiando contraseña...');
                 await updatePassword(currentUser, newPassword);
+                console.log('✅ Contraseña cambiada exitosamente');
 
                 // Limpiar el formulario
                 document.getElementById('passwordChangeForm').reset();
+                console.log('✅ Formulario limpiado');
 
                 showPasswordChangeMessage('✅ Contraseña cambiada correctamente', 'success');
 
             } catch (error) {
+                console.error('❌ Error al cambiar contraseña:', error);
+                console.error('❌ Tipo de error:', typeof error);
+                console.error('❌ Código de error:', error.code);
+                console.error('❌ Mensaje de error:', error.message);
+                console.error('❌ Stack trace:', error.stack);
                 
                 let errorMessage = 'Error al cambiar la contraseña';
                 
@@ -620,6 +675,7 @@
                 // MIGRACIÓN AUTOMÁTICA: Si el usuario tiene un name pero no username,
                 // significa que es un usuario antiguo donde el username estaba en name
                 if (userData && userData.name && !userData.username) {
+                    console.log('🔄 Detectado usuario antiguo, migrando estructura de datos...');
                     
                     // Verificar si el name parece ser un username (sin espacios, formato de usuario)
                     const nameValue = userData.name;
@@ -636,7 +692,9 @@
                                 username: nameValue,
                                 name: ''
                             }, { merge: true });
+                            console.log('✅ Datos migrados exitosamente');
                         } catch (migrationError) {
+                            console.error('Error al migrar datos:', migrationError);
                         }
                     }
                 }
@@ -699,8 +757,10 @@
                 // Cargar preferencia de modo oscuro
                 loadDarkModePreference(userData);
 
+                console.log('✅ Información del usuario cargada:', userData);
 
             } catch (error) {
+                console.error('❌ Error al cargar información del usuario:', error);
             }
         }
 
@@ -708,6 +768,7 @@
         function loadDarkModePreference(userData) {
             // NO cambiar el modo si no hay preferencia guardada
             if (userData?.darkMode === undefined) {
+                console.log('No hay preferencia de modo oscuro guardada, manteniendo estado actual');
                 // Sincronizar el toggle con el estado actual
                 const darkModeToggle = document.getElementById('darkModeToggle');
                 if (darkModeToggle) {
@@ -753,7 +814,9 @@
                 }, { merge: true });
 
                 applyDarkMode(isDark);
+                console.log('✅ Preferencia de modo oscuro guardada:', isDark);
             } catch (error) {
+                console.error('❌ Error al guardar preferencia de modo oscuro:', error);
             }
         }
 
@@ -764,6 +827,8 @@
 
         // Función de prueba para verificar que todo funciona
         window.testNavigation = function() {
+            console.log('🧪 Probando navegación...');
+            console.log('Funciones disponibles:', {
                 showInitialSections: typeof showInitialSections,
                 showAuthModal: typeof showAuthModal,
                 showMyCardsSection: typeof showMyCardsSection,
@@ -774,8 +839,10 @@
             
             // Probar cada función
             try {
+                console.log('✅ Todas las funciones están disponibles');
                 return true;
             } catch (error) {
+                console.error('❌ Error en las funciones:', error);
                 return false;
             }
         };
@@ -785,6 +852,7 @@
             if (!currentUser) return;
 
             try {
+                console.log('📊 Cargando estadísticas del perfil...');
 
                 // Obtener colección del usuario
                 const userCardsRef = collection(db, 'users', currentUser.uid, 'my_cards');
@@ -810,6 +878,7 @@
                 await loadSetsBreakdown(cards);
 
             } catch (error) {
+                console.error('❌ Error al cargar estadísticas:', error);
             }
         }
 
@@ -988,6 +1057,7 @@
                         `;
                     }
                 } catch (error) {
+                    console.error('Error buscando cartas:', error);
                     resultsContainer.innerHTML = `
                         <div class="p-3 text-center text-red-500">
                             Error al buscar cartas
@@ -1004,12 +1074,14 @@
             const container = document.getElementById(containerId);
             
             if (!container) {
+                console.error('❌ selectCardForTrade: No se encontró el contenedor:', containerId);
                 return;
             }
             
             const cardElement = container.querySelectorAll('.trade-card')[cardIndex];
             
             if (cardElement) {
+                console.log('✅ Elemento de carta encontrado en índice:', cardIndex);
                 
                 // Actualizar el input visible
                 const nameInput = cardElement.querySelector(`input[name="${type}_name_${cardIndex}"]`);
@@ -1018,12 +1090,14 @@
                     // Bloquear el input para indicar que esta carta está confirmada
                     nameInput.readOnly = true;
                     nameInput.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                    console.log('✅ Nombre establecido y bloqueado en selectCardForTrade:', cardName);
                     
                     // Automáticamente añadir una nueva fila vacía
                     setTimeout(() => {
                         addCardToTrade(type);
                     }, 100);
                 } else {
+                    console.error('❌ No se encontró el input de nombre');
                 }
                 
                 // Actualizar los campos ocultos
@@ -1211,6 +1285,7 @@
                         userCardsCache.push(doc.data());
                     });
                 } catch (error) {
+                    console.error('Error cargando cartas:', error);
                     showNotification('Error al cargar tu colección. Por favor, intenta de nuevo.', 'error', 5000);
                     return;
                 }
@@ -1357,12 +1432,14 @@
         
         // Función para seleccionar carta desde "Mis Cartas"
         window.selectFromMyCards = function(type, cardId, cardName, cardImage, setName, cardNumber, language = 'Español', condition = 'NM') {
+            console.log('📋 selectFromMyCards llamada con:', { type, cardId, cardName, cardImage, setName, cardNumber, language, condition });
             
             // Obtener el contenedor correcto
             const containerId = type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer';
             const container = document.getElementById(containerId);
             
             if (!container) {
+                console.error('❌ No se encontró el contenedor:', containerId);
                 return;
             }
             
@@ -1390,6 +1467,7 @@
             }
             
             if (!cardElement) {
+                console.error('❌ No se encontró el elemento de carta');
                 return;
             }
             
@@ -1399,28 +1477,35 @@
             // Establecer el idioma de la carta
             const languageSelect = cardElement.querySelector(`select[name="${type}_language_${targetCardIndex}"]`);
             if (languageSelect) {
+                console.log('✅ Selector de idioma encontrado, estableciendo:', language);
                 // Buscar la opción que coincida con el idioma
                 const options = languageSelect.options;
                 for (let i = 0; i < options.length; i++) {
                     if (options[i].value === language) {
                         languageSelect.selectedIndex = i;
+                        console.log('✅ Idioma establecido en índice:', i);
                         break;
                     }
                 }
             } else {
+                console.error('❌ No se encontró el selector de idioma');
             }
             
             // Establecer la condición de la carta
             const conditionSelect = cardElement.querySelector(`select[name="${type}_condition_${targetCardIndex}"]`);
             if (conditionSelect) {
+                console.log('✅ Selector de condición encontrado, estableciendo:', condition);
                 conditionSelect.value = condition;
             } else {
+                console.error('❌ No se encontró el selector de condición');
             }
             
             // Verificar que el nombre se haya establecido correctamente
             const nameInput = cardElement.querySelector(`input[name="${type}_name_${targetCardIndex}"]`);
             if (nameInput) {
+                console.log('✅ Nombre establecido:', nameInput.value);
             } else {
+                console.error('❌ No se encontró el input de nombre');
             }
         };
         
@@ -1448,6 +1533,7 @@
                             }
                         });
                     } catch (error) {
+                        console.error('Error al procesar intercambios:', error);
                     }
                 }
             }
@@ -1487,6 +1573,7 @@
                             }
                         });
                     } catch (error) {
+                        console.error('Error al procesar intercambios:', error);
                     }
                 }
             }
@@ -1636,6 +1723,7 @@
                 
                 return 'Usuario';
             } catch (error) {
+                console.error('Error obteniendo nombre de usuario:', error);
                 // Si hay error, intentar con el displayName o email del currentUser
                 if (currentUser?.displayName) return currentUser.displayName;
                 if (currentUser?.email) return currentUser.email.split('@')[0];
@@ -1648,6 +1736,7 @@
             if (!currentUser) return;
 
             try {
+                console.log('🤝 Cargando intercambios del usuario...');
 
                 // Cargar intercambios guardados del usuario ACTUAL (usando su UID)
                 const userTradesKey = `userTrades_${currentUser.uid}`;
@@ -1665,6 +1754,7 @@
                 displayTrades(allTrades, 'myTradesContainer');
 
             } catch (error) {
+                console.error('❌ Error al cargar intercambios:', error);
             }
         }
 
@@ -1673,6 +1763,7 @@
             if (!currentUser) return;
 
             try {
+                console.log('🎯 Cargando intercambios disponibles...');
 
                 // Cargar TODOS los intercambios de localStorage
                 let allAvailableTrades = [];
@@ -1708,6 +1799,7 @@
                 displayTrades(allAvailableTrades, 'availableTradesContainer');
 
             } catch (error) {
+                console.error('❌ Error al cargar intercambios disponibles:', error);
             }
         }
 
@@ -1845,25 +1937,39 @@
 
         // Función para editar intercambio (abre modal con datos pre-cargados)
         function editTrade(tradeId) {
+            console.log('🔍 === INICIANDO EDICIÓN ===');
+            console.log('✏️ Editando intercambio ID:', tradeId);
             
             // Verificar localStorage
             const userTradesKey = `userTrades_${currentUser.uid}`;
             const savedTrades = JSON.parse(localStorage.getItem(userTradesKey) || '[]');
+            console.log('📦 Intercambios en localStorage:', savedTrades.length);
+            console.log('📦 Todos los intercambios:', savedTrades);
             
             const trade = findTradeById(tradeId);
+            console.log('🔍 Intercambio encontrado:', trade);
             
             if (!trade) {
+                console.error('❌ No se encontró el intercambio para editar. ID buscado:', tradeId);
                 showNotification('No se encontró el intercambio para editar', 'error', 4000);
                 return;
             }
             
+            console.log('📋 Datos completos del intercambio a editar:');
+            console.log('- ID:', trade.id);
+            console.log('- Título:', trade.title);
+            console.log('- Descripción:', trade.description);
+            console.log('- Cartas ofrecidas:', trade.offeredCards);
+            console.log('- Cartas buscadas:', trade.wantedCards);
             
             // Abrir modal de crear intercambio con datos pre-cargados
+            console.log('🚀 Abriendo modal con datos...');
             showCreateTradeModal(trade);
         }
 
         // Función para eliminar intercambio directamente
         async function deleteTrade(tradeId) {
+            console.log('🗑️ Eliminando intercambio:', tradeId);
             
             const trade = findTradeById(tradeId);
             if (!trade) {
@@ -1881,6 +1987,7 @@
                 savedTrades = savedTrades.filter(t => t.id !== tradeId);
                 localStorage.setItem(userTradesKey, JSON.stringify(savedTrades));
                 
+                console.log('✅ Intercambio eliminado exitosamente');
                 
                 // Mostrar mensaje de éxito con estilo personalizado
                 showSuccessMessage('¡Intercambio eliminado exitosamente! 🗑️');
@@ -1891,10 +1998,12 @@
         }
 
         function proposeTrade(tradeId) {
+            console.log('💬 Proponiendo intercambio:', tradeId);
             alert('Función de propuesta en desarrollo');
         }
 
         function viewTradeDetails(tradeId) {
+            console.log('👁️ Viendo detalles del intercambio:', tradeId);
             
             // Buscar el intercambio
             const trade = findTradeById(tradeId);
@@ -2072,11 +2181,14 @@
         
         // Función para contactar con un usuario
         function contactUser(userId) {
+            console.log('📧 Contactando con usuario:', userId);
             showNotification('Función de contacto en desarrollo', 'info');
         }
 
         // Función para mostrar modal de crear intercambio
         window.showCreateTradeModal = (existingTrade = null) => {
+            console.log('🚀 === ABRIENDO MODAL ===');
+            console.log('📥 Parámetro existingTrade recibido:', existingTrade);
             
             if (!currentUser) {
                 showNotification('Debes iniciar sesión para crear intercambios', 'warning', 4000);
@@ -2085,8 +2197,14 @@
             }
 
             const isEditing = !!existingTrade;
+            console.log('🔧 isEditing calculado:', isEditing);
+            console.log(isEditing ? '✏️ Modo edición activado' : '🆕 Modo crear nuevo');
             
             if (isEditing) {
+                console.log('📋 Datos para edición:');
+                console.log('- existingTrade completo:', existingTrade);
+                console.log('- offeredCards:', existingTrade?.offeredCards);
+                console.log('- wantedCards:', existingTrade?.wantedCards);
             }
 
             const modal = document.createElement('div');
@@ -2187,6 +2305,9 @@
 
         // Configurar eventos del modal de crear intercambio
         function setupCreateTradeModalEvents(modal, isEditing = false, existingTrade = null) {
+            console.log('🔧 === CONFIGURANDO EVENTOS DEL MODAL ===');
+            console.log('🔧 isEditing recibido:', isEditing);
+            console.log('🔧 existingTrade recibido:', existingTrade);
             const closeBtn = modal.querySelector('#closeCreateTradeModal');
             const cancelBtn = modal.querySelector('#cancelCreateTrade');
             const form = modal.querySelector('#createTradeForm');
@@ -2218,19 +2339,28 @@
             form.addEventListener('submit', handleCreateTradeSubmit);
 
             // Añadir cartas iniciales o pre-cargar datos existentes
+            console.log('🔍 === INICIANDO SETUP DE CARTAS ===');
+            console.log('🔧 isEditing:', isEditing);
+            console.log('📦 existingTrade:', existingTrade);
             
             if (isEditing && existingTrade) {
+                console.log('📋 ✅ ENTRANDO EN MODO EDICIÓN');
+                console.log('📋 Modo edición: pre-cargando cartas existentes...', existingTrade);
+                console.log('📋 offeredCards para pre-cargar:', existingTrade.offeredCards);
+                console.log('📋 wantedCards para pre-cargar:', existingTrade.wantedCards);
                 
                 // Pre-cargar descripción inmediatamente
                 setTimeout(() => {
                     const descriptionTextarea = document.getElementById('tradeDescription');
                     if (descriptionTextarea && existingTrade.description) {
                         descriptionTextarea.value = existingTrade.description;
+                        console.log('✅ Descripción pre-cargada:', existingTrade.description);
                     }
                 }, 50);
                 
                 // Pre-cargar cartas ofrecidas
                 existingTrade.offeredCards.forEach((card, index) => {
+                    console.log(`📝 Añadiendo carta ofrecida ${index}:`, card);
                     addCardToTrade('offered');
                     // Pre-cargar datos con delay para asegurar que el DOM esté listo
                     setTimeout(() => {
@@ -2240,6 +2370,7 @@
                 
                 // Pre-cargar cartas buscadas  
                 existingTrade.wantedCards.forEach((card, index) => {
+                    console.log(`📝 Añadiendo carta buscada ${index}:`, card);
                     addCardToTrade('wanted');
                     // Pre-cargar datos con delay para asegurar que el DOM esté listo
                     setTimeout(() => {
@@ -2250,9 +2381,11 @@
                 // Actualizar título después de pre-cargar todo
                 setTimeout(() => {
                     updateGeneratedTitle();
+                    console.log('✅ Pre-carga completada en modo edición');
                 }, 500);
             } else {
                 // Modo crear nuevo: añadir cartas vacías
+                console.log('🆕 Modo crear nuevo: añadiendo cartas vacías');
                 addCardToTrade('offered');
                 addCardToTrade('wanted');
             }
@@ -2260,11 +2393,13 @@
 
         // Función para pre-cargar datos en una carta existente
         function preloadCardData(type, cardIndex, cardData) {
+            console.log(`📝 Pre-cargando datos para ${type} carta ${cardIndex}:`, cardData);
             
             const container = document.getElementById(type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer');
             const cardElement = container.children[cardIndex];
             
             if (!cardElement) {
+                console.error('❌ No se encontró el elemento de carta para pre-cargar');
                 return;
             }
             
@@ -2286,6 +2421,7 @@
                 languageSelect.value = cardData.language;
             }
             
+            console.log(`✅ Carta ${type} ${cardIndex} pre-cargada y EDITABLE (modo edición)`);
         }
 
         // Función para añadir carta al intercambio
@@ -2293,6 +2429,7 @@
             const container = document.getElementById(type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer');
             
             // IMPORTANTE: Bloquear todas las cartas existentes antes de añadir una nueva
+            console.log(`🔒 Bloqueando cartas existentes de tipo: ${type}`);
             Array.from(container.children).forEach(existingCard => {
                 lockExistingCard(existingCard);
             });
@@ -2390,10 +2527,12 @@
             container.appendChild(cardElement);
             updateGeneratedTitle();
             
+            console.log(`✅ Nueva carta ${type} añadida y lista para editar`);
         }
 
         // Función para bloquear una carta completa (todos sus campos)
         function lockExistingCard(cardElement) {
+            console.log('🔒 Bloqueando carta completa');
             
             // Bloquear input de nombre
             const nameInput = cardElement.querySelector('input[name*="_name_"]');
@@ -2431,15 +2570,18 @@
 
         // Función para eliminar carta y actualizar título
         window.removeCardFromTrade = function(button) {
+            console.log('🗑️ Intentando eliminar carta...');
             
             // Buscar el elemento de la carta usando la clase específica
             const cardElement = button.closest('.trade-card');
             
             if (!cardElement) {
+                console.error('❌ No se pudo encontrar el elemento de la carta');
                 return;
             }
             
             const container = cardElement.parentElement;
+            console.log('📦 Container encontrado, tiene', container.children.length, 'cartas');
             
             // Verificar que no sea la única carta del tipo
             if (container.children.length <= 1) {
@@ -2448,11 +2590,14 @@
             }
             
             // Eliminar la carta
+            console.log('✅ Eliminando carta...');
             cardElement.remove();
             
             // Actualizar el título
+            console.log('🔄 Actualizando título...');
             updateGeneratedTitle();
             
+            console.log('✨ Carta eliminada exitosamente');
         };
 
         // Función para generar título automáticamente
@@ -2529,6 +2674,7 @@
             const isEditing = !!editingTradeIdElement;
             const editingTradeId = isEditing ? editingTradeIdElement.value : null;
             
+            console.log(isEditing ? `✏️ Editando intercambio: ${editingTradeId}` : '🆕 Creando nuevo intercambio');
             
             // Recoger datos básicos
             const generatedTitleElement = document.getElementById('generatedTitle');
@@ -2607,6 +2753,7 @@
             });
 
             // Validaciones mejoradas - solo cuentan cartas con nombre
+            console.log('📋 Validando intercambio:', {
                 totalOfferedCards: offeredContainer.children.length,
                 validOfferedCards: tradeData.offeredCards.length,
                 totalWantedCards: wantedContainer.children.length,
@@ -2635,6 +2782,7 @@
                 
                 if (isEditing) {
                     // Modo edición: actualizar intercambio existente
+                    console.log('✏️ Actualizando intercambio existente:', tradeData);
                     
                     const tradeIndex = savedTrades.findIndex(t => t.id === editingTradeId);
                     if (tradeIndex !== -1) {
@@ -2651,6 +2799,7 @@
                 } else {
                     // Modo creación: crear nuevo intercambio
                     tradeData.id = 'trade_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                    console.log('💾 Creando nuevo intercambio:', tradeData);
                     
                     savedTrades.unshift(tradeData); // Añadir al principio
                     localStorage.setItem(userTradesKey, JSON.stringify(savedTrades));
@@ -2668,6 +2817,7 @@
                 }
                 
             } catch (error) {
+                console.error('❌ Error al crear intercambio:', error);
                 showNotification('Error al crear el intercambio. Inténtalo de nuevo.', 'error', 5000);
             }
         }
@@ -3009,6 +3159,7 @@
                 setsBreakdownElement.innerHTML = setsHTML;
 
             } catch (error) {
+                console.error('❌ Error al cargar desglose por sets:', error);
                 setsBreakdownElement.innerHTML = `
                     <div class="text-center text-gray-500 dark:text-gray-400 py-8">
                         <p>Error al cargar el desglose por sets</p>
@@ -3019,10 +3170,13 @@
 
         // --- Funciones del Modal de Autenticación ---
         function showAuthModal(mode) {
+            console.log('🔧 showAuthModal called with mode:', mode);
             if (!authModal) {
+                console.error('❌ authModal not found!');
                 return;
             }
 
+            console.log('🔧 Adding show class to authModal');
             authModal.classList.add('show');
 
             const forgotPasswordForm = document.getElementById('forgotPasswordForm');
@@ -3051,8 +3205,10 @@
 
         // --- Función de Búsqueda de Cartas (MEJORADA) ---
         async function fetchCards(query) {
+            console.log('🔍 fetchCards called with query:', query);
             
             if (!cardsContainer) {
+                console.error('❌ cardsContainer not found!');
                 return;
             }
 
@@ -3078,10 +3234,12 @@
                 searchPageSize = 20;
                 const apiUrl = buildCardsApiUrl(base, searchPage, searchPageSize);
 
+                console.log('🌐 Fetching from URL:', apiUrl);
 
                 // Hacer petición con timeout mejorado
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => {
+                    console.log('⏰ Timeout alcanzado, abortando petición...');
                     controller.abort();
                 }, 60000); // Aumentado a 60s para dar más tiempo al API
 
@@ -3097,20 +3255,24 @@
                 } catch (fetchError) {
                     clearTimeout(timeoutId);
                     if (fetchError.name === 'AbortError') {
+                        console.log('🔄 Petición cancelada por timeout');
                         throw new Error('TIMEOUT');
                     }
                     throw fetchError;
                 }
 
+                console.log('📡 Response status:', response.status);
 
                 if (!response.ok) {
                     const errorText = await response.text();
+                    console.error('❌ API Error Response:', errorText);
                     throw new Error(`API Error ${response.status}: ${errorText}`);
                 }
 
                 const data = await response.json();
                 const cards = data.data || [];
 
+                console.log('✅ API Response received:', {
                     totalCount: data.totalCount,
                     cardsReturned: cards.length
                 });
@@ -3121,6 +3283,7 @@
 
                 if (cards.length > 0) {
                     cards.forEach((card, index) => {
+                        console.log(`📋 Processing card ${index + 1}:`, card.name);
                         
                         const row = document.createElement('div');
                         row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 h-16 overflow-visible';
@@ -3187,7 +3350,9 @@
                         cardsContainer.appendChild(row);
                     });
                     
+                    console.log('✅ All cards rendered successfully');
                 } else {
+                    console.log('ℹ️ No cards found for query:', query);
                     if (noResultsMessage) {
                         noResultsMessage.textContent = `No se encontraron cartas para "${query}". Intenta con otro nombre.`;
                         noResultsMessage.classList.remove('hidden');
@@ -3195,16 +3360,20 @@
                 }
 
             } catch (error) {
+                console.error('❌ Error completo en fetchCards:', error);
 
                 // Si es timeout, intentar con búsqueda más simple y menos resultados
                 if ((error.name === 'AbortError' || error.message.includes('408') || error.message === 'TIMEOUT') && !query.includes('_retry')) {
+                    console.log('🔄 Timeout detectado, reintentando con búsqueda optimizada...');
                     
                     try {
                         // Usar búsqueda más simple para el retry
                         const retryUrl = buildCardsApiUrl(`name:${query.toLowerCase()}`, 1, 20);
+                        console.log('🔄 Retry URL (búsqueda exacta):', retryUrl);
                         
                         const retryController = new AbortController();
                         const retryTimeoutId = setTimeout(() => {
+                            console.log('⏰ Retry timeout alcanzado');
                             retryController.abort();
                         }, 30000); // 30 segundos para retry
                         
@@ -3224,6 +3393,7 @@
                             const retryData = await retryResponse.json();
                             const retryCards = retryData.data || [];
                             
+                            console.log('✅ Retry successful:', retryCards.length, 'cards');
                             
                             // Mostrar mensaje de retry con opción de cargar más
                             if (errorMessage) {
@@ -3284,6 +3454,7 @@
                             }
                         }
                     } catch (retryError) {
+                        console.error('❌ Retry también falló:', retryError);
                     }
                 }
 
@@ -3333,6 +3504,7 @@
         
         // Función corregida para obtener cartas de un set
         async function fetchAllCardsInSet(setId) {
+            console.log(`Obteniendo todas las cartas del set: ${setId}`);
 
             try {
                 // URL corregida para usar tu función pokemon-proxy
@@ -3348,9 +3520,11 @@
                 }
 
                 const data = await response.json();
+                console.log(`Obtenidas ${data.data?.length || 0} cartas del set ${setId}`);
                 return data.data || [];
 
             } catch (error) {
+                console.error('Error al obtener cartas del set:', error);
                 if (myCardsErrorMessage) {
                     myCardsErrorMessage.textContent = 'Error al cargar las cartas de esta expansión.';
                     myCardsErrorMessage.classList.remove('hidden');
@@ -3448,6 +3622,7 @@
                 }
 
             } catch (error) {
+                console.error('Error al cargar la colección:', error);
                 if (myCardsErrorMessage) myCardsErrorMessage.classList.remove('hidden');
             } finally {
                 hideLoadingSpinner();
@@ -3563,6 +3738,7 @@
                 showNotification('Carta eliminada de tu colección', 'success', 3000);
                 await loadMyCollection(currentUser.uid);
             } catch (error) {
+                console.error('Error al eliminar carta:', error);
                 showNotification('Error al eliminar la carta. Inténtalo de nuevo.', 'error', 5000);
             }
         };
@@ -3571,6 +3747,7 @@
         async function fetchSetsAndPopulateFilter() {
             if (allSets.length > 0) return;
 
+            console.log('🔄 Cargando sets desde la API...');
 
             try {
                 // Timeout reducido para sets
@@ -3587,15 +3764,18 @@
 
                 clearTimeout(timeoutId);
 
+                console.log('📡 Sets API Response status:', response.status);
 
                 if (!response.ok) {
                     const errorText = await response.text();
+                    console.error('❌ Sets API Error:', errorText);
                     throw new Error(`HTTP ${response.status}: ${errorText}`);
                 }
 
                 const data = await response.json();
                 allSets = data.data || [];
                 
+                console.log('✅ Sets cargados:', allSets.length);
 
                 allSets.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
 
@@ -3615,8 +3795,11 @@
                 populateSetFilter(allSets);
                 if (setFilter) setFilter.disabled = false;
 
+                console.log(`Cargados ${allSets.length} sets y ${uniqueSeries.length} series`);
 
             } catch (error) {
+                console.error('Error al cargar sets:', error);
+                console.log('🔄 Intentando cargar sets básicos como fallback...');
                 
                 // Fallback: usar sets básicos si la API falla
                 try {
@@ -3624,6 +3807,7 @@
                     if (fallbackResponse.ok) {
                         const fallbackData = await fallbackResponse.json();
                         allSets = fallbackData.data || [];
+                        console.log('✅ Sets básicos cargados como fallback:', allSets.length);
                         
                         if (allSets.length > 0) {
                             // Poblar filtros con datos básicos
@@ -3643,6 +3827,7 @@
                         }
                     }
                 } catch (fallbackError) {
+                    console.error('Fallback también falló:', fallbackError);
                 }
                 
                 // Si todo falla, deshabilitar filtros
@@ -3671,6 +3856,7 @@
         // --- Funciones de Autenticación ---
         window.logoutUser = async () => {
             try {
+                console.log('🚪 Cerrando sesión...');
                 
                 // Cerrar sesión en Firebase
                 await signOut(auth);
@@ -3718,44 +3904,55 @@
                 // Scroll al inicio de la página
                 window.scrollTo(0, 0);
                 
+                console.log('✅ Sesión cerrada exitosamente');
                 
                 // Opcional: Mostrar mensaje de confirmación
                 // alert('Has cerrado sesión exitosamente');
                 
             } catch (error) {
+                console.error('❌ Error al cerrar sesión:', error);
                 showNotification('Error al cerrar sesión. Por favor, intenta de nuevo.', 'error', 5000);
             }
         };
 
         // --- Configuración de Event Listeners ---
         function setupNavigationEvents() {
+            console.log('🚀 Inicializando aplicación...');
             
             // Verificar que las funciones estén disponibles
             if (typeof showInitialSections === 'undefined') {
+                console.error('❌ showInitialSections no está definida');
                 return;
             }
             if (typeof showAuthModal === 'undefined') {
+                console.error('❌ showAuthModal no está definida');
                 return;
             }
             if (typeof showMyCardsSection === 'undefined') {
+                console.error('❌ showMyCardsSection no está definida');
                 return;
             }
             if (typeof showInterchangesSection === 'undefined') {
+                console.error('❌ showInterchangesSection no está definida');
                 return;
             }
             if (typeof showProfileSection === 'undefined') {
+                console.error('❌ showProfileSection no está definida');
                 return;
             }
             if (typeof logoutUser === 'undefined') {
+                console.error('❌ logoutUser no está definida');
                 return;
             }
 
+            console.log('✅ Todas las funciones están disponibles');
 
             // Configurar event listeners simples y directos
             const homeLink = document.getElementById('homeLink');
             if (homeLink) {
                 homeLink.addEventListener('click', (e) => {
                     e.preventDefault();
+                    console.log('🏠 Home link clicked');
                     showInitialSections();
                 });
             }
@@ -3764,6 +3961,7 @@
             if (startTradingBtn) {
                 startTradingBtn.addEventListener('click', (e) => {
                     e.preventDefault();
+                    console.log('🚀 Start trading clicked');
                     showAuthModal('register');
                 });
             }
@@ -3772,6 +3970,7 @@
             if (loginLink) {
                 loginLink.addEventListener('click', (e) => {
                     e.preventDefault();
+                    console.log('🚪 Login link clicked');
                     showAuthModal('login');
                 });
             }
@@ -3780,6 +3979,7 @@
             if (registerLink) {
                 registerLink.addEventListener('click', (e) => {
                     e.preventDefault();
+                    console.log('📝 Register link clicked');
                     showAuthModal('register');
                 });
             }
@@ -3788,6 +3988,7 @@
             if (logoutLink) {
                 logoutLink.addEventListener('click', (e) => {
                     e.preventDefault();
+                    console.log('👋 Logout link clicked');
                     logoutUser();
                 });
             }
@@ -3796,6 +3997,7 @@
             if (myCardsLink) {
                 myCardsLink.addEventListener('click', (e) => {
                     e.preventDefault();
+                    console.log('📦 My cards link clicked');
                     showMyCardsSection();
                 });
             }
@@ -3804,6 +4006,7 @@
             if (interchangesLink) {
                 interchangesLink.addEventListener('click', (e) => {
                     e.preventDefault();
+                    console.log('🤝 Interchanges link clicked');
                     showInterchangesSection();
                 });
             }
@@ -3812,6 +4015,7 @@
             if (profileLink) {
                 profileLink.addEventListener('click', (e) => {
                     e.preventDefault();
+                    console.log('👤 Profile link clicked');
                     if (currentUser) {
                         showProfileSection();
                     } else {
@@ -3824,6 +4028,7 @@
             if (helpLink) {
                 helpLink.addEventListener('click', (e) => {
                     e.preventDefault();
+                    console.log('❓ Help link clicked');
                     showHelpSection();
                 });
             }
@@ -3833,6 +4038,7 @@
             if (navHomeLink) {
                 navHomeLink.addEventListener('click', (e) => {
                     e.preventDefault();
+                    console.log('🏠 Inicio (navbar) link clicked');
                     showInitialSections();
                     // Limpiar búsqueda si existe
                     const searchInput = document.getElementById('searchInput');
@@ -3846,20 +4052,24 @@
             const darkModeToggle = document.getElementById('darkModeToggle');
             if (darkModeToggle) {
                 darkModeToggle.addEventListener('change', (e) => {
+                    console.log('🌙 Dark mode toggle clicked:', e.target.checked);
                     saveDarkModePreference(e.target.checked);
                 });
             }
 
 
 
+            console.log('✅ Event listeners configurados correctamente');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 DOM cargado, configurando eventos...');
             
             // CARGAR MODO OSCURO DESDE LOCALSTORAGE AL INICIO
             const savedDarkMode = localStorage.getItem('darkMode');
             if (savedDarkMode !== null) {
                 const isDark = savedDarkMode === 'true';
+                console.log('🌙 Cargando modo oscuro desde localStorage:', isDark);
                 applyDarkMode(isDark);
                 
                 // Sincronizar el toggle si existe
@@ -3998,12 +4208,14 @@
 
             if (searchHelpBtn) {
                 searchHelpBtn.addEventListener('click', () => {
+                    console.log('🔍 Buscar ayuda clicked');
                     alert('Función de búsqueda de ayuda en desarrollo');
                 });
             }
 
             if (contactSupportBtn) {
                 contactSupportBtn.addEventListener('click', () => {
+                    console.log('📧 Contactar soporte clicked');
                     alert('Función de contacto con soporte en desarrollo');
                 });
             }
@@ -4014,12 +4226,14 @@
 
             if (createTradeBtn) {
                 createTradeBtn.addEventListener('click', () => {
+                    console.log('➕ Crear intercambio clicked');
                     showCreateTradeModal();
                 });
             }
 
             if (findTradesBtn) {
                 findTradesBtn.addEventListener('click', () => {
+                    console.log('🔍 Buscar intercambios clicked');
                     alert('Función de búsqueda en desarrollo');
                 });
             }
@@ -4103,6 +4317,7 @@
                 if (resetPasswordSuccess) resetPasswordSuccess.classList.add('hidden');
                 
                 try {
+                    console.log('📧 Enviando email de recuperación a:', email);
                     await sendPasswordResetEmail(auth, email);
                     
                     // Mostrar mensaje de éxito con aviso de SPAM
@@ -4129,6 +4344,7 @@
                     }, 10000);
                     
                 } catch (error) {
+                    console.error('❌ Error al enviar email de recuperación:', error);
                     
                     let errorMessage = 'Error al enviar el email de recuperación.';
                     
@@ -4191,6 +4407,7 @@
 
             if (applyFiltersBtn) {
                 applyFiltersBtn.addEventListener('click', () => {
+                    console.log('🔍 Aplicando filtros...');
                     if (currentUser) {
                         loadMyCollection(currentUser.uid);
                     } else {
@@ -4205,6 +4422,7 @@
             // Event listener para el filtro de idioma (actualización automática)
             if (languageFilter) {
                 languageFilter.addEventListener('change', () => {
+                    console.log('🌍 Idioma seleccionado:', languageFilter.value);
                     if (currentUser) {
                         loadMyCollection(currentUser.uid);
                     }
@@ -4231,7 +4449,9 @@
                 try {
                     await signInWithEmailAndPassword(auth, email, password);
                     hideAuthModal();
+                    console.log('Usuario inició sesión:', auth.currentUser.email);
                 } catch (error) {
+                    console.error('Error al iniciar sesión:', error);
                     let errorMessage = 'Error al iniciar sesión.';
                     if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
                         errorMessage = 'Correo o contraseña incorrectos.';
@@ -4316,15 +4536,22 @@
                     }
 
                     try {
+                        console.log('🚀 Iniciando proceso de registro...');
+                        console.log('📝 Username:', username);
+                        console.log('📧 Email:', email);
                         
                         // NOTA: La verificación de nombre de usuario duplicado está deshabilitada
                         // porque requeriría permisos especiales en Firestore para leer todos los usuarios.
                         // En producción, esto se manejaría con una Cloud Function o un índice especial.
+                        console.log('ℹ️ Saltando verificación de nombre de usuario duplicado (requiere configuración adicional)');
 
+                        console.log('🔐 Creando cuenta con Firebase Auth...');
                         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
                         const user = userCredential.user;
+                        console.log('✅ Cuenta creada exitosamente:', user.uid);
 
                         // Crear perfil completo en Firestore
+                        console.log('💾 Guardando perfil en Firestore...');
                         await setDoc(doc(db, 'users', user.uid), {
                             username: username, // Username único elegido en el registro
                             name: '', // Nombre real (se llenará después en el perfil)
@@ -4333,13 +4560,18 @@
                             createdAt: new Date(),
                             updatedAt: new Date()
                         });
+                        console.log('✅ Perfil guardado en Firestore');
 
                         hideAuthModal();
+                        console.log('🎉 Usuario registrado exitosamente:', user.email, 'Username:', username);
                         
                         // Mostrar mensaje de éxito
                         alert(`¡Bienvenido ${username}! Tu cuenta ha sido creada exitosamente.`);
                         
                     } catch (error) {
+                        console.error('❌ Error detallado al registrar:', error);
+                        console.error('Código de error:', error.code);
+                        console.error('Mensaje de error:', error.message);
                         
                         let errorMessage = 'Error al registrar. Por favor, intenta de nuevo.';
                         
@@ -4392,6 +4624,7 @@
             // Escuchar cambios de autenticación
             onAuthStateChanged(auth, async (user) => {
                 currentUser = user;
+                console.log('Estado de autenticación:', !!user);
 
                 // Mis Cartas siempre visible
                 if (myCardsNavLink) myCardsNavLink.classList.remove('hidden');
@@ -4406,10 +4639,12 @@
                     
                     // CARGAR MODO OSCURO INMEDIATAMENTE AL INICIAR SESIÓN
                     try {
+                        console.log('🌙 Cargando preferencia de modo oscuro del usuario...');
                         const userDoc = await getDoc(doc(db, 'users', user.uid));
                         const userData = userDoc.data();
                         
                         if (userData && userData.darkMode !== undefined) {
+                            console.log('🌙 Aplicando modo oscuro:', userData.darkMode);
                             applyDarkMode(userData.darkMode);
                             
                             // Sincronizar el toggle si existe
@@ -4418,8 +4653,10 @@
                                 darkModeToggle.checked = userData.darkMode;
                             }
                         } else {
+                            console.log('🌙 No hay preferencia guardada, manteniendo modo actual');
                         }
                     } catch (error) {
+                        console.error('Error al cargar preferencia de modo oscuro:', error);
                     }
                 } else {
                     // Usuario desconectado: mostrar login/register, ocultar logout
@@ -4677,12 +4914,14 @@
                 await setDoc(doc(db, `users/${currentUser.uid}/my_cards/${cardId}`), cardData);
                 showNotification(`¡Carta "${cardName}" añadida a tu colección!`, 'success', 4000);
             } catch (error) {
+                console.error('Error al añadir carta:', error);
                 showNotification('Error al añadir la carta. Inténtalo de nuevo.', 'error', 5000);
             }
         }
 
         // Función para cargar más resultados
         window.loadMoreResults = async (query) => {
+            console.log('🔄 Intentando cargar más resultados para:', query);
             
             if (errorMessage) errorMessage.classList.add('hidden');
             showLoadingSpinner();
@@ -4756,6 +4995,7 @@
                 }
                 
             } catch (error) {
+                console.error('Error al cargar más resultados:', error);
                 if (errorMessage) {
                     errorMessage.textContent = '❌ No se pudieron cargar más resultados. La API está muy lenta en este momento.';
                     errorMessage.classList.remove('hidden');
@@ -4775,6 +5015,7 @@
                 return;
             }
             
+            console.log('🚀 Búsqueda rápida iniciada para:', query);
             
             if (cardsContainer) cardsContainer.innerHTML = '';
             if (noResultsMessage) noResultsMessage.classList.add('hidden');
@@ -4788,6 +5029,7 @@
                 // Búsqueda súper específica y rápida
                 const quickUrl = `/api/pokemontcg/cards?q=name:${encodedQuery}&pageSize=10`;
                 
+                console.log('🚀 Quick URL:', quickUrl);
                 
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 5000); // Solo 5 segundos
@@ -4803,6 +5045,7 @@
                     const data = await response.json();
                     const cards = data.data || [];
                     
+                    console.log('🚀 Quick search success:', cards.length, 'cards');
                     
                     if (cards.length > 0) {
                         cards.forEach(card => {
@@ -4856,6 +5099,7 @@
                 }
                 
             } catch (error) {
+                console.error('❌ Quick search error:', error);
                 if (errorMessage) {
                     errorMessage.textContent = '⚡ Búsqueda rápida falló. Prueba la búsqueda normal.';
                     errorMessage.classList.remove('hidden');
@@ -4919,6 +5163,7 @@
                 }
                 if (status) status.textContent = '';
             } catch (err) {
+                console.error('Error al cargar colección:', err);
                 if (status) status.textContent = 'Error al cargar tu colección';
             }
         }
@@ -5067,6 +5312,7 @@
         async function goToSearchPage(targetPage) {
             searchPage = targetPage;
             const apiUrl = buildCardsApiUrl(lastSearchBase, searchPage, searchPageSize);
+            console.log('🌐 Fetching page:', searchPage, apiUrl);
 
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 20000);
@@ -5148,5 +5394,6 @@
                 renderPagination(totalCount, searchPage, searchPageSize);
             } catch (e) {
                 clearTimeout(timeoutId);
+                console.error('❌ Error al cargar página:', e);
             }
         }
