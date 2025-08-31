@@ -2480,9 +2480,11 @@
                 }, 50);
                 
                 // Pre-cargar cartas ofrecidas
+                console.log(`📦 Cargando ${existingTrade.offeredCards.length} cartas ofrecidas`);
                 existingTrade.offeredCards.forEach((card, index) => {
                     console.log(`📝 Añadiendo carta ofrecida ${index}:`, card);
-                    addCardToTrade('offered');
+                    // Forzar la creación de nueva fila para cada carta guardada
+                    addCardToTrade('offered', true);
                     // Pre-cargar datos con delay para asegurar que el DOM esté listo
                     setTimeout(() => {
                         preloadCardData('offered', index, card);
@@ -2490,20 +2492,27 @@
                 });
                 
                 // Pre-cargar cartas buscadas  
+                console.log(`📦 Cargando ${existingTrade.wantedCards.length} cartas buscadas`);
                 existingTrade.wantedCards.forEach((card, index) => {
                     console.log(`📝 Añadiendo carta buscada ${index}:`, card);
-                    addCardToTrade('wanted');
+                    // Forzar la creación de nueva fila para cada carta guardada
+                    addCardToTrade('wanted', true);
                     // Pre-cargar datos con delay para asegurar que el DOM esté listo
                     setTimeout(() => {
                         preloadCardData('wanted', index, card);
                     }, 100 + (index * 50));
                 });
                 
-                // Actualizar título después de pre-cargar todo
+                // Actualizar título y añadir filas vacías después de pre-cargar todo
                 setTimeout(() => {
                     updateGeneratedTitle();
-                    console.log('✅ Pre-carga completada en modo edición');
-                }, 500);
+                    
+                    // Añadir una fila vacía al final de cada sección para poder añadir más cartas
+                    addCardToTrade('offered', false); // No forzar, solo si no hay vacía
+                    addCardToTrade('wanted', false);  // No forzar, solo si no hay vacía
+                    
+                    console.log('✅ Pre-carga completada en modo edición con filas vacías al final');
+                }, 600);
             } else {
                 // Modo crear nuevo: añadir cartas vacías
                 console.log('🆕 Modo crear nuevo: añadiendo cartas vacías');
@@ -2587,8 +2596,8 @@
         }
 
         // Función para añadir carta al intercambio
-        function addCardToTrade(type) {
-            console.log(`📝 addCardToTrade llamado para tipo: ${type}`);
+        function addCardToTrade(type, forceAdd = false) {
+            console.log(`📝 addCardToTrade llamado para tipo: ${type}, forceAdd: ${forceAdd}`);
             const container = document.getElementById(type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer');
             
             if (!container) {
@@ -2596,36 +2605,39 @@
                 return;
             }
             
-            // Bloquear todas las filas con contenido no bloqueadas
-            const allCards = container.querySelectorAll('.trade-card');
-            let needNewRow = true;
-            
-            allCards.forEach((card, index) => {
-                const nameInput = card.querySelector('input[name*="_name_"]');
+            // Si NO es forzado, verificar si necesitamos nueva fila
+            if (!forceAdd) {
+                // Bloquear todas las filas con contenido no bloqueadas
+                const allCards = container.querySelectorAll('.trade-card');
+                let needNewRow = true;
                 
-                if (nameInput && !nameInput.readOnly) {
-                    if (nameInput.value.trim()) {
-                        // Si tiene contenido y no está bloqueada, bloquearla
-                        console.log(`🔒 Bloqueando carta ${index}: ${nameInput.value}`);
-                        lockExistingCard(card);
-                        
-                        // Mostrar miniatura si hay imagen
-                        const imageInput = card.querySelector('input[name*="_image_"]');
-                        if (imageInput && imageInput.value) {
-                            showCardThumbnail(card, imageInput.value, nameInput.value);
+                allCards.forEach((card, index) => {
+                    const nameInput = card.querySelector('input[name*="_name_"]');
+                    
+                    if (nameInput && !nameInput.readOnly) {
+                        if (nameInput.value.trim()) {
+                            // Si tiene contenido y no está bloqueada, bloquearla
+                            console.log(`🔒 Bloqueando carta ${index}: ${nameInput.value}`);
+                            lockExistingCard(card);
+                            
+                            // Mostrar miniatura si hay imagen
+                            const imageInput = card.querySelector('input[name*="_image_"]');
+                            if (imageInput && imageInput.value) {
+                                showCardThumbnail(card, imageInput.value, nameInput.value);
+                            }
+                        } else {
+                            // Hay una fila vacía no bloqueada
+                            needNewRow = false;
+                            console.log(`ℹ️ Fila ${index} está vacía, no se necesita nueva fila`);
                         }
-                    } else {
-                        // Hay una fila vacía no bloqueada
-                        needNewRow = false;
-                        console.log(`ℹ️ Fila ${index} está vacía, no se necesita nueva fila`);
                     }
+                });
+                
+                // Solo añadir nueva fila si todas tienen contenido o están bloqueadas
+                if (!needNewRow) {
+                    console.log('✓ Ya hay una fila vacía disponible');
+                    return;
                 }
-            });
-            
-            // Solo añadir nueva fila si todas tienen contenido o están bloqueadas
-            if (!needNewRow) {
-                console.log('✓ Ya hay una fila vacía disponible');
-                return;
             }
             
             console.log('➕ Creando nueva fila vacía');
