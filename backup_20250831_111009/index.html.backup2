@@ -1,0 +1,2960 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCGtrade - Intercambio Pokémon TCG</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        'dark-bg': '#1a1a1a',
+                        'dark-card': '#2d2d2d',
+                        'dark-text': '#ffffff',
+                        'dark-text-secondary': '#a0a0a0'
+                    }
+                }
+            }
+        }
+    </script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        /* Estilos para modo oscuro */
+        .dark-mode {
+            background-color: #1a1a1a;
+            color: #ffffff;
+        }
+        
+        .dark-mode .bg-white {
+            background-color: #2d2d2d;
+        }
+        
+        .dark-mode .text-gray-800 {
+            color: #ffffff;
+        }
+        
+        .dark-mode .text-gray-600 {
+            color: #a0a0a0;
+        }
+        
+        .dark-mode .text-gray-700 {
+            color: #d1d5db;
+        }
+        
+        .dark-mode .border-gray-200 {
+            border-color: #4b5563;
+        }
+        
+        .dark-mode .shadow-lg {
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+        }
+        
+        /* Transiciones suaves */
+        * {
+            transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+        }
+        
+        /* Interruptor de modo oscuro personalizado */
+        .dark-mode-toggle {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+        
+        .dark-mode-toggle input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .dark-mode-toggle .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .dark-mode-toggle .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        .dark-mode-toggle input:checked + .slider {
+            background-color: #f97316;
+        }
+        
+        .dark-mode-toggle input:checked + .slider:before {
+            transform: translateX(26px);
+        }
+    </style>
+
+    <script type="module">
+        // Importar las funciones necesarias de Firebase
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
+        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously, signInWithCustomToken, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
+        import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+
+        // CONFIGURACIÓN DE FIREBASE - REEMPLAZA CON TUS DATOS
+        const firebaseConfig = {
+            apiKey: "AIzaSyCkgz6_Zpu0VOW6GgJxOxd9QlVccsBXnog",
+            authDomain: "tcgtrade-7ba27.firebaseapp.com",
+            projectId: "tcgtrade-7ba27",
+            storageBucket: "tcgtrade-7ba27.firebasestorage.app",
+            messagingSenderId: "207150886257",
+            appId: "1:207150886257:web:26edebbeb7df7a1d935ad0",
+         };
+
+        // Inicializar Firebase
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // ID único de tu aplicación para Firestore
+        const appId = 'tcgtrade-pokemon-app';
+
+        // Variables globales
+        let currentUser = null;
+        let allSets = []; // Cache para todos los sets de la API
+        let userCardsCache = []; // Cache para las cartas del usuario
+
+        // Referencias a elementos del DOM
+        let searchInput, searchResultsSection, heroSection, howItWorksSection, cardsContainer, loadingSpinner, noResultsMessage, errorMessage;
+        let authModal, loginForm, registerForm, loginEmailInput, loginPasswordInput, loginBtn, loginError;
+        let registerEmailInput, registerPasswordInput, confirmPasswordInput, registerBtn, registerError;
+        let closeAuthModalBtn, toggleToRegister, toggleToLogin;
+        let loginNavLink, registerNavLink, profileNavLink, logoutNavLink;
+        let myCardsNavLink, myCardsLink, myCardsSection, myCardsContainer, noMyCardsMessage, myCardsErrorMessage;
+        let seriesFilter, setFilter, languageFilter, applyFiltersBtn, showAllSetCardsToggle;
+        let profileLink, profileSection, profileSidebarLinks, profileGeneralInfo, profileMyCardsTabContent, profileTradeHistory, profileSettings;
+        let profileEmailDisplay, profileUidDisplay, profileMemberSince, profileLoginRequiredMessage, profileGeneralInfoContent;
+        let profileNameInput, profileLastNameInput, profileAddressInput, profilePhoneInput, profileSaveMessage, saveProfileBtn;
+        let settingsNewEmailInput, emailChangeMessage, saveEmailBtn;
+        let settingsCurrentPasswordInput, settingsNewPasswordInput, settingsConfirmNewPasswordInput, passwordChangeMessage, savePasswordBtn;
+        let darkModeToggle, interchangesSection;
+
+        // Token de autenticación inicial (si existe)
+        const initialAuthToken = null; // Puedes configurar esto si tienes un token personalizado
+
+        // --- Funciones de Utilidad ---
+        function showLoadingSpinner() {
+            if (loadingSpinner) loadingSpinner.style.display = 'block';
+        }
+
+        function hideLoadingSpinner() {
+            if (loadingSpinner) loadingSpinner.style.display = 'none';
+        }
+
+        function showInitialSections() {
+            // Mostrar secciones iniciales
+            if (heroSection) heroSection.classList.remove('hidden');
+            if (howItWorksSection) howItWorksSection.classList.remove('hidden');
+
+            // Ocultar otras secciones
+            if (searchResultsSection) searchResultsSection.classList.add('hidden');
+            if (myCardsSection) myCardsSection.classList.add('hidden');
+            if (profileSection) profileSection.classList.add('hidden');
+            if (interchangesSection) interchangesSection.classList.add('hidden');
+        }
+
+
+
+        function showSearchResults() {
+            // Ocultar secciones iniciales
+            if (heroSection) heroSection.classList.add('hidden');
+            if (howItWorksSection) howItWorksSection.classList.add('hidden');
+            if (myCardsSection) myCardsSection.classList.add('hidden');
+            if (profileSection) profileSection.classList.add('hidden');
+            if (interchangesSection) interchangesSection.classList.add('hidden');
+
+            // Mostrar resultados de búsqueda
+            if (searchResultsSection) searchResultsSection.classList.remove('hidden');
+        }
+
+        function showMyCardsSection() {
+            // Ocultar otras secciones
+            if (heroSection) heroSection.classList.add('hidden');
+            if (howItWorksSection) howItWorksSection.classList.add('hidden');
+            if (searchResultsSection) searchResultsSection.classList.add('hidden');
+            if (profileSection) profileSection.classList.add('hidden');
+            if (interchangesSection) interchangesSection.classList.add('hidden');
+
+            // Mostrar sección de mis cartas
+            if (myCardsSection) myCardsSection.classList.remove('hidden');
+
+            // Cargar colección si hay usuario autenticado
+            if (currentUser) {
+                loadMyCollection(currentUser.uid);
+                fetchSetsAndPopulateFilter(); // Cargar sets para filtros
+            } else {
+                if (noMyCardsMessage) {
+                    noMyCardsMessage.textContent = 'Debes iniciar sesión para ver tu colección.';
+                    noMyCardsMessage.classList.remove('hidden');
+                }
+            }
+        }
+
+        function showInterchangesSection() {
+            // Ocultar otras secciones
+            if (heroSection) heroSection.classList.add('hidden');
+            if (howItWorksSection) howItWorksSection.classList.add('hidden');
+            if (searchResultsSection) searchResultsSection.classList.add('hidden');
+            if (myCardsSection) myCardsSection.classList.add('hidden');
+            if (profileSection) profileSection.classList.add('hidden');
+
+            // Mostrar sección de intercambios
+            if (interchangesSection) interchangesSection.classList.remove('hidden');
+        }
+
+        function showProfileSection() {
+            // Ocultar otras secciones
+            if (heroSection) heroSection.classList.add('hidden');
+            if (howItWorksSection) howItWorksSection.classList.add('hidden');
+            if (searchResultsSection) searchResultsSection.classList.add('hidden');
+            if (myCardsSection) myCardsSection.classList.add('hidden');
+            if (interchangesSection) interchangesSection.classList.add('hidden');
+
+            // Mostrar sección de perfil
+            if (profileSection) {
+                profileSection.classList.remove('hidden');
+                // Cargar datos del usuario y estadísticas
+                loadProfileData();
+            } else {
+                // Si no existe la sección de perfil, mostrar mensaje
+                alert('Sección de perfil en desarrollo. Por ahora puedes usar "Mis Cartas" para gestionar tu colección.');
+                showMyCardsSection();
+            }
+        }
+
+        // Función para cambiar entre tabs del perfil
+        function switchProfileTab(tabName) {
+            // Ocultar todos los contenidos de tabs
+            const tabContents = document.querySelectorAll('.profile-tab-content');
+            tabContents.forEach(content => content.classList.add('hidden'));
+
+            // Remover clase active de todos los tabs
+            const tabs = document.querySelectorAll('.profile-tab');
+            tabs.forEach(tab => {
+                tab.classList.remove('active');
+                tab.classList.remove('border-orange-500', 'text-orange-600');
+                tab.classList.add('border-transparent', 'text-gray-500');
+            });
+
+            // Mostrar el contenido del tab seleccionado
+            let targetContent;
+            let targetTab;
+
+            switch(tabName) {
+                case 'personal':
+                    targetContent = document.getElementById('profilePersonalContent');
+                    targetTab = document.getElementById('profilePersonalTab');
+                    break;
+                case 'dashboard':
+                    targetContent = document.getElementById('profileDashboardContent');
+                    targetTab = document.getElementById('profileDashboardTab');
+                    break;
+                case 'collection':
+                    targetContent = document.getElementById('profileCollectionContent');
+                    targetTab = document.getElementById('profileCollectionTab');
+                    break;
+                case 'trades':
+                    targetContent = document.getElementById('profileTradesContent');
+                    targetTab = document.getElementById('profileTradesTab');
+                    break;
+                case 'settings':
+                    targetContent = document.getElementById('profileSettingsContent');
+                    targetTab = document.getElementById('profileSettingsTab');
+                    break;
+            }
+
+            if (targetContent) {
+                targetContent.classList.remove('hidden');
+            }
+
+            if (targetTab) {
+                targetTab.classList.add('active', 'border-orange-500', 'text-orange-600');
+                targetTab.classList.remove('border-transparent', 'text-gray-500');
+            }
+        }
+
+        // Función para cargar datos del perfil
+        async function loadProfileData() {
+            if (!currentUser) {
+                console.log('❌ No hay usuario conectado');
+                return;
+            }
+
+            try {
+                console.log('🔄 Cargando datos del perfil...');
+                
+                // Cargar información del usuario
+                await loadUserInfo();
+                
+                // Cargar estadísticas
+                await loadProfileStats();
+                
+                console.log('✅ Datos del perfil cargados correctamente');
+            } catch (error) {
+                console.error('❌ Error al cargar datos del perfil:', error);
+            }
+        }
+
+        // Función para mostrar mensajes de estado del perfil
+        function showProfileSaveMessage(message, type = 'success') {
+            const messageElement = document.getElementById('profileSaveMessage');
+            if (!messageElement) return;
+
+            const messageText = messageElement.querySelector('p');
+            if (messageText) {
+                messageText.textContent = message;
+            }
+
+            // Aplicar estilos según el tipo
+            messageElement.className = 'mt-4 p-3 rounded-lg';
+            if (type === 'success') {
+                messageElement.classList.add('bg-green-100', 'text-green-700', 'border', 'border-green-200');
+            } else if (type === 'error') {
+                messageElement.classList.add('bg-red-100', 'text-red-700', 'border', 'border-red-200');
+            } else if (type === 'info') {
+                messageElement.classList.add('bg-blue-100', 'text-blue-700', 'border', 'border-blue-200');
+            }
+
+            messageElement.classList.remove('hidden');
+
+            // Ocultar después de 3 segundos
+            setTimeout(() => {
+                messageElement.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Función para guardar datos del perfil
+        async function saveProfileData() {
+            console.log('🔧 saveProfileData iniciada');
+            
+            if (!currentUser) {
+                console.error('❌ No hay usuario conectado');
+                showProfileSaveMessage('Debes iniciar sesión para guardar cambios', 'error');
+                return;
+            }
+
+            try {
+                console.log('🔧 Obteniendo valores del formulario...');
+                const name = document.getElementById('profileName')?.value?.trim();
+                const lastName = document.getElementById('profileLastName')?.value?.trim();
+                const address = document.getElementById('profileAddress')?.value?.trim();
+                const birthDate = document.getElementById('profileBirthDate')?.value;
+                const email = document.getElementById('profileEmail')?.value?.trim();
+
+                console.log('🔧 Valores obtenidos:', { name, lastName, address, birthDate, email });
+
+                // Validaciones básicas
+                if (!name) {
+                    console.error('❌ Nombre vacío');
+                    showProfileSaveMessage('El nombre es obligatorio', 'error');
+                    return;
+                }
+                if (!lastName) {
+                    console.error('❌ Apellidos vacíos');
+                    showProfileSaveMessage('Los apellidos son obligatorios', 'error');
+                    return;
+                }
+                if (!email) {
+                    console.error('❌ Email vacío');
+                    showProfileSaveMessage('El correo electrónico es obligatorio', 'error');
+                    return;
+                }
+
+                // Validar formato de email
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    console.error('❌ Formato de email inválido');
+                    showProfileSaveMessage('El formato del correo electrónico no es válido', 'error');
+                    return;
+                }
+
+                // Preparar datos para guardar
+                const profileData = {
+                    name: name,
+                    lastName: lastName,
+                    address: address || '',
+                    birthDate: birthDate || '',
+                    email: email,
+                    updatedAt: new Date()
+                };
+
+                console.log('🔧 Datos a guardar:', profileData);
+                console.log('🔧 Usuario UID:', currentUser.uid);
+                console.log('🔧 Firebase db disponible:', !!db);
+                console.log('🔧 Firebase auth disponible:', !!auth);
+
+                // Verificar que Firebase esté inicializado correctamente
+                if (!db) {
+                    throw new Error('Firebase Firestore no está inicializado');
+                }
+
+                // Guardar en Firestore
+                console.log('🔧 Guardando en Firestore...');
+                const userDocRef = doc(db, 'users', currentUser.uid);
+                console.log('🔧 Referencia del documento:', userDocRef);
+                
+                await setDoc(userDocRef, profileData, { merge: true });
+                console.log('✅ Datos guardados en Firestore');
+
+                // Actualizar el nombre en el header del perfil
+                const userNameElement = document.getElementById('profileUserName');
+                if (userNameElement) {
+                    userNameElement.textContent = `${name} ${lastName}`;
+                    console.log('✅ Nombre actualizado en header');
+                }
+
+                // Actualizar email en Firebase Auth si ha cambiado
+                if (email !== currentUser.email) {
+                    console.log('🔧 Email ha cambiado, actualizando en Auth...');
+                    console.log('🔧 Email actual:', currentUser.email);
+                    console.log('🔧 Email nuevo:', email);
+                    
+                    if (!auth) {
+                        throw new Error('Firebase Auth no está inicializado');
+                    }
+                    
+                    try {
+                        await updateEmail(currentUser, email);
+                        console.log('✅ Email actualizado en Firebase Auth');
+                        // Actualizar el objeto currentUser localmente
+                        currentUser.email = email;
+                    } catch (authError) {
+                        console.error('❌ Error al actualizar email en Auth:', authError);
+                        console.error('❌ Código de error:', authError.code);
+                        console.error('❌ Mensaje de error:', authError.message);
+                        
+                        if (authError.code === 'auth/requires-recent-login') {
+                            showProfileSaveMessage('⚠️ Datos guardados pero el email no se pudo actualizar. Por seguridad, debes volver a iniciar sesión para cambiar el email.', 'info');
+                        } else {
+                            showProfileSaveMessage(`⚠️ Datos guardados pero el email no se pudo actualizar: ${authError.message}`, 'info');
+                        }
+                    }
+                }
+
+                showProfileSaveMessage('✅ Perfil actualizado correctamente', 'success');
+                console.log('✅ Datos del perfil guardados exitosamente');
+
+            } catch (error) {
+                console.error('❌ Error al guardar datos del perfil:', error);
+                
+                // Manejo específico de errores de permisos
+                if (error.code === 'permission-denied') {
+                    showProfileSaveMessage('❌ Error de permisos. Verifica que las reglas de Firestore estén configuradas correctamente.', 'error');
+                } else if (error.code === 'unauthenticated') {
+                    showProfileSaveMessage('❌ Error de autenticación. Por favor, vuelve a iniciar sesión.', 'error');
+                } else {
+                    showProfileSaveMessage('❌ Error al guardar los cambios: ' + error.message, 'error');
+                }
+            }
+        }
+
+        // Función para mostrar mensajes de cambio de contraseña
+        function showPasswordChangeMessage(message, type = 'success') {
+            const messageElement = document.getElementById('passwordChangeMessage');
+            if (!messageElement) {
+                console.error('❌ Elemento passwordChangeMessage no encontrado');
+                return;
+            }
+
+            const messageText = messageElement.querySelector('p');
+            if (messageText) {
+                messageText.textContent = message;
+            }
+
+            // Limpiar clases anteriores
+            messageElement.classList.remove('bg-green-100', 'text-green-700', 'bg-red-100', 'text-red-700', 'bg-blue-100', 'text-blue-700');
+            messageElement.classList.remove('hidden');
+
+            // Aplicar clases según el tipo
+            if (type === 'success') {
+                messageElement.classList.add('bg-green-100', 'text-green-700');
+            } else if (type === 'error') {
+                messageElement.classList.add('bg-red-100', 'text-red-700');
+            } else if (type === 'info') {
+                messageElement.classList.add('bg-blue-100', 'text-blue-700');
+            }
+
+            // Ocultar después de 5 segundos
+            setTimeout(() => {
+                messageElement.classList.add('hidden');
+            }, 5000);
+        }
+
+
+
+🔧 Estado actual: ${currentUser ? 'Usuario autenticado' : 'No autenticado'}
+📧 Email: ${currentUser?.email || 'N/A'}
+🆔 UID: ${currentUser?.uid || 'N/A'}`);
+
+            } catch (error) {
+                console.error('❌ Error en la conexión con Firebase:', error);
+                alert(`❌ ERROR EN LA CONEXIÓN CON FIREBASE:
+
+🔍 Detalles del error:
+- Tipo: ${error.name || 'Error'}
+- Mensaje: ${error.message}
+- Código: ${error.code || 'N/A'}
+
+🔧 Posibles soluciones:
+1. Verificar configuración de Firebase
+2. Comprobar reglas de Firestore
+3. Verificar conexión a internet
+4. Revisar consola del navegador
+
+📞 Si el problema persiste, contacta al administrador.`);
+            }
+        }
+
+        // Función para cambiar contraseña
+        async function changePassword() {
+            console.log('🔧 changePassword iniciada');
+            
+            if (!currentUser) {
+                console.error('❌ No hay usuario conectado');
+                showPasswordChangeMessage('Debes iniciar sesión para cambiar la contraseña', 'error');
+                return;
+            }
+
+            try {
+                console.log('🔧 Obteniendo valores del formulario...');
+                const currentPassword = document.getElementById('currentPassword')?.value;
+                const newPassword = document.getElementById('newPassword')?.value;
+                const confirmNewPassword = document.getElementById('confirmNewPassword')?.value;
+
+                console.log('🔧 Valores obtenidos:', { 
+                    hasCurrentPassword: !!currentPassword, 
+                    hasNewPassword: !!newPassword, 
+                    hasConfirmPassword: !!confirmNewPassword 
+                });
+
+                // Validaciones
+                if (!currentPassword) {
+                    console.error('❌ Contraseña actual vacía');
+                    showPasswordChangeMessage('Debes ingresar tu contraseña actual', 'error');
+                    return;
+                }
+                if (!newPassword) {
+                    console.error('❌ Nueva contraseña vacía');
+                    showPasswordChangeMessage('Debes ingresar una nueva contraseña', 'error');
+                    return;
+                }
+                if (newPassword.length < 6) {
+                    console.error('❌ Nueva contraseña muy corta');
+                    showPasswordChangeMessage('La nueva contraseña debe tener al menos 6 caracteres', 'error');
+                    return;
+                }
+                if (newPassword !== confirmNewPassword) {
+                    console.error('❌ Contraseñas no coinciden');
+                    showPasswordChangeMessage('Las contraseñas nuevas no coinciden', 'error');
+                    return;
+                }
+                if (newPassword === currentPassword) {
+                    console.error('❌ Nueva contraseña igual a la actual');
+                    showPasswordChangeMessage('La nueva contraseña debe ser diferente a la actual', 'error');
+                    return;
+                }
+
+                console.log('🔧 Validaciones pasadas, reautenticando...');
+                console.log('🔧 Email del usuario:', currentUser.email);
+                console.log('🔧 Firebase Auth disponible:', !!auth);
+
+                // Verificar que Firebase Auth esté inicializado
+                if (!auth) {
+                    throw new Error('Firebase Auth no está inicializado');
+                }
+
+                // Reautenticar al usuario antes de cambiar la contraseña
+                console.log('🔧 Creando credenciales...');
+                const credential = EmailAuthProvider.credential(currentUser.email, currentPassword);
+                console.log('🔧 Credenciales creadas:', !!credential);
+                
+                console.log('🔧 Iniciando reautenticación...');
+                await reauthenticateWithCredential(currentUser, credential);
+                console.log('✅ Reautenticación exitosa');
+
+                // Cambiar la contraseña
+                console.log('🔧 Cambiando contraseña...');
+                await updatePassword(currentUser, newPassword);
+                console.log('✅ Contraseña cambiada exitosamente');
+
+                // Limpiar el formulario
+                document.getElementById('passwordChangeForm').reset();
+                console.log('✅ Formulario limpiado');
+
+                showPasswordChangeMessage('✅ Contraseña cambiada correctamente', 'success');
+
+            } catch (error) {
+                console.error('❌ Error al cambiar contraseña:', error);
+                console.error('❌ Tipo de error:', typeof error);
+                console.error('❌ Código de error:', error.code);
+                console.error('❌ Mensaje de error:', error.message);
+                console.error('❌ Stack trace:', error.stack);
+                
+                let errorMessage = 'Error al cambiar la contraseña';
+                
+                if (error.code === 'auth/wrong-password') {
+                    errorMessage = 'La contraseña actual es incorrecta';
+                } else if (error.code === 'auth/weak-password') {
+                    errorMessage = 'La nueva contraseña es demasiado débil';
+                } else if (error.code === 'auth/requires-recent-login') {
+                    errorMessage = 'Por seguridad, debes volver a iniciar sesión para cambiar la contraseña';
+                } else if (error.code === 'auth/too-many-requests') {
+                    errorMessage = 'Demasiados intentos. Intenta de nuevo más tarde';
+                } else if (error.code === 'auth/user-mismatch') {
+                    errorMessage = 'Error de autenticación. Por favor, vuelve a iniciar sesión.';
+                } else if (error.code === 'auth/invalid-credential') {
+                    errorMessage = 'Credenciales inválidas. Verifica tu contraseña actual.';
+                }
+                
+                showPasswordChangeMessage(`❌ ${errorMessage}`, 'error');
+            }
+        }
+
+        // Función para cargar información del usuario
+        async function loadUserInfo() {
+            if (!currentUser) return;
+
+            try {
+                const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
+                const userData = userDoc.data();
+
+                // Actualizar información del usuario en la UI
+                const userNameElement = document.getElementById('profileUserName');
+                const userEmailElement = document.getElementById('profileUserEmail');
+                const joinDateElement = document.getElementById('profileJoinDate');
+
+                if (userNameElement) {
+                    const displayName = userData?.name && userData?.lastName 
+                        ? `${userData.name} ${userData.lastName}` 
+                        : userData?.displayName || currentUser.displayName || 'Usuario';
+                    userNameElement.textContent = displayName;
+                }
+
+                if (userEmailElement) {
+                    userEmailElement.textContent = currentUser.email || 'usuario@ejemplo.com';
+                }
+
+                if (joinDateElement) {
+                    const joinDate = userData?.createdAt?.toDate() || currentUser.metadata?.creationTime;
+                    if (joinDate) {
+                        const date = new Date(joinDate);
+                        joinDateElement.textContent = date.toLocaleDateString('es-ES', { 
+                            year: 'numeric', 
+                            month: 'long' 
+                        });
+                    }
+                }
+
+                // Cargar datos en el formulario de perfil personal
+                const profileNameInput = document.getElementById('profileName');
+                const profileLastNameInput = document.getElementById('profileLastName');
+                const profileAddressInput = document.getElementById('profileAddress');
+                const profileBirthDateInput = document.getElementById('profileBirthDate');
+                const profileEmailInput = document.getElementById('profileEmail');
+
+                if (profileNameInput) profileNameInput.value = userData?.name || '';
+                if (profileLastNameInput) profileLastNameInput.value = userData?.lastName || '';
+                if (profileAddressInput) profileAddressInput.value = userData?.address || '';
+                if (profileBirthDateInput) profileBirthDateInput.value = userData?.birthDate || '';
+                if (profileEmailInput) profileEmailInput.value = userData?.email || currentUser.email || '';
+
+                // Cargar preferencia de modo oscuro
+                loadDarkModePreference(userData);
+
+                console.log('✅ Información del usuario cargada:', userData);
+
+            } catch (error) {
+                console.error('❌ Error al cargar información del usuario:', error);
+            }
+        }
+
+        // Función para cargar preferencia de modo oscuro
+        function loadDarkModePreference(userData) {
+            const darkMode = userData?.darkMode || false;
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            
+            if (darkModeToggle) {
+                darkModeToggle.checked = darkMode;
+                applyDarkMode(darkMode);
+            }
+        }
+
+        // Función para aplicar modo oscuro
+        function applyDarkMode(isDark) {
+            const html = document.documentElement;
+            
+            if (isDark) {
+                html.classList.add('dark');
+                document.body.classList.add('dark-mode');
+            } else {
+                html.classList.remove('dark');
+                document.body.classList.remove('dark-mode');
+            }
+        }
+
+        // Función para guardar preferencia de modo oscuro
+        async function saveDarkModePreference(isDark) {
+            if (!currentUser) return;
+
+            try {
+                await setDoc(doc(db, 'users', currentUser.uid), {
+                    darkMode: isDark,
+                    updatedAt: new Date()
+                }, { merge: true });
+
+                applyDarkMode(isDark);
+                console.log('✅ Preferencia de modo oscuro guardada:', isDark);
+            } catch (error) {
+                console.error('❌ Error al guardar preferencia de modo oscuro:', error);
+            }
+        }
+
+        // Hacer funciones disponibles globalmente
+        window.saveDarkModePreference = saveDarkModePreference;
+        window.applyDarkMode = applyDarkMode;
+        window.loadDarkModePreference = loadDarkModePreference;
+
+
+
+        // Función de prueba para verificar que todo funciona
+        window.testNavigation = function() {
+            console.log('🧪 Probando navegación...');
+            console.log('Funciones disponibles:', {
+                showInitialSections: typeof showInitialSections,
+                showAuthModal: typeof showAuthModal,
+                showMyCardsSection: typeof showMyCardsSection,
+                showInterchangesSection: typeof showInterchangesSection,
+                showProfileSection: typeof showProfileSection,
+                logoutUser: typeof logoutUser
+            });
+            
+            // Probar cada función
+            try {
+                console.log('✅ Todas las funciones están disponibles');
+                return true;
+            } catch (error) {
+                console.error('❌ Error en las funciones:', error);
+                return false;
+            }
+        };
+
+        // Hacer las funciones disponibles globalmente
+        window.showInitialSections = showInitialSections;
+        window.showAuthModal = showAuthModal;
+        window.showMyCardsSection = showMyCardsSection;
+        window.showInterchangesSection = showInterchangesSection;
+        window.showProfileSection = showProfileSection;
+        window.logoutUser = logoutUser;
+
+        // Función para cargar estadísticas del perfil
+        async function loadProfileStats() {
+            if (!currentUser) return;
+
+            try {
+                console.log('📊 Cargando estadísticas del perfil...');
+
+                // Obtener colección del usuario
+                const userCardsRef = collection(db, 'users', currentUser.uid, 'cards');
+                const userCardsSnapshot = await getDocs(userCardsRef);
+                
+                const cards = [];
+                userCardsSnapshot.forEach(doc => {
+                    cards.push({ id: doc.id, ...doc.data() });
+                });
+
+                // Calcular estadísticas
+                const totalCards = cards.length;
+                const uniqueCards = new Set(cards.map(card => card.id)).size;
+                const uniqueSets = new Set(cards.map(card => card.set?.name).filter(Boolean)).size;
+                
+                // Por ahora, intercambios completados = 0 (se implementará más adelante)
+                const completedTrades = 0;
+
+                // Actualizar UI con las estadísticas
+                updateProfileStats(totalCards, uniqueCards, uniqueSets, completedTrades);
+
+                // Cargar desglose por sets
+                await loadSetsBreakdown(cards);
+
+            } catch (error) {
+                console.error('❌ Error al cargar estadísticas:', error);
+            }
+        }
+
+        // Función para actualizar estadísticas en la UI
+        function updateProfileStats(totalCards, uniqueCards, uniqueSets, completedTrades) {
+            const totalCardsElement = document.getElementById('totalCardsCount');
+            const uniqueCardsElement = document.getElementById('uniqueCardsCount');
+            const uniqueSetsElement = document.getElementById('uniqueSetsCount');
+            const completedTradesElement = document.getElementById('completedTradesCount');
+
+            if (totalCardsElement) totalCardsElement.textContent = totalCards;
+            if (uniqueCardsElement) uniqueCardsElement.textContent = uniqueCards;
+            if (uniqueSetsElement) uniqueSetsElement.textContent = uniqueSets;
+            if (completedTradesElement) completedTradesElement.textContent = completedTrades;
+        }
+
+        // Función para cargar desglose por sets
+        async function loadSetsBreakdown(cards) {
+            const setsBreakdownElement = document.getElementById('setsBreakdown');
+            if (!setsBreakdownElement) return;
+
+            try {
+                // Agrupar cartas por set
+                const setsMap = new Map();
+                cards.forEach(card => {
+                    const setName = card.set?.name || 'Sin Set';
+                    if (!setsMap.has(setName)) {
+                        setsMap.set(setName, []);
+                    }
+                    setsMap.get(setName).push(card);
+                });
+
+                // Crear HTML para el desglose
+                if (setsMap.size === 0) {
+                    setsBreakdownElement.innerHTML = `
+                        <div class="text-center text-gray-500 py-8">
+                            <p>No hay cartas en tu colección</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                let setsHTML = '';
+                setsMap.forEach((cardsInSet, setName) => {
+                    setsHTML += `
+                        <div class="set-item bg-gray-50 rounded-lg p-4">
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <h4 class="font-semibold text-gray-800">${setName}</h4>
+                                    <p class="text-sm text-gray-600">${cardsInSet.length} cartas</p>
+                                </div>
+                                <div class="text-right">
+                                    <div class="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                        <div class="h-full bg-orange-500 rounded-full" style="width: ${Math.min(100, (cardsInSet.length / 10) * 100)}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+
+                setsBreakdownElement.innerHTML = setsHTML;
+
+            } catch (error) {
+                console.error('❌ Error al cargar desglose por sets:', error);
+                setsBreakdownElement.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <p>Error al cargar el desglose por sets</p>
+                    </div>
+                `;
+            }
+        }
+
+        // --- Funciones del Modal de Autenticación ---
+        function showAuthModal(mode) {
+            console.log('🔧 showAuthModal called with mode:', mode);
+            if (!authModal) {
+                console.error('❌ authModal not found!');
+                return;
+            }
+
+            console.log('🔧 Adding show class to authModal');
+            authModal.classList.add('show');
+
+            if (mode === 'login') {
+                if (loginForm) loginForm.classList.remove('hidden');
+                if (registerForm) registerForm.classList.add('hidden');
+            } else if (mode === 'register') {
+                if (loginForm) loginForm.classList.add('hidden');
+                if (registerForm) registerForm.classList.remove('hidden');
+            }
+        }
+
+        // Hacer funciones disponibles globalmente
+        window.showAuthModal = showAuthModal;
+
+        function hideAuthModal() {
+            if (authModal) authModal.classList.remove('show');
+        }
+
+        // --- Función de Búsqueda de Cartas (MEJORADA) ---
+        async function fetchCards(query) {
+            console.log('🔍 fetchCards called with query:', query);
+            
+            if (!cardsContainer) {
+                console.error('❌ cardsContainer not found!');
+                return;
+            }
+
+            // Limpiar resultados anteriores
+            cardsContainer.innerHTML = '';
+            if (noResultsMessage) noResultsMessage.classList.add('hidden');
+            if (errorMessage) errorMessage.classList.add('hidden');
+
+            // Si la query es muy corta, mostrar página inicial
+            if (query.length < 3) {
+                showInitialSections();
+                return;
+            }
+
+            showLoadingSpinner();
+            showSearchResults();
+
+            try {
+                // Construir URL optimizada para Railway (sin límite de timeout)
+                const encodedQuery = encodeURIComponent(query.toLowerCase());
+                // Railway puede manejar búsquedas más grandes sin timeout
+                const searchType = query.length <= 4 ? `name:${encodedQuery}*` : `name:*${encodedQuery}*`;
+                const pageSize = 100; // Railway puede manejar 100 cartas sin problema
+                const apiUrl = `/api/pokemontcg/cards?q=${searchType}&pageSize=${pageSize}`;
+
+                console.log('🌐 Fetching from URL:', apiUrl);
+
+                // Hacer petición con timeout (reducido)
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos - Railway no tiene límite de 10s
+
+                const response = await fetch(apiUrl, {
+                    signal: controller.signal,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                clearTimeout(timeoutId);
+
+                console.log('📡 Response status:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ API Error Response:', errorText);
+                    throw new Error(`API Error ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+                const cards = data.data || [];
+
+                console.log('✅ API Response received:', {
+                    totalCount: data.totalCount,
+                    cardsReturned: cards.length
+                });
+
+                if (cards.length > 0) {
+                    cards.forEach((card, index) => {
+                        console.log(`📋 Processing card ${index + 1}:`, card.name);
+                        
+                        const cardElement = document.createElement('div');
+                        cardElement.className = 'card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105';
+                        
+                        // Escapar comillas en los datos para evitar errores de JavaScript
+                        const safeCardId = (card.id || '').replace(/'/g, "\\'");
+                        const safeCardName = (card.name || '').replace(/'/g, "\\'");
+                        const safeSetName = (card.set?.name || 'N/A').replace(/'/g, "\\'");
+                        const safeSeries = (card.set?.series || 'N/A').replace(/'/g, "\\'");
+                        const safeNumber = (card.number || 'N/A').replace(/'/g, "\\'");
+                        const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
+                        
+                        cardElement.innerHTML = `
+                            <img src="${card.images?.small || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen'}"
+                                 alt="${card.name || 'Carta sin nombre'}"
+                                 class="w-full h-auto object-cover rounded-t-xl"
+                                 onerror="this.src='https://placehold.co/400x550/a0aec0/ffffff?text=Error+imagen'">
+                            <div class="p-4">
+                                <h3 class="text-xl font-semibold mb-2 text-gray-900">${card.name || 'Nombre no disponible'}</h3>
+                                <p class="text-gray-600 text-sm mb-3">Set: ${card.set?.name || 'N/A'}</p>
+                                <p class="text-gray-600 text-sm mb-3">Serie: ${card.set?.series || 'N/A'}</p>
+                                <p class="text-gray-600 text-sm mb-3">Número: ${card.number || 'N/A'}</p>
+                                <div class="flex justify-between items-center">
+                                    <button class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold"
+                                            onclick="showCardDetails('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">
+                                        Ver Detalles
+                                    </button>
+                                </div>
+                            </div>
+                        `;
+                        cardsContainer.appendChild(cardElement);
+                    });
+                    
+                    console.log('✅ All cards rendered successfully');
+                } else {
+                    console.log('ℹ️ No cards found for query:', query);
+                    if (noResultsMessage) {
+                        noResultsMessage.textContent = `No se encontraron cartas para "${query}". Intenta con otro nombre.`;
+                        noResultsMessage.classList.remove('hidden');
+                    }
+                }
+
+            } catch (error) {
+                console.error('❌ Error completo en fetchCards:', error);
+
+                // Si es timeout, intentar con búsqueda más simple y menos resultados
+                if ((error.name === 'AbortError' || error.message.includes('408')) && !query.includes('_retry')) {
+                    console.log('🔄 Timeout detectado, reintentando con búsqueda optimizada...');
+                    
+                    try {
+                        // Usar búsqueda más simple para el retry
+                        const simpleQuery = encodeURIComponent(query.toLowerCase());
+                        const retryUrl = `/api/pokemontcg/cards?q=name:${simpleQuery}&pageSize=30`;
+                        console.log('🔄 Retry URL (búsqueda exacta):', retryUrl);
+                        
+                        const retryController = new AbortController();
+                        const retryTimeoutId = setTimeout(() => retryController.abort(), 8000); // Timeout más corto
+                        
+                        const retryResponse = await fetch(retryUrl, {
+                            signal: retryController.signal,
+                            headers: { 'Content-Type': 'application/json' }
+                        });
+                        
+                        clearTimeout(retryTimeoutId);
+                        
+                        if (retryResponse.ok) {
+                            const retryData = await retryResponse.json();
+                            const retryCards = retryData.data || [];
+                            
+                            console.log('✅ Retry successful:', retryCards.length, 'cards');
+                            
+                            // Mostrar mensaje de retry con opción de cargar más
+                            if (errorMessage) {
+                                errorMessage.innerHTML = `
+                                    ⚠️ Búsqueda optimizada: ${retryCards.length} cartas encontradas. La API está lenta hoy.<br>
+                                    <button onclick="loadMoreResults('${query}')" class="btn-primary px-4 py-2 mt-2 rounded-lg text-sm">
+                                        🔄 Intentar Cargar Más Cartas
+                                    </button>
+                                `;
+                                errorMessage.classList.remove('hidden');
+                            }
+                            
+                            // Renderizar cartas del retry
+                            if (retryCards.length > 0) {
+                                retryCards.forEach((card, index) => {
+                                    const cardElement = document.createElement('div');
+                                    cardElement.className = 'card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105';
+                                    
+                                    const safeCardId = (card.id || '').replace(/'/g, "\\'");
+                                    const safeCardName = (card.name || '').replace(/'/g, "\\'");
+                                    const safeSetName = (card.set?.name || 'N/A').replace(/'/g, "\\'");
+                                    const safeSeries = (card.set?.series || 'N/A').replace(/'/g, "\\'");
+                                    const safeNumber = (card.number || 'N/A').replace(/'/g, "\\'");
+                                    const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
+                                    
+                                    cardElement.innerHTML = `
+                                        <img src="${card.images?.small || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen'}"
+                                             alt="${card.name || 'Carta sin nombre'}"
+                                             class="w-full h-auto object-cover rounded-t-xl"
+                                             onerror="this.src='https://placehold.co/400x550/a0aec0/ffffff?text=Error+imagen'">
+                                        <div class="p-4">
+                                            <h3 class="text-xl font-semibold mb-2 text-gray-900">${card.name || 'Nombre no disponible'}</h3>
+                                            <p class="text-gray-600 text-sm mb-3">Set: ${card.set?.name || 'N/A'}</p>
+                                            <p class="text-gray-600 text-sm mb-3">Serie: ${card.set?.series || 'N/A'}</p>
+                                            <p class="text-gray-600 text-sm mb-3">Número: ${card.number || 'N/A'}</p>
+                                            <div class="flex justify-between items-center">
+                                                <button class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold"
+                                                        onclick="showCardDetails('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">
+                                                    Ver Detalles
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `;
+                                    cardsContainer.appendChild(cardElement);
+                                });
+                                
+                                hideLoadingSpinner();
+                                return; // Exit successfully
+                            }
+                        }
+                    } catch (retryError) {
+                        console.error('❌ Retry también falló:', retryError);
+                    }
+                }
+
+                let errorMsg = 'Error al buscar cartas. ';
+                
+                if (error.name === 'AbortError') {
+                    errorMsg += 'La búsqueda tardó demasiado tiempo. Configura tu API Key para mejor rendimiento o prueba términos más específicos.';
+                } else if (error.message.includes('Failed to fetch')) {
+                    errorMsg += 'Problema de conexión. Verifica tu internet o prueba más tarde.';
+                } else if (error.message.includes('404')) {
+                    errorMsg += 'Servicio no disponible temporalmente. Prueba más tarde.';
+                } else {
+                    errorMsg += error.message + ' (Configura tu API Key para mejor rendimiento)';
+                }
+
+                if (errorMessage) {
+                    errorMessage.textContent = errorMsg;
+                    errorMessage.classList.remove('hidden');
+                }
+            } finally {
+                hideLoadingSpinner();
+            }
+        }
+        
+        // Función corregida para obtener cartas de un set
+        async function fetchAllCardsInSet(setId) {
+            console.log(`Obteniendo todas las cartas del set: ${setId}`);
+
+            try {
+                // URL corregida para usar tu función pokemon-proxy
+                const response = await fetch(`/api/pokemontcg/cards?q=set.id:${setId}&pageSize=500`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+
+                const data = await response.json();
+                console.log(`Obtenidas ${data.data?.length || 0} cartas del set ${setId}`);
+                return data.data || [];
+
+            } catch (error) {
+                console.error('Error al obtener cartas del set:', error);
+                if (myCardsErrorMessage) {
+                    myCardsErrorMessage.textContent = 'Error al cargar las cartas de esta expansión.';
+                    myCardsErrorMessage.classList.remove('hidden');
+                }
+                return [];
+            }
+        }
+        // Función para cargar la colección del usuario
+        async function loadMyCollection(userId) {
+            if (!myCardsContainer) return;
+
+            myCardsContainer.innerHTML = '';
+            if (noMyCardsMessage) noMyCardsMessage.classList.add('hidden');
+            if (myCardsErrorMessage) myCardsErrorMessage.classList.add('hidden');
+            showLoadingSpinner();
+
+            try {
+                const myCardsCollectionRef = collection(db, `users/${userId}/my_cards`);
+                const querySnapshot = await getDocs(myCardsCollectionRef);
+                userCardsCache = [];
+
+                querySnapshot.forEach(doc => {
+                    userCardsCache.push(doc.data());
+                });
+
+                // Aplicar filtros
+                const selectedSeries = seriesFilter?.value || '';
+                const selectedSetId = setFilter?.value || '';
+                const selectedLanguage = languageFilter?.value || '';
+                const showAll = showAllSetCardsToggle?.checked || false;
+
+                let cardsToDisplay = [];
+
+                if (showAll && selectedSetId) {
+                    // Mostrar todas las cartas del set (incluyendo faltantes)
+                    const allCardsInSet = await fetchAllCardsInSet(selectedSetId);
+                    const ownedCardIds = new Set(userCardsCache.map(card => card.id));
+
+                    allCardsInSet.forEach(apiCard => {
+                        const matchesSeries = selectedSeries === "" || (apiCard.set && apiCard.set.series === selectedSeries);
+                        const matchesLanguage = selectedLanguage === "" || (ownedCardIds.has(apiCard.id) && userCardsCache.find(c => c.id === apiCard.id).language === selectedLanguage);
+
+                        if (matchesSeries && matchesLanguage) {
+                            if (ownedCardIds.has(apiCard.id)) {
+                                const ownedCard = userCardsCache.find(c => c.id === apiCard.id);
+                                cardsToDisplay.push({ ...ownedCard, isOwned: true });
+                            } else {
+                                cardsToDisplay.push({
+                                    id: apiCard.id,
+                                    name: apiCard.name,
+                                    number: apiCard.number,
+                                    imageUrl: 'https://placehold.co/400x550/e2e8f0/4a5568?text=Falta',
+                                    set: apiCard.set ? apiCard.set.name : 'N/A',
+                                    series: apiCard.set && apiCard.set.series ? apiCard.set.series : 'N/A',
+                                    language: 'N/A',
+                                    isOwned: false
+                                });
+                            }
+                        }
+                    });
+
+                    // Ordenar por número de carta
+                    cardsToDisplay.sort((a, b) => {
+                        const numA = parseInt(a.number, 10) || Infinity;
+                        const numB = parseInt(b.number, 10) || Infinity;
+                        return numA - numB;
+                    });
+
+                } else {
+                    // Modo normal: solo cartas poseídas
+                    let filteredCards = userCardsCache.filter(card => {
+                        const matchesSeries = selectedSeries === "" || card.series === selectedSeries;
+                        const matchesSet = selectedSetId === "" || card.setId === selectedSetId;
+                        const matchesLanguage = selectedLanguage === "" || card.language === selectedLanguage;
+                        return matchesSeries && matchesSet && matchesLanguage;
+                    });
+
+                    filteredCards.sort((a, b) => {
+                        if (a.set !== b.set) return a.set.localeCompare(b.set);
+                        const numA = parseInt(a.number, 10) || Infinity;
+                        const numB = parseInt(b.number, 10) || Infinity;
+                        return numA - numB;
+                    });
+
+                    cardsToDisplay = filteredCards;
+                }
+
+                renderCardsInCollection(cardsToDisplay);
+
+                if (cardsToDisplay.length === 0) {
+                    if (noMyCardsMessage) {
+                        noMyCardsMessage.textContent = 'No se encontraron cartas con los filtros aplicados.';
+                        noMyCardsMessage.classList.remove('hidden');
+                    }
+                }
+
+            } catch (error) {
+                console.error('Error al cargar la colección:', error);
+                if (myCardsErrorMessage) myCardsErrorMessage.classList.remove('hidden');
+            } finally {
+                hideLoadingSpinner();
+            }
+        }
+
+        // Función para renderizar cartas en la colección
+        function renderCardsInCollection(cards) {
+            if (!myCardsContainer) return;
+
+            myCardsContainer.innerHTML = '';
+
+            if (cards.length === 0) {
+                if (noMyCardsMessage) noMyCardsMessage.classList.remove('hidden');
+                return;
+            }
+
+            cards.forEach(card => {
+                const isOwned = card.isOwned !== undefined ? card.isOwned : true;
+                const cardClass = isOwned ? 'card-bg' : 'card-bg missing-card';
+                const imageUrl = card.imageUrl;
+                const buttonHtml = isOwned ?
+                    `<button class="btn-secondary px-4 py-2 rounded-lg text-sm font-semibold mt-2" onclick="removeCardFromCollection('${card.id}')">Eliminar</button>` :
+                    `<span class="text-sm text-gray-500 mt-2">Falta en tu colección</span>`;
+
+                const cardElement = document.createElement('div');
+                cardElement.className = `${cardClass} rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105`;
+                cardElement.innerHTML = `
+                    <img src="${imageUrl}" alt="${card.name}" class="w-full h-auto object-cover rounded-t-xl"
+                         onerror="this.src='https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen';">
+                    <div class="p-4">
+                        <h3 class="text-xl font-semibold mb-2 text-gray-900">${card.name}</h3>
+                        <p class="text-gray-600 text-sm mb-3">Número: ${card.number}</p>
+                        <p class="text-gray-600 text-sm mb-3">Serie: ${card.series || 'N/A'}</p>
+                        <p class="text-gray-600 text-sm mb-3">Expansión: ${card.set}</p>
+                        ${isOwned ? `<p class="text-gray-600 text-sm mb-3">Idioma: ${card.language || 'N/A'}</p>` : ''}
+                        <div class="flex justify-between items-center">
+                            ${buttonHtml}
+                        </div>
+                    </div>
+                `;
+                myCardsContainer.appendChild(cardElement);
+            });
+        }
+
+        // Función para eliminar carta de la colección
+        window.removeCardFromCollection = async (cardId) => {
+            if (!currentUser) {
+                alert('Por favor, inicia sesión.');
+                return;
+            }
+
+            try {
+                await deleteDoc(doc(db, `users/${currentUser.uid}/my_cards/${cardId}`));
+                alert('Carta eliminada de tu colección.');
+                await loadMyCollection(currentUser.uid);
+            } catch (error) {
+                console.error('Error al eliminar carta:', error);
+                alert('Error al eliminar la carta. Inténtalo de nuevo.');
+            }
+        };
+
+        // Función para obtener sets de la API (MEJORADA)
+        async function fetchSetsAndPopulateFilter() {
+            if (allSets.length > 0) return;
+
+            console.log('🔄 Cargando sets desde la API...');
+
+            try {
+                // Timeout reducido para sets
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos
+
+                const response = await fetch('/api/pokemontcg/sets?pageSize=50', {
+                    method: 'GET',
+                    signal: controller.signal,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                clearTimeout(timeoutId);
+
+                console.log('📡 Sets API Response status:', response.status);
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error('❌ Sets API Error:', errorText);
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+                allSets = data.data || [];
+                
+                console.log('✅ Sets cargados:', allSets.length);
+
+                allSets.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+
+                // Poblar filtro de Series
+                const uniqueSeries = [...new Set(allSets.map(set => set.series))].filter(Boolean).sort();
+                if (seriesFilter) {
+                    seriesFilter.innerHTML = '<option value="">Todas las Series</option>';
+                    uniqueSeries.forEach(series => {
+                        const option = document.createElement('option');
+                        option.value = series;
+                        option.textContent = series;
+                        seriesFilter.appendChild(option);
+                    });
+                }
+
+                // Poblar filtro de Sets
+                populateSetFilter(allSets);
+                if (setFilter) setFilter.disabled = false;
+
+                console.log(`Cargados ${allSets.length} sets y ${uniqueSeries.length} series`);
+
+            } catch (error) {
+                console.error('Error al cargar sets:', error);
+                console.log('🔄 Intentando cargar sets básicos como fallback...');
+                
+                // Fallback: usar sets básicos si la API falla
+                try {
+                    const fallbackResponse = await fetch('/api/pokemontcg/sets?pageSize=10');
+                    if (fallbackResponse.ok) {
+                        const fallbackData = await fallbackResponse.json();
+                        allSets = fallbackData.data || [];
+                        console.log('✅ Sets básicos cargados como fallback:', allSets.length);
+                        
+                        if (allSets.length > 0) {
+                            // Poblar filtros con datos básicos
+                            const uniqueSeries = [...new Set(allSets.map(set => set.series))].filter(Boolean).sort();
+                            if (seriesFilter) {
+                                seriesFilter.innerHTML = '<option value="">Todas las Series</option>';
+                                uniqueSeries.forEach(series => {
+                                    const option = document.createElement('option');
+                                    option.value = series;
+                                    option.textContent = series;
+                                    seriesFilter.appendChild(option);
+                                });
+                            }
+                            populateSetFilter(allSets);
+                            if (setFilter) setFilter.disabled = false;
+                            return; // Exit successfully
+                        }
+                    }
+                } catch (fallbackError) {
+                    console.error('Fallback también falló:', fallbackError);
+                }
+                
+                // Si todo falla, deshabilitar filtros
+                if (setFilter) setFilter.disabled = true;
+                if (seriesFilter) seriesFilter.disabled = true;
+                if (myCardsErrorMessage) {
+                    myCardsErrorMessage.textContent = 'No se pudieron cargar los filtros. La API está lenta. Intenta más tarde o configura tu API Key.';
+                    myCardsErrorMessage.classList.remove('hidden');
+                }
+            }
+        }
+
+        // Función para poblar el filtro de sets
+        function populateSetFilter(setsToDisplay) {
+            if (!setFilter) return;
+
+            setFilter.innerHTML = '<option value="">Todas las Expansiones</option>';
+            setsToDisplay.forEach(set => {
+                const option = document.createElement('option');
+                option.value = set.id;
+                option.textContent = set.name;
+                setFilter.appendChild(option);
+            });
+        }
+
+        // --- Funciones de Autenticación ---
+        window.logoutUser = async () => {
+            try {
+                await signOut(auth);
+                console.log('Usuario cerró sesión');
+            } catch (error) {
+                console.error('Error al cerrar sesión:', error);
+            }
+        };
+
+        // --- Configuración de Event Listeners ---
+        function setupNavigationEvents() {
+            console.log('🚀 Inicializando aplicación...');
+            
+            // Verificar que las funciones estén disponibles
+            if (typeof showInitialSections === 'undefined') {
+                console.error('❌ showInitialSections no está definida');
+                return;
+            }
+            if (typeof showAuthModal === 'undefined') {
+                console.error('❌ showAuthModal no está definida');
+                return;
+            }
+            if (typeof showMyCardsSection === 'undefined') {
+                console.error('❌ showMyCardsSection no está definida');
+                return;
+            }
+            if (typeof showInterchangesSection === 'undefined') {
+                console.error('❌ showInterchangesSection no está definida');
+                return;
+            }
+            if (typeof showProfileSection === 'undefined') {
+                console.error('❌ showProfileSection no está definida');
+                return;
+            }
+            if (typeof logoutUser === 'undefined') {
+                console.error('❌ logoutUser no está definida');
+                return;
+            }
+
+            console.log('✅ Todas las funciones están disponibles');
+
+            // Configurar event listeners simples y directos
+            const homeLink = document.getElementById('homeLink');
+            if (homeLink) {
+                homeLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('🏠 Home link clicked');
+                    showInitialSections();
+                });
+            }
+
+            const startTradingBtn = document.getElementById('startTradingBtn');
+            if (startTradingBtn) {
+                startTradingBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('🚀 Start trading clicked');
+                    showAuthModal('register');
+                });
+            }
+
+            const loginLink = document.getElementById('loginLink');
+            if (loginLink) {
+                loginLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('🚪 Login link clicked');
+                    showAuthModal('login');
+                });
+            }
+
+            const registerLink = document.getElementById('registerLink');
+            if (registerLink) {
+                registerLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('📝 Register link clicked');
+                    showAuthModal('register');
+                });
+            }
+
+            const logoutLink = document.getElementById('logoutLink');
+            if (logoutLink) {
+                logoutLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('👋 Logout link clicked');
+                    logoutUser();
+                });
+            }
+
+            const myCardsLink = document.getElementById('myCardsLink');
+            if (myCardsLink) {
+                myCardsLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('📦 My cards link clicked');
+                    showMyCardsSection();
+                });
+            }
+
+            const interchangesLink = document.getElementById('interchangesLink');
+            if (interchangesLink) {
+                interchangesLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('🤝 Interchanges link clicked');
+                    showInterchangesSection();
+                });
+            }
+
+            const profileLink = document.getElementById('profileLink');
+            if (profileLink) {
+                profileLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('👤 Profile link clicked');
+                    if (currentUser) {
+                        showProfileSection();
+                    } else {
+                        showAuthModal('login');
+                    }
+                });
+            }
+
+            // Explorar link (sin ID específico)
+            const exploreLinks = document.querySelectorAll('a[href="#"]');
+            exploreLinks.forEach(link => {
+                if (link.textContent.includes('Explorar')) {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        console.log('🔍 Explorar link clicked');
+                        showInitialSections();
+                    });
+                }
+            });
+
+            // Dark mode toggle
+            const darkModeToggle = document.getElementById('darkModeToggle');
+            if (darkModeToggle) {
+                darkModeToggle.addEventListener('change', (e) => {
+                    console.log('🌙 Dark mode toggle clicked:', e.target.checked);
+                    saveDarkModePreference(e.target.checked);
+                });
+            }
+
+
+
+            console.log('✅ Event listeners configurados correctamente');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 DOM cargado, configurando eventos...');
+
+            // Asignar referencias a elementos del DOM
+            searchInput = document.getElementById('searchInput');
+            searchResultsSection = document.getElementById('searchResults');
+            heroSection = document.getElementById('heroSection');
+            howItWorksSection = document.getElementById('howItWorks');
+            cardsContainer = document.getElementById('cardsContainer');
+            loadingSpinner = document.getElementById('loadingSpinner');
+            noResultsMessage = document.getElementById('noResultsMessage');
+            errorMessage = document.getElementById('errorMessage');
+            
+            authModal = document.getElementById('authModal');
+            loginForm = document.getElementById('loginForm');
+            registerForm = document.getElementById('registerForm');
+            loginEmailInput = document.getElementById('loginEmail');
+            loginPasswordInput = document.getElementById('loginPassword');
+            loginBtn = document.getElementById('loginBtn');
+            loginError = document.getElementById('loginError');
+            registerEmailInput = document.getElementById('registerEmail');
+            registerPasswordInput = document.getElementById('registerPassword');
+            confirmPasswordInput = document.getElementById('confirmPassword');
+            registerBtn = document.getElementById('registerBtn');
+            registerError = document.getElementById('registerError');
+            closeAuthModalBtn = document.getElementById('closeAuthModalBtn');
+            toggleToRegister = document.getElementById('toggleToRegister');
+            toggleToLogin = document.getElementById('toggleToLogin');
+
+            loginNavLink = document.getElementById('loginNavLink');
+            registerNavLink = document.getElementById('registerNavLink');
+            profileNavLink = document.getElementById('profileNavLink');
+            logoutNavLink = document.getElementById('logoutNavLink');
+            
+            myCardsNavLink = document.getElementById('myCardsNavLink');
+            myCardsLink = document.getElementById('myCardsLink');
+            myCardsSection = document.getElementById('myCardsSection');
+            myCardsContainer = document.getElementById('myCardsContainer');
+            noMyCardsMessage = document.getElementById('noMyCardsMessage');
+            myCardsErrorMessage = document.getElementById('myCardsErrorMessage');
+
+            seriesFilter = document.getElementById('seriesFilter');
+            setFilter = document.getElementById('setFilter');
+            languageFilter = document.getElementById('languageFilter');
+            applyFiltersBtn = document.getElementById('applyFiltersBtn');
+            showAllSetCardsToggle = document.getElementById('showAllSetCardsToggle');
+
+            interchangesSection = document.getElementById('interchangesSection');
+            
+            // Inicializar elementos del perfil
+            profileLink = document.getElementById('profileLink');
+            profileSection = document.getElementById('profileSection');
+
+            // Inicializar la aplicación después de un pequeño delay
+            setTimeout(() => {
+                setupNavigationEvents();
+            }, 100);
+
+
+
+            // Event listeners para tabs del perfil
+            const profilePersonalTab = document.getElementById('profilePersonalTab');
+            const profileDashboardTab = document.getElementById('profileDashboardTab');
+            const profileCollectionTab = document.getElementById('profileCollectionTab');
+            const profileTradesTab = document.getElementById('profileTradesTab');
+            const profileSettingsTab = document.getElementById('profileSettingsTab');
+
+            if (profilePersonalTab) {
+                profilePersonalTab.addEventListener('click', () => switchProfileTab('personal'));
+            }
+            if (profileDashboardTab) {
+                profileDashboardTab.addEventListener('click', () => switchProfileTab('dashboard'));
+            }
+            if (profileCollectionTab) {
+                profileCollectionTab.addEventListener('click', () => switchProfileTab('collection'));
+            }
+            if (profileTradesTab) {
+                profileTradesTab.addEventListener('click', () => switchProfileTab('trades'));
+            }
+            if (profileSettingsTab) {
+                profileSettingsTab.addEventListener('click', () => switchProfileTab('settings'));
+            }
+
+            // Event listener para el formulario de perfil personal
+            const profilePersonalForm = document.getElementById('profilePersonalForm');
+            if (profilePersonalForm) {
+                profilePersonalForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await saveProfileData();
+                });
+            }
+
+            // Event listener para el botón cancelar
+            const cancelProfileBtn = document.getElementById('cancelProfileBtn');
+            if (cancelProfileBtn) {
+                cancelProfileBtn.addEventListener('click', () => {
+                    loadUserInfo(); // Recargar datos originales
+                    showProfileSaveMessage('Cambios cancelados', 'info');
+                });
+            }
+
+            // Event listeners para cambio de contraseña
+            const passwordChangeForm = document.getElementById('passwordChangeForm');
+            if (passwordChangeForm) {
+                passwordChangeForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    await changePassword();
+                });
+            }
+
+            const cancelPasswordBtn = document.getElementById('cancelPasswordBtn');
+            if (cancelPasswordBtn) {
+                cancelPasswordBtn.addEventListener('click', () => {
+                    document.getElementById('passwordChangeForm').reset();
+                    showPasswordChangeMessage('Cambios cancelados', 'info');
+                });
+            }
+
+            // Event listeners para modal
+            if (closeAuthModalBtn) closeAuthModalBtn.addEventListener('click', hideAuthModal);
+            if (toggleToRegister) toggleToRegister.addEventListener('click', (e) => { e.preventDefault(); showAuthModal('register'); });
+            if (toggleToLogin) toggleToLogin.addEventListener('click', (e) => { e.preventDefault(); showAuthModal('login'); });
+
+            // Event listeners para filtros
+            if (seriesFilter) {
+                seriesFilter.addEventListener('change', () => {
+                    const selectedSeries = seriesFilter.value;
+                    if (selectedSeries === "") {
+                        populateSetFilter(allSets);
+                    } else {
+                        const setsInSeries = allSets.filter(set => set.series === selectedSeries);
+                        populateSetFilter(setsInSeries);
+                    }
+                    if (setFilter) setFilter.value = "";
+                    if (showAllSetCardsToggle) {
+                        showAllSetCardsToggle.checked = false;
+                        showAllSetCardsToggle.disabled = selectedSeries === "";
+                    }
+                });
+            }
+
+            if (setFilter) {
+                setFilter.addEventListener('change', () => {
+                    if (showAllSetCardsToggle) {
+                        showAllSetCardsToggle.disabled = !setFilter.value;
+                        if (!setFilter.value) showAllSetCardsToggle.checked = false;
+                    }
+                });
+            }
+
+            if (applyFiltersBtn) {
+                applyFiltersBtn.addEventListener('click', () => {
+                    console.log('🔍 Aplicando filtros...');
+                    if (currentUser) {
+                        loadMyCollection(currentUser.uid);
+                    } else {
+                        if (noMyCardsMessage) {
+                            noMyCardsMessage.textContent = 'Debes iniciar sesión para aplicar filtros.';
+                            noMyCardsMessage.classList.remove('hidden');
+                        }
+                    }
+                });
+            }
+
+            // Event listener para el filtro de idioma (actualización automática)
+            if (languageFilter) {
+                languageFilter.addEventListener('change', () => {
+                    console.log('🌍 Idioma seleccionado:', languageFilter.value);
+                    if (currentUser) {
+                        loadMyCollection(currentUser.uid);
+                    }
+                });
+            }
+
+            if (showAllSetCardsToggle) {
+                showAllSetCardsToggle.addEventListener('change', () => {
+                    if (currentUser && setFilter?.value) {
+                        loadMyCollection(currentUser.uid);
+                    } else if (showAllSetCardsToggle.checked) {
+                        alert('Debes iniciar sesión y seleccionar una expansión.');
+                        showAllSetCardsToggle.checked = false;
+                    }
+                });
+            }
+
+            // Event listeners para autenticación
+            if (loginBtn) {
+                loginBtn.addEventListener('click', async () => {
+                    const email = loginEmailInput?.value;
+                    const password = loginPasswordInput?.value;
+                    if (loginError) loginError.classList.add('hidden');
+
+                    try {
+                        await signInWithEmailAndPassword(auth, email, password);
+                        hideAuthModal();
+                        console.log('Usuario inició sesión:', auth.currentUser.email);
+                    } catch (error) {
+                        console.error('Error al iniciar sesión:', error);
+                        let errorMessage = 'Error al iniciar sesión.';
+                        if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
+                            errorMessage = 'Correo o contraseña incorrectos.';
+                        } else if (error.code === 'auth/invalid-email') {
+                            errorMessage = 'Formato de correo inválido.';
+                        }
+                        if (loginError) {
+                            loginError.textContent = errorMessage;
+                            loginError.classList.remove('hidden');
+                        }
+                    }
+                });
+            }
+
+            if (registerBtn) {
+                registerBtn.addEventListener('click', async () => {
+                    const username = document.getElementById('registerUsername')?.value?.trim();
+                    const email = registerEmailInput?.value;
+                    const password = registerPasswordInput?.value;
+                    const confirmPassword = confirmPasswordInput?.value;
+                    if (registerError) registerError.classList.add('hidden');
+
+                    // Validaciones
+                    if (!username) {
+                        if (registerError) {
+                            registerError.textContent = 'El nombre de usuario es obligatorio.';
+                            registerError.classList.remove('hidden');
+                        }
+                        return;
+                    }
+
+                    if (username.length < 3) {
+                        if (registerError) {
+                            registerError.textContent = 'El nombre de usuario debe tener al menos 3 caracteres.';
+                            registerError.classList.remove('hidden');
+                        }
+                        return;
+                    }
+
+                    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
+                        if (registerError) {
+                            registerError.textContent = 'El nombre de usuario solo puede contener letras, números y guiones bajos.';
+                            registerError.classList.remove('hidden');
+                        }
+                        return;
+                    }
+
+                    if (password !== confirmPassword) {
+                        if (registerError) {
+                            registerError.textContent = 'Las contraseñas no coinciden.';
+                            registerError.classList.remove('hidden');
+                        }
+                        return;
+                    }
+
+                    if (password.length < 6) {
+                        if (registerError) {
+                            registerError.textContent = 'La contraseña debe tener al menos 6 caracteres.';
+                            registerError.classList.remove('hidden');
+                        }
+                        return;
+                    }
+
+                    try {
+                        // Verificar si el usuario ya existe
+                        const usernameQuery = await getDocs(collection(db, 'users'));
+                        const existingUser = usernameQuery.docs.find(doc => doc.data().username === username);
+                        
+                        if (existingUser) {
+                            if (registerError) {
+                                registerError.textContent = 'Este nombre de usuario ya está en uso.';
+                                registerError.classList.remove('hidden');
+                            }
+                            return;
+                        }
+
+                        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+                        const user = userCredential.user;
+
+                        // Crear perfil completo en Firestore
+                        await setDoc(doc(db, 'users', user.uid), {
+                            name: username,
+                            email: user.email,
+                            createdAt: new Date(),
+                            updatedAt: new Date()
+                        });
+
+                        hideAuthModal();
+                        console.log('Usuario registrado:', user.email, 'Username:', username);
+                    } catch (error) {
+                        console.error('Error al registrar:', error);
+                        let errorMessage = 'Error al registrar.';
+                        if (error.code === 'auth/email-already-in-use') {
+                            errorMessage = 'Este correo ya está registrado.';
+                        } else if (error.code === 'auth/invalid-email') {
+                            errorMessage = 'Formato de correo inválido.';
+                        } else if (error.code === 'auth/weak-password') {
+                            errorMessage = 'La contraseña es demasiado débil.';
+                        }
+                        if (registerError) {
+                            registerError.textContent = errorMessage;
+                            registerError.classList.remove('hidden');
+                        }
+                    }
+                });
+            }
+
+            // Escuchar cambios de autenticación
+            onAuthStateChanged(auth, (user) => {
+                currentUser = user;
+                console.log('Estado de autenticación:', !!user);
+
+                // Mis Cartas siempre visible
+                if (myCardsNavLink) myCardsNavLink.classList.remove('hidden');
+
+                if (user) {
+                    // Usuario conectado: ocultar login/register, mostrar logout
+                    if (loginNavLink) loginNavLink.classList.add('hidden');
+                    if (registerNavLink) registerNavLink.classList.add('hidden');
+                    if (logoutNavLink) logoutNavLink.classList.remove('hidden');
+                    // Mi Perfil siempre visible (funciona diferente según estado)
+                    if (profileNavLink) profileNavLink.classList.remove('hidden');
+                } else {
+                    // Usuario desconectado: mostrar login/register, ocultar logout
+                    if (loginNavLink) loginNavLink.classList.remove('hidden');
+                    if (registerNavLink) registerNavLink.classList.remove('hidden');
+                    if (logoutNavLink) logoutNavLink.classList.add('hidden');
+                    // Mi Perfil siempre visible (redirige a login si no está conectado)
+                    if (profileNavLink) profileNavLink.classList.remove('hidden');
+                }
+            });
+
+            // Event listener para búsqueda
+            let searchTimeout;
+            if (searchInput) {
+                searchInput.addEventListener('keyup', (event) => {
+                    clearTimeout(searchTimeout);
+                    const query = event.target.value.trim();
+                    if (query.length >= 3 || query.length === 0) {
+                        searchTimeout = setTimeout(() => {
+                            fetchCards(query);
+                        }, 500);
+                    }
+                });
+            }
+
+            // Mostrar secciones iniciales
+            showInitialSections();
+        });
+
+        // Función para mostrar detalles de carta
+        window.showCardDetails = (cardId, cardName, imageUrl, setName, series, number) => {
+            if (!currentUser) {
+                alert('Inicia sesión para añadir cartas a tu colección');
+                showAuthModal('login');
+                return;
+            }
+
+            const confirmed = confirm(`¿Quieres añadir "${cardName}" a tu colección?\n\nSet: ${setName}\nSerie: ${series}\nNúmero: ${number}`);
+            
+            if (confirmed) {
+                addCardToCollection(cardId, cardName, imageUrl, setName, series, number);
+            }
+        };
+
+        // Función para añadir carta a la colección
+        async function addCardToCollection(cardId, cardName, imageUrl, setName, series, number) {
+            if (!currentUser) return;
+
+            try {
+                // Pedir idioma al usuario
+                const language = prompt('¿En qué idioma es esta carta?', 'Español') || 'Español';
+
+                const cardData = {
+                    id: cardId,
+                    name: cardName,
+                    imageUrl: imageUrl,
+                    set: setName,
+                    series: series,
+                    number: number,
+                    language: language,
+                    setId: cardId.split('-')[0], // Extraer setId del cardId
+                    addedAt: new Date()
+                };
+
+                await setDoc(doc(db, `users/${currentUser.uid}/my_cards/${cardId}`), cardData);
+                alert(`¡Carta "${cardName}" añadida a tu colección!`);
+            } catch (error) {
+                console.error('Error al añadir carta:', error);
+                alert('Error al añadir la carta. Inténtalo de nuevo.');
+            }
+        }
+
+        // Función para cargar más resultados
+        window.loadMoreResults = async (query) => {
+            console.log('🔄 Intentando cargar más resultados para:', query);
+            
+            if (errorMessage) errorMessage.classList.add('hidden');
+            showLoadingSpinner();
+            
+            try {
+                // Intentar con wildcard pero menos resultados
+                const encodedQuery = encodeURIComponent(query.toLowerCase());
+                const moreUrl = `/api/pokemontcg/cards?q=name:*${encodedQuery}*&pageSize=50`;
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 15000); // Más tiempo
+                
+                const response = await fetch(moreUrl, {
+                    signal: controller.signal,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const cards = data.data || [];
+                    
+                    // Limpiar contenedor y mostrar nuevos resultados
+                    cardsContainer.innerHTML = '';
+                    
+                    if (cards.length > 0) {
+                        cards.forEach(card => {
+                            const cardElement = document.createElement('div');
+                            cardElement.className = 'card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105';
+                            
+                            const safeCardId = (card.id || '').replace(/'/g, "\\'");
+                            const safeCardName = (card.name || '').replace(/'/g, "\\'");
+                            const safeSetName = (card.set?.name || 'N/A').replace(/'/g, "\\'");
+                            const safeSeries = (card.set?.series || 'N/A').replace(/'/g, "\\'");
+                            const safeNumber = (card.number || 'N/A').replace(/'/g, "\\'");
+                            const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
+                            
+                            cardElement.innerHTML = `
+                                <img src="${card.images?.small || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen'}"
+                                     alt="${card.name || 'Carta sin nombre'}"
+                                     class="w-full h-auto object-cover rounded-t-xl"
+                                     onerror="this.src='https://placehold.co/400x550/a0aec0/ffffff?text=Error+imagen'">
+                                <div class="p-4">
+                                    <h3 class="text-xl font-semibold mb-2 text-gray-900">${card.name || 'Nombre no disponible'}</h3>
+                                    <p class="text-gray-600 text-sm mb-3">Set: ${card.set?.name || 'N/A'}</p>
+                                    <p class="text-gray-600 text-sm mb-3">Serie: ${card.set?.series || 'N/A'}</p>
+                                    <p class="text-gray-600 text-sm mb-3">Número: ${card.number || 'N/A'}</p>
+                                    <div class="flex justify-between items-center">
+                                        <button class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold"
+                                                onclick="showCardDetails('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">
+                                            Ver Detalles
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                            cardsContainer.appendChild(cardElement);
+                        });
+                        
+                        if (errorMessage) {
+                            errorMessage.innerHTML = `✅ ¡Éxito! Cargadas ${cards.length} cartas adicionales.`;
+                            errorMessage.classList.remove('hidden');
+                        }
+                    }
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+            } catch (error) {
+                console.error('Error al cargar más resultados:', error);
+                if (errorMessage) {
+                    errorMessage.textContent = '❌ No se pudieron cargar más resultados. La API está muy lenta en este momento.';
+                    errorMessage.classList.remove('hidden');
+                }
+            } finally {
+                hideLoadingSpinner();
+            }
+        };
+
+        // Función de búsqueda súper rápida (solo 10 resultados)
+        window.quickSearch = async () => {
+            const searchInput = document.getElementById('searchInput');
+            const query = searchInput.value.trim();
+            
+            if (query.length < 2) {
+                alert('Ingresa al menos 2 caracteres');
+                return;
+            }
+            
+            console.log('🚀 Búsqueda rápida iniciada para:', query);
+            
+            if (cardsContainer) cardsContainer.innerHTML = '';
+            if (noResultsMessage) noResultsMessage.classList.add('hidden');
+            if (errorMessage) errorMessage.classList.add('hidden');
+            
+            showLoadingSpinner();
+            showSearchResults();
+            
+            try {
+                const encodedQuery = encodeURIComponent(query.toLowerCase());
+                // Búsqueda súper específica y rápida
+                const quickUrl = `/api/pokemontcg/cards?q=name:${encodedQuery}&pageSize=10`;
+                
+                console.log('🚀 Quick URL:', quickUrl);
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 5000); // Solo 5 segundos
+                
+                const response = await fetch(quickUrl, {
+                    signal: controller.signal,
+                    headers: { 'Content-Type': 'application/json' }
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const cards = data.data || [];
+                    
+                    console.log('🚀 Quick search success:', cards.length, 'cards');
+                    
+                    if (cards.length > 0) {
+                        cards.forEach(card => {
+                            const cardElement = document.createElement('div');
+                            cardElement.className = 'card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105';
+                            
+                            const safeCardId = (card.id || '').replace(/'/g, "\\'");
+                            const safeCardName = (card.name || '').replace(/'/g, "\\'");
+                            const safeSetName = (card.set?.name || 'N/A').replace(/'/g, "\\'");
+                            const safeSeries = (card.set?.series || 'N/A').replace(/'/g, "\\'");
+                            const safeNumber = (card.number || 'N/A').replace(/'/g, "\\'");
+                            const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
+                            
+                            cardElement.innerHTML = `
+                                <img src="${card.images?.small || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen'}"
+                                     alt="${card.name || 'Carta sin nombre'}"
+                                     class="w-full h-auto object-cover rounded-t-xl"
+                                     onerror="this.src='https://placehold.co/400x550/a0aec0/ffffff?text=Error+imagen'">
+                                <div class="p-4">
+                                    <h3 class="text-xl font-semibold mb-2 text-gray-900">${card.name || 'Nombre no disponible'}</h3>
+                                    <p class="text-gray-600 text-sm mb-3">Set: ${card.set?.name || 'N/A'}</p>
+                                    <p class="text-gray-600 text-sm mb-3">Serie: ${card.set?.series || 'N/A'}</p>
+                                    <p class="text-gray-600 text-sm mb-3">Número: ${card.number || 'N/A'}</p>
+                                    <div class="flex justify-between items-center">
+                                        <button class="btn-primary px-4 py-2 rounded-lg text-sm font-semibold"
+                                                onclick="showCardDetails('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">
+                                            Ver Detalles
+                                        </button>
+                                    </div>
+                                </div>
+                            `;
+                            cardsContainer.appendChild(cardElement);
+                        });
+                        
+                        if (errorMessage) {
+                            errorMessage.innerHTML = `✅ Búsqueda rápida: ${cards.length} cartas encontradas. <button onclick="fetchCards('${query}')" class="bg-blue-500 text-white px-3 py-1 rounded ml-2">🔍 Buscar Más</button>`;
+                            errorMessage.classList.remove('hidden');
+                        }
+                    } else {
+                        if (noResultsMessage) {
+                            noResultsMessage.textContent = `Búsqueda rápida: No se encontraron cartas para "${query}".`;
+                            noResultsMessage.classList.remove('hidden');
+                        }
+                    }
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+            } catch (error) {
+                console.error('❌ Quick search error:', error);
+                if (errorMessage) {
+                    errorMessage.textContent = '⚡ Búsqueda rápida falló. Prueba la búsqueda normal.';
+                    errorMessage.classList.remove('hidden');
+                }
+            } finally {
+                hideLoadingSpinner();
+            }
+        };
+
+        // Hacer funciones disponibles globalmente
+        window.showAuthModal = showAuthModal;
+        window.hideAuthModal = hideAuthModal;
+        window.showMyCardsSection = showMyCardsSection;
+        window.showInterchangesSection = showInterchangesSection;
+        window.showProfileSection = showProfileSection;
+        window.fetchCards = fetchCards;
+    </script>
+
+    <style>
+        /* CSS styles - mantener los estilos originales */
+        :root {
+            --color-primary-bg: #f0f9ff;
+            --color-text: #1a202c;
+            --color-header-bg: #2a6f8b;
+            --color-footer-bg: #1f4e5a;
+            --color-card-bg: #ffffff;
+            --color-nav-link-hover: #e0f2fe;
+            --color-btn-secondary-bg: #4a5568;
+            --color-btn-secondary-hover: #2d3748;
+            --color-missing-card-bg: #e2e8f0;
+            --color-missing-card-border: #a0aec0;
+            --color-settings-bg: #f7fafc;
+            --color-input-text: #1a202c;
+            --color-input-placeholder: #a0aec0;
+            --color-select-text: #1a202c;
+        }
+
+        body.dark-mode {
+            --color-primary-bg: #1a1a1a;
+            --color-text: white;
+            --color-header-bg: #000000;
+            --color-footer-bg: #000000;
+            --color-card-bg: #2d2d2d;
+            --color-nav-link-hover: #444444;
+            --color-btn-secondary-bg: #555555;
+            --color-btn-secondary-hover: #666666;
+            --color-missing-card-bg: #444444;
+            --color-missing-card-border: #888888;
+            --color-settings-bg: #333333;
+            --color-input-text: white;
+            --color-input-placeholder: #a0aec0;
+            --color-select-text: white;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-primary-bg);
+            color: var(--color-text);
+        }
+
+        .header-bg { background-color: var(--color-header-bg); }
+        .nav-link { transition: color 0.3s ease, transform 0.2s ease; }
+        .nav-link:hover {
+            background-color: var(--color-nav-link-hover);
+            color: var(--color-header-bg);
+        }
+
+        .btn-primary {
+            background-color: #f97316;
+            color: white;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary:hover {
+            background-color: #ea580c;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+        }
+
+        .btn-secondary {
+            background-color: var(--color-btn-secondary-bg);
+            color: white;
+            transition: background-color 0.3s ease, transform 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        .btn-secondary:hover {
+            background-color: var(--color-btn-secondary-hover);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-bg {
+            background-color: var(--color-card-bg);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+        }
+        .card-bg:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+        }
+
+        .footer-bg { background-color: var(--color-footer-bg); }
+
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #f97316;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Estilos para los tabs del perfil */
+        .profile-tab {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+        
+        .profile-tab:hover {
+            color: #f97316;
+        }
+        
+        .profile-tab.active {
+            color: #f97316;
+            border-bottom-color: #f97316;
+        }
+        
+        .profile-tab-content {
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+        
+        .profile-tab-content.hidden {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+        
+        /* Estilos para las estadísticas */
+        .stats-card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        
+        .stats-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Estilos para el desglose de sets */
+        .set-item {
+            transition: background-color 0.3s ease;
+        }
+        
+        .set-item:hover {
+            background-color: #f8fafc;
+        }
+
+        /* Estilos mejorados para el selector de idioma */
+        #languageFilter {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            line-height: 1.5;
+            background-color: #ffffff;
+            color: #374151;
+            border: 2px solid #d1d5db;
+        }
+
+        #languageFilter option {
+            font-weight: 500;
+            padding: 8px 12px;
+            background-color: #ffffff;
+            color: #374151;
+        }
+
+        #languageFilter:focus {
+            border-color: #f97316;
+            box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+        }
+
+        /* Mejorar visibilidad en modo oscuro */
+        .dark-mode #languageFilter {
+            background-color: #1f2937;
+            color: #f9fafb;
+            border-color: #4b5563;
+        }
+
+        .dark-mode #languageFilter option {
+            background-color: #1f2937;
+            color: #f9fafb;
+        }
+
+        /* Estilos para el selector de idioma del header */
+        #languageSelector {
+            background-color: rgba(255, 255, 255, 0.9);
+            color: #374151;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+
+        #languageSelector option {
+            background-color: #ffffff;
+            color: #374151;
+            font-weight: 500;
+        }
+
+        .dark-mode #languageSelector {
+            background-color: rgba(31, 41, 55, 0.9);
+            color: #f9fafb;
+            border-color: rgba(75, 85, 99, 0.5);
+        }
+
+        .dark-mode #languageSelector option {
+            background-color: #1f2937;
+            color: #f9fafb;
+        }
+
+        .hero-section {
+            background: linear-gradient(to right, var(--color-header-bg), var(--color-footer-bg));
+            color: white;
+            padding: 4rem 1rem;
+            text-align: center;
+            border-radius: 1rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+        }
+        .hero-section h1 {
+            font-size: 3.5rem;
+            font-weight: 800;
+            margin-bottom: 1rem;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+        .hero-section p {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        .icon {
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+        }
+
+        .auth-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .auth-modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .auth-modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            width: 90%;
+            max-width: 450px;
+            position: relative;
+            transform: translateY(-20px);
+            transition: transform 0.3s ease;
+        }
+        .auth-modal-overlay.show .auth-modal-content {
+            transform: translateY(0);
+        }
+        .auth-modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            color: #4a5568;
+        }
+        .auth-form-toggle {
+            color: #2a6f8b;
+            cursor: pointer;
+            text-decoration: underline;
+        }
+
+        .missing-card {
+            background-color: var(--color-missing-card-bg);
+            border: 2px dashed var(--color-missing-card-border);
+            color: var(--color-text);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 1rem;
+            height: 100%;
+        }
+        .missing-card img {
+            opacity: 0.3;
+        }
+
+        /* Modo oscuro específico */
+        body.dark-mode label { color: var(--color-text) !important; }
+        body.dark-mode input[type="text"],
+        body.dark-mode input[type="email"],
+        body.dark-mode input[type="password"],
+        body.dark-mode input[type="tel"] {
+            background-color: #444444;
+            color: var(--color-input-text);
+            border-color: #666666;
+        }
+        body.dark-mode input[type="text"]::placeholder,
+        body.dark-mode input[type="email"]::placeholder,
+        body.dark-mode input[type="password"]::placeholder,
+        body.dark-mode input[type="tel"]::placeholder {
+            color: var(--color-input-placeholder);
+        }
+        body.dark-mode #howItWorks .card-bg p,
+        body.dark-mode #howItWorks .card-bg h3 { color: white; }
+        body.dark-mode #myCardsSection h2 { color: white; }
+        body.dark-mode #interchangesSection h2 { color: white; }
+    </style>
+</head>
+<body class="flex flex-col min-h-screen">
+
+    <header class="header-bg shadow-lg py-4 px-6 md:px-10">
+        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
+            <a href="#" class="text-white text-3xl font-bold rounded-md px-3 py-1 flex items-center h-12" id="homeLink">
+                TCGtrade
+            </a>
+
+            <div class="w-full md:w-1/2 lg:w-1/3 mt-4 md:mt-0 relative flex items-center h-12">
+                <input type="text" id="searchInput" placeholder="Buscar cartas, sets, usuarios..."
+                       class="w-full p-3 rounded-l-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-800 dark:text-white dark:bg-gray-700 h-full">
+                <button type="button" onclick="quickSearch()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-3 rounded-r-lg font-semibold text-xs h-full transition-all" title="Búsqueda rápida (10 resultados)">
+                    🚀
+                </button>
+                <div id="loadingSpinner" class="loader absolute right-12 top-1/2 -translate-y-1/2"></div>
+            </div>
+
+            <nav class="mt-4 md:mt-0">
+                <ul class="flex space-x-4 text-white" id="authNavLinks">
+                    <li><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap"><span class="icon">🔍</span> Explorar</a></li>
+                    <li id="myCardsNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="myCardsLink"><span class="icon">📦</span> Mis Cartas</a></li>
+                    <li id="interchangesNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="interchangesLink"><span class="icon">🤝</span> Intercambios</a></li>
+                    <li id="loginNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="loginLink"><span class="icon">🚪</span> Iniciar Sesión</a></li>
+                    <li id="registerNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="registerLink"><span class="icon">📝</span> Registrarse</a></li>
+                    <li id="profileNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center text-sm h-12 whitespace-nowrap" id="profileLink"><span class="icon">👤</span> Mi Perfil</a></li>
+                    <li id="logoutNavLink" class="hidden"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="logoutLink"><span class="icon">👋</span> Cerrar Sesión</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <main class="flex-grow container mx-auto p-6 md:p-10">
+        <section class="hero-section" id="heroSection">
+            <h1>Tu Centro de Intercambio de Pokémon TCG</h1>
+            <p class="text-xl">Conecta con coleccionistas de todo el mundo, encuentra las cartas que te faltan y completa tu colección de forma segura y sencilla.</p>
+            <button id="startTradingBtn" class="btn-primary text-xl px-8 py-4 rounded-full font-semibold">
+                ¡Empieza a Intercambiar Ahora!
+            </button>
+        </section>
+
+        <section id="searchResults" class="mb-12 hidden">
+            <h2 class="text-3xl font-bold mb-6 text-gray-700 dark:text-white flex items-center">
+                <span class="icon">✨</span> Resultados de Búsqueda
+            </h2>
+            <div id="cardsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                </div>
+            <p id="noResultsMessage" class="text-center text-gray-600 dark:text-gray-400 mt-8 hidden">No se encontraron resultados para tu búsqueda.</p>
+            <p id="errorMessage" class="text-center text-red-500 mt-8 hidden">Ha ocurrido un error al cargar las cartas.</p>
+        </section>
+
+        <section id="myCardsSection" class="mb-12 hidden">
+            <h2 class="text-3xl font-bold mb-6 text-gray-700 dark:text-white flex items-center">
+                <span class="icon">📦</span> Mi Colección de Cartas
+            </h2>
+            <div class="flex flex-wrap gap-4 mb-6 items-end">
+                <div class="flex-1 min-w-[150px] flex flex-col">
+                    <label for="seriesFilter" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Filtrar por Serie:</label>
+                    <select id="seriesFilter" class="shadow border rounded w-full py-2 px-3 h-[42px] text-gray-700 dark:text-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline">
+                        <option value="">Todas las Series</option>
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[150px] flex flex-col">
+                    <label for="setFilter" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Filtrar por Expansión (Set):</label>
+                    <select id="setFilter" class="shadow border rounded w-full py-2 px-3 h-[42px] text-gray-700 dark:text-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline" disabled>
+                        <option value="">Todas las Expansiones</option>
+                    </select>
+                </div>
+                <div class="flex-1 min-w-[150px] flex flex-col">
+                    <label for="languageFilter" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">Filtrar por Idioma:</label>
+                    <select id="languageFilter" class="shadow border rounded w-full py-2 px-3 h-[42px] text-gray-700 dark:text-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline font-medium text-base">
+                        <option value="">🌍 Todos los Idiomas</option>
+                        <option value="Español">🇪🇸 Español</option>
+                        <option value="Inglés">🇺🇸 Inglés</option>
+                        <option value="Japonés">🇯🇵 Japonés</option>
+                        <option value="Francés">🇫🇷 Francés</option>
+                        <option value="Alemán">🇩🇪 Alemán</option>
+                        <option value="Chino">🇨🇳 Chino</option>
+                        <option value="Italiano">🇮🇹 Italiano</option>
+                    </select>
+                </div>
+                <div class="flex items-center self-end p-2 rounded-md bg-gray-50 dark:bg-gray-700 h-[42px]">
+                    <input type="checkbox" id="showAllSetCardsToggle" class="mr-2 h-4 w-4 text-orange-600 focus:ring-orange-500 border-gray-300 dark:border-gray-600 rounded cursor-pointer" disabled>
+                    <label for="showAllSetCardsToggle" class="text-gray-700 dark:text-gray-300 text-sm font-bold cursor-pointer">Ver todas las cartas del set (incluidas las faltantes)</label>
+                </div>
+                <button id="applyFiltersBtn" class="btn-primary px-6 py-2 rounded-lg text-sm font-semibold h-[42px]">
+                    Aplicar Filtros
+                </button>
+            </div>
+            <div id="myCardsContainer" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                </div>
+            <p id="noMyCardsMessage" class="text-center text-gray-600 dark:text-gray-400 mt-8 hidden">Aún no tienes cartas en tu colección. ¡Busca y añade algunas!</p>
+            <p id="myCardsErrorMessage" class="text-center text-red-500 mt-8 hidden">Error al cargar tu colección. Por favor, inténtalo de nuevo.</p>
+        </section>
+
+        <section id="howItWorks" class="mb-12 text-center">
+            <h2 class="text-3xl font-bold mb-6 text-gray-700 dark:text-white flex items-center justify-center">
+                <span class="icon">⚙️</span> ¿Cómo funciona TCGtrade?
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="card-bg p-6 rounded-xl shadow-md">
+                    <h3 class="text-2xl font-semibold mb-3 text-gray-800 flex items-center justify-center"><span class="icon">➕</span> 1. Crea tu Colección</h3>
+                    <p class="text-gray-600">Añade las cartas que tienes y las que buscas a tu perfil.</p>
+                </div>
+                <div class="card-bg p-6 rounded-xl shadow-md">
+                    <h3 class="text-2xl font-semibold mb-3 text-gray-800 flex items-center justify-center"><span class="icon">🔎</span> 2. Encuentra Intercambios</h3>
+                    <p class="text-gray-600">Nuestro sistema te conectará con usuarios que tengan lo que necesitas.</p>
+                </div>
+                <div class="card-bg p-6 rounded-xl shadow-md">
+                    <h3 class="text-2xl font-semibold mb-3 text-gray-800 flex items-center justify-center"><span class="icon">🎉</span> 3. Intercambia y Disfruta</h3>
+                    <p class="text-gray-600">Acuerda el intercambio de forma segura y completa tu colección.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="interchangesSection" class="mb-12 hidden">
+            <h2 class="text-3xl font-bold mb-6 text-gray-700 flex items-center">
+                <span class="icon">🤝</span> Intercambios
+            </h2>
+            <div class="bg-white p-6 rounded-xl shadow-lg">
+                <p class="text-gray-700">Aquí podrás ver y gestionar tus intercambios de cartas.</p>
+                </div>
+        </section>
+
+        <!-- Sección Mi Perfil -->
+        <section id="profileSection" class="mb-12 hidden">
+            <div class="max-w-6xl mx-auto">
+                <!-- Header del Perfil -->
+                <div class="bg-white rounded-xl shadow-lg p-6 mb-6">
+                    <div class="flex flex-col md:flex-row items-start md:items-center gap-6">
+                        <!-- Avatar del Usuario -->
+                        <div class="flex-shrink-0">
+                            <div class="w-20 h-20 bg-gradient-to-br from-orange-400 to-orange-600 rounded-full flex items-center justify-center text-white text-2xl font-bold">
+                                👤
+                            </div>
+                        </div>
+                        
+                        <!-- Información del Usuario -->
+                        <div class="flex-1">
+                            <h1 class="text-2xl font-bold text-gray-800 mb-2" id="profileUserName">Usuario</h1>
+                            <p class="text-sm text-gray-500">Miembro desde <span id="profileJoinDate">Enero 2024</span></p>
+                        </div>
+                        
+
+                    </div>
+                </div>
+
+                <!-- Tabs de Navegación -->
+                <div class="bg-white rounded-xl shadow-lg mb-6">
+                    <div class="border-b border-gray-200">
+                        <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                            <button id="profilePersonalTab" class="profile-tab active py-4 px-1 border-b-2 border-orange-500 text-orange-600 font-medium text-sm">
+                                👤 Mi Perfil
+                            </button>
+                            <button id="profileDashboardTab" class="profile-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                                📊 Dashboard
+                            </button>
+                            <button id="profileCollectionTab" class="profile-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                                🎴 Mi Colección
+                            </button>
+                            <button id="profileTradesTab" class="profile-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                                🤝 Mis Intercambios
+                            </button>
+                            <button id="profileSettingsTab" class="profile-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 font-medium text-sm">
+                                ⚙️ Configuración
+                            </button>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Contenido de Mi Perfil -->
+                <div id="profilePersonalContent" class="profile-tab-content">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                            <span class="icon mr-2">👤</span> Información Personal
+                        </h3>
+                        
+                        <form id="profilePersonalForm" class="space-y-6">
+                            <!-- Usuario (solo lectura) -->
+                            <div>
+                                <label for="profileUsername" class="block text-gray-700 text-sm font-bold mb-2">
+                                    Nombre de Usuario
+                                </label>
+                                <input type="text" id="profileUsername" name="username" 
+                                       class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-400 leading-tight bg-gray-50 cursor-not-allowed"
+                                       placeholder="usuario123" readonly>
+                                <p class="text-xs text-gray-500 mt-1">El nombre de usuario no se puede modificar</p>
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Nombre -->
+                                <div>
+                                    <label for="profileName" class="block text-gray-700 text-sm font-bold mb-2">
+                                        Nombre *
+                                    </label>
+                                    <input type="text" id="profileName" name="name" 
+                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
+                                           placeholder="Tu nombre">
+                                </div>
+                                
+                                <!-- Apellidos -->
+                                <div>
+                                    <label for="profileLastName" class="block text-gray-700 text-sm font-bold mb-2">
+                                        Apellidos *
+                                    </label>
+                                    <input type="text" id="profileLastName" name="lastName" 
+                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
+                                           placeholder="Tus apellidos">
+                                </div>
+                            </div>
+                            
+                            <!-- Dirección -->
+                            <div>
+                                <label for="profileAddress" class="block text-gray-700 text-sm font-bold mb-2">
+                                    Dirección
+                                </label>
+                                <input type="text" id="profileAddress" name="address" 
+                                       class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
+                                       placeholder="Tu dirección completa">
+                            </div>
+                            
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Fecha de Nacimiento -->
+                                <div>
+                                    <label for="profileBirthDate" class="block text-gray-700 text-sm font-bold mb-2">
+                                        Fecha de Nacimiento
+                                    </label>
+                                    <input type="date" id="profileBirthDate" name="birthDate" 
+                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400">
+                                </div>
+                                
+                                <!-- Correo Electrónico -->
+                                <div>
+                                    <label for="profileEmail" class="block text-gray-700 text-sm font-bold mb-2">
+                                        Correo Electrónico *
+                                    </label>
+                                    <input type="email" id="profileEmail" name="email" 
+                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
+                                           placeholder="tu@email.com">
+                                </div>
+                            </div>
+                            
+                            <!-- Botones -->
+                            <div class="flex justify-end space-x-4 pt-4">
+                                <button type="button" id="cancelProfileBtn" class="btn-secondary px-6 py-2 rounded-lg text-sm font-semibold">
+                                    Cancelar
+                                </button>
+                                <button type="submit" id="saveProfileBtn" class="btn-primary px-6 py-2 rounded-lg text-sm font-semibold">
+                                    💾 Guardar Cambios
+                                </button>
+                            </div>
+                        </form>
+                        
+                        <!-- Mensaje de estado -->
+                        <div id="profileSaveMessage" class="mt-4 p-3 rounded-lg hidden">
+                            <p class="text-sm"></p>
+                        </div>
+                        
+
+                    </div>
+                </div>
+
+                <!-- Contenido del Dashboard -->
+                <div id="profileDashboardContent" class="profile-tab-content hidden">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                        <!-- Estadística: Total de Cartas -->
+                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500 stats-card">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-2xl">🎴</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-500">Total de Cartas</p>
+                                    <p class="text-2xl font-bold text-gray-900" id="totalCardsCount">0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estadística: Cartas por Sets -->
+                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500 stats-card">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-2xl">📦</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-500">Sets Diferentes</p>
+                                    <p class="text-2xl font-bold text-gray-900" id="uniqueSetsCount">0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estadística: Intercambios Completados -->
+                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500 stats-card">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-2xl">🤝</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-500">Intercambios</p>
+                                    <p class="text-2xl font-bold text-gray-900" id="completedTradesCount">0</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Estadística: Cartas Únicas -->
+                        <div class="bg-white rounded-xl shadow-lg p-6 border-l-4 border-orange-500 stats-card">
+                            <div class="flex items-center">
+                                <div class="flex-shrink-0">
+                                    <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                                        <span class="text-2xl">⭐</span>
+                                    </div>
+                                </div>
+                                <div class="ml-4">
+                                    <p class="text-sm font-medium text-gray-500">Cartas Únicas</p>
+                                    <p class="text-2xl font-bold text-gray-900" id="uniqueCardsCount">0</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Desglose por Sets -->
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4 flex items-center">
+                            <span class="icon mr-2">📊</span> Desglose por Sets
+                        </h3>
+                        <div id="setsBreakdown" class="space-y-4">
+                            <!-- Los sets se cargarán dinámicamente aquí -->
+                            <div class="text-center text-gray-500 py-8">
+                                <p>No hay datos de sets disponibles</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido de Mi Colección (oculto por defecto) -->
+                <div id="profileCollectionContent" class="profile-tab-content hidden">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">🎴 Mi Colección</h3>
+                        <p class="text-gray-600">Aquí podrás ver y gestionar tu colección de cartas.</p>
+                    </div>
+                </div>
+
+                <!-- Contenido de Mis Intercambios (oculto por defecto) -->
+                <div id="profileTradesContent" class="profile-tab-content hidden">
+                    <div class="bg-white rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">🤝 Mis Intercambios</h3>
+                        <p class="text-gray-600">Aquí podrás ver el historial de tus intercambios.</p>
+                    </div>
+                </div>
+
+                <!-- Contenido de Configuración (oculto por defecto) -->
+                <div id="profileSettingsContent" class="profile-tab-content hidden">
+                    <div class="space-y-6">
+                        <!-- Sección de Apariencia -->
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
+                                <span class="icon mr-2">🎨</span> Apariencia
+                            </h3>
+                            
+                            <!-- Interruptor de Modo Oscuro -->
+                            <div class="flex items-center justify-between py-4 border-b border-gray-200 dark:border-gray-700">
+                                <div class="flex items-center">
+                                    <div class="flex-shrink-0">
+                                        <span class="text-2xl mr-3">🌙</span>
+                                    </div>
+                                    <div>
+                                        <h4 class="text-lg font-semibold text-gray-800 dark:text-white">Modo Oscuro</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-300">Cambia entre tema claro y oscuro</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center">
+                                    <label class="relative inline-flex items-center cursor-pointer">
+                                        <input type="checkbox" id="darkModeToggle" class="sr-only">
+                                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-orange-300 dark:peer-focus:ring-orange-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-orange-600"></div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sección de Seguridad -->
+                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
+                                <span class="icon mr-2">🔒</span> Seguridad
+                            </h3>
+                            
+                            <form id="passwordChangeForm" class="space-y-6">
+                                <div class="mb-4">
+                                    <label for="currentPassword" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
+                                        Contraseña Actual *
+                                    </label>
+                                    <input type="password" id="currentPassword" name="currentPassword" 
+                                           class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 dark:text-white bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
+                                           placeholder="Tu contraseña actual" required>
+                                </div>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label for="newPassword" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
+                                            Nueva Contraseña *
+                                        </label>
+                                        <input type="password" id="newPassword" name="newPassword" 
+                                               class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 dark:text-white bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
+                                               placeholder="Nueva contraseña" required>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Mínimo 6 caracteres</p>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="confirmNewPassword" class="block text-gray-700 dark:text-gray-300 text-sm font-bold mb-2">
+                                            Confirmar Nueva Contraseña *
+                                        </label>
+                                        <input type="password" id="confirmNewPassword" name="confirmNewPassword" 
+                                               class="shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 dark:text-white bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 leading-tight focus:outline-none focus:shadow-outline focus:ring-2 focus:ring-orange-400"
+                                               placeholder="Confirmar nueva contraseña" required>
+                                    </div>
+                                </div>
+                                
+                                <!-- Botones -->
+                                <div class="flex justify-end space-x-4 pt-4">
+                                    <button type="button" id="cancelPasswordBtn" class="btn-secondary px-6 py-2 rounded-lg text-sm font-semibold">
+                                        Cancelar
+                                    </button>
+                                    <button type="submit" id="savePasswordBtn" class="btn-primary px-6 py-2 rounded-lg text-sm font-semibold">
+                                        🔐 Cambiar Contraseña
+                                    </button>
+                                </div>
+                            </form>
+                            
+                            <!-- Mensaje de estado -->
+                            <div id="passwordChangeMessage" class="mt-4 p-3 rounded-lg hidden">
+                                <p class="text-sm"></p>
+                            </div>
+                            
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <div id="authModal" class="auth-modal-overlay">
+        <div class="auth-modal-content">
+            <span class="auth-modal-close" id="closeAuthModalBtn">&times;</span>
+
+            <div id="loginForm">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">Iniciar Sesión</h2>
+                <div class="mb-4">
+                    <label for="loginEmail" class="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico:</label>
+                    <input type="email" id="loginEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div class="mb-6">
+                    <label for="loginPassword" class="block text-gray-700 text-sm font-bold mb-2">Contraseña:</label>
+                    <input type="password" id="loginPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div class="flex items-center justify-between">
+                    <button id="loginBtn" class="btn-primary px-4 py-2 rounded focus:outline-none focus:shadow-outline" type="button">
+                        Iniciar Sesión
+                    </button>
+                    <a class="auth-form-toggle text-sm" id="toggleToRegister">
+                        ¿No tienes cuenta? Regístrate
+                    </a>
+                </div>
+                <p id="loginError" class="text-red-500 text-xs italic mt-4 hidden">Error al iniciar sesión.</p>
+            </div>
+
+            <div id="registerForm" class="hidden">
+                <h2 class="text-2xl font-bold mb-4 text-gray-800">Registrarse</h2>
+                <div class="mb-4">
+                    <label for="registerUsername" class="block text-gray-700 text-sm font-bold mb-2">Nombre de Usuario *:</label>
+                    <input type="text" id="registerUsername" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required placeholder="usuario123">
+                    <p class="text-xs text-gray-500 mt-1">Este será tu nombre único en la plataforma</p>
+                </div>
+                <div class="mb-4">
+                    <label for="registerEmail" class="block text-gray-700 text-sm font-bold mb-2">Correo Electrónico:</label>
+                    <input type="email" id="registerEmail" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div class="mb-4">
+                    <label for="registerPassword" class="block text-gray-700 text-sm font-bold mb-2">Contraseña:</label>
+                    <input type="password" id="registerPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div class="mb-6">
+                    <label for="confirmPassword" class="block text-gray-700 text-sm font-bold mb-2">Confirmar Contraseña:</label>
+                    <input type="password" id="confirmPassword" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" required>
+                </div>
+                <div class="flex items-center justify-between">
+                    <button id="registerBtn" class="btn-primary px-4 py-2 rounded focus:outline-none focus:shadow-outline" type="button">
+                        Registrarse
+                    </button>
+                    <a class="auth-form-toggle text-sm" id="toggleToLogin">
+                        ¿Ya tienes cuenta? Inicia sesión
+                    </a>
+                </div>
+                <p id="registerError" class="text-red-500 text-xs italic mt-4 hidden">Error al registrarse.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer-bg text-white py-8 px-6 md:px-10">
+        <div class="container mx-auto text-center">
+            <p>&copy; 2024 TCGtrade. Todos los derechos reservados.</p>
+            <p class="text-sm mt-2">Conectando coleccionistas de Pokémon TCG en todo el mundo.</p>
+        </div>
+    </footer>
+
+
+
+</body>
+</html>

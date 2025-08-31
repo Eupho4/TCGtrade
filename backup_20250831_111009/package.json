@@ -1,0 +1,31 @@
+{
+  "name": "tcgtrade-app",
+  "version": "1.0.0",
+  "description": "Aplicación de intercambio de cartas Pokémon",
+  "main": "server.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js",
+    "build": "echo 'Build completed for Railway'",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "node-fetch": "^3.3.2"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "keywords": [
+    "pokemon",
+    "tcg",
+    "intercambio",
+    "railway",
+    "firebase"
+  ],
+  "author": "",
+  "license": "MIT"
+}

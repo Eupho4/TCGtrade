@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test API Pokémon TCG</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        button { padding: 10px 20px; margin: 10px; }
+        .result { margin-top: 20px; padding: 10px; border: 1px solid #ccc; }
+        .error { background-color: #ffe6e6; }
+        .success { background-color: #e6ffe6; }
+    </style>
+</head>
+<body>
+    <h1>Test API Pokémon TCG</h1>
+    
+    <button onclick="testAPI()">Test API Connection</button>
+    <button onclick="testSearch()">Test Search "pikachu"</button>
+    <button onclick="testSets()">Test Sets</button>
+    
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Testing API connection...';
+            
+            try {
+                const response = await fetch('/api/pokemontcg/cards?pageSize=1');
+                const data = await response.json();
+                
+                result.innerHTML = `
+                    <div class="success">
+                        <h3>✅ API Connection Success!</h3>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Cards found:</strong> ${data.data?.length || 0}</p>
+                        <p><strong>Total count:</strong> ${data.totalCount || 'N/A'}</p>
+                        <pre>${JSON.stringify(data, null, 2)}</pre>
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="error">
+                        <h3>❌ API Connection Failed!</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testSearch() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Searching for "pikachu"...';
+            
+            try {
+                const response = await fetch('/api/pokemontcg/cards?q=name:*pikachu*&pageSize=5');
+                const data = await response.json();
+                
+                result.innerHTML = `
+                    <div class="success">
+                        <h3>✅ Search Success!</h3>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Cards found:</strong> ${data.data?.length || 0}</p>
+                        ${data.data?.map(card => `
+                            <div style="border: 1px solid #ddd; margin: 10px 0; padding: 10px;">
+                                <strong>${card.name}</strong><br>
+                                Set: ${card.set?.name || 'N/A'}<br>
+                                ID: ${card.id}
+                            </div>
+                        `).join('') || ''}
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Search Failed!</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        async function testSets() {
+            const result = document.getElementById('result');
+            result.innerHTML = 'Loading sets...';
+            
+            try {
+                const response = await fetch('/api/pokemontcg/sets?pageSize=5');
+                const data = await response.json();
+                
+                result.innerHTML = `
+                    <div class="success">
+                        <h3>✅ Sets Success!</h3>
+                        <p><strong>Status:</strong> ${response.status}</p>
+                        <p><strong>Sets found:</strong> ${data.data?.length || 0}</p>
+                        ${data.data?.map(set => `
+                            <div style="border: 1px solid #ddd; margin: 10px 0; padding: 10px;">
+                                <strong>${set.name}</strong><br>
+                                Series: ${set.series || 'N/A'}<br>
+                                ID: ${set.id}
+                            </div>
+                        `).join('') || ''}
+                    </div>
+                `;
+            } catch (error) {
+                result.innerHTML = `
+                    <div class="error">
+                        <h3>❌ Sets Failed!</h3>
+                        <p><strong>Error:</strong> ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>
