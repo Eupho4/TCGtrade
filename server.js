@@ -30,7 +30,11 @@ const inflightEbayRequests = new Map();     // cacheKey -> Promise
 // Middleware
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
-app.use(express.static('.'));
+
+// Servir archivos estáticos desde las carpetas correspondientes
+app.use('/js', express.static(path.join(__dirname, 'js')));
+app.use('/css', express.static(path.join(__dirname, 'css')));
+app.use('/api', express.static(path.join(__dirname, 'api')));
 
 // Servir archivos HTML desde la carpeta html
 app.get('/', (req, res) => {
