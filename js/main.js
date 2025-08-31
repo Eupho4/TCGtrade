@@ -464,10 +464,10 @@ async function saveProfileData() {
 
         // Guardar en Firestore
         console.log('🔧 Guardando en Firestore...');
-        const userDocRef = db.doc( 'users', currentUser.uid);
+        const userDocRef = db.collection('users').doc(currentUser.uid);
         console.log('🔧 Referencia del documento:', userDocRef);
         
-        await doc.set(userDocRef, profileData, { merge: true });
+        await userDocRef.set(profileData, { merge: true });
         console.log('✅ Datos guardados en Firestore');
 
         // Actualizar el nombre en el header del perfil
@@ -488,7 +488,7 @@ async function saveProfileData() {
             }
             
             try {
-                await auth.currentUser.updateEmail(currentUser, email);
+                await currentUser.updateEmail(email);
                 console.log('✅ Email actualizado en Firebase Auth');
                 // Actualizar el objeto currentUser localmente
                 currentUser.email = email;
@@ -620,12 +620,12 @@ async function changePassword() {
         console.log('🔧 Credenciales creadas:', !!credential);
         
         console.log('🔧 Iniciando reautenticación...');
-        await auth.currentUser.reauthenticateWithCredential(currentUser, credential);
+        await currentUser.reauthenticateWithCredential(credential);
         console.log('✅ Reautenticación exitosa');
 
         // Cambiar la contraseña
         console.log('🔧 Cambiando contraseña...');
-        await auth.currentUser.updatePassword(currentUser, newPassword);
+        await currentUser.updatePassword(newPassword);
         console.log('✅ Contraseña cambiada exitosamente');
 
         // Limpiar el formulario
@@ -666,7 +666,7 @@ async function loadUserInfo() {
     if (!currentUser) return;
 
     try {
-        const userDoc = await doc.get(db.doc( 'users', currentUser.uid));
+        const userDoc = await .get(db.collection('users').doc(currentUser.uid));
         let userData = userDoc.data();
 
         // MIGRACIÓN AUTOMÁTICA: Si el usuario tiene un name pero no username,
@@ -685,7 +685,7 @@ async function loadUserInfo() {
                 
                 // Actualizar en Firestore
                 try {
-                    await doc.set(db.doc( 'users', currentUser.uid), {
+                    await .set(db.collection('users').doc(currentUser.uid), {
                         username: nameValue,
                         name: ''
                     }, { merge: true });
@@ -805,7 +805,7 @@ async function saveDarkModePreference(isDark) {
     if (!currentUser) return;
 
     try {
-        await doc.set(db.doc( 'users', currentUser.uid), {
+        await .set(db.collection('users').doc(currentUser.uid), {
             darkMode: isDark,
             updatedAt: new Date()
         }, { merge: true });
@@ -853,7 +853,7 @@ async function loadProfileStats() {
 
         // Obtener colección del usuario
         const userCardsRef = db.collection( 'users', currentUser.uid, 'my_cards');
-        const userCardsSnapshot = await collection.get(userCardsRef);
+        const userCardsSnapshot = await .get(userCardsRef);
         
         const cards = [];
         userCardsSnapshot.forEach(doc => {
@@ -1275,7 +1275,7 @@ window.addFromMyCards = async function(type) {
     if (!userCardsCache || userCardsCache.length === 0) {
         try {
             const myCardsCollectionRef = db.collection( `users/${currentUser.uid}/my_cards`);
-            const querySnapshot = await collection.get(myCardsCollectionRef);
+            const querySnapshot = await .get(myCardsCollectionRef);
             userCardsCache = [];
             
             querySnapshot.forEach(doc => {
@@ -1684,7 +1684,7 @@ async function getUserDisplayName(uid = null) {
         if (!uid && currentUser) {
             // Primero intentar obtener de Firestore
             if (typeof db !== 'undefined' && db) {
-                const userDoc = await doc.get(db.doc( 'users', userId));
+                const userDoc = await .get(db.collection('users').doc(userId));
                 const userData = userDoc.data();
                 
                 if (userData) {
@@ -3540,7 +3540,7 @@ async function loadMyCollection(userId) {
 
     try {
         const myCardsCollectionRef = db.collection( `users/${userId}/my_cards`);
-        const querySnapshot = await collection.get(myCardsCollectionRef);
+        const querySnapshot = await .get(myCardsCollectionRef);
         userCardsCache = [];
 
         querySnapshot.forEach(doc => {
@@ -3731,7 +3731,7 @@ window.removeCardFromCollection = async (cardId) => {
     }
 
     try {
-        await doc.delete(db.doc( `users/${currentUser.uid}/my_cards/${cardId}`));
+        await .delete(db.collection(`users/${currentUser.uid}/my_cards/${cardId}`));
         showNotification('Carta eliminada de tu colección', 'success', 3000);
         await loadMyCollection(currentUser.uid);
     } catch (error) {
@@ -4315,7 +4315,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         try {
             console.log('📧 Enviando email de recuperación a:', email);
-            await auth.sendPasswordResetEmail(auth, email);
+            await auth.sendPasswordResetEmail(email);
             
             // Mostrar mensaje de éxito con aviso de SPAM
             if (resetPasswordSuccess) {
@@ -4444,7 +4444,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (loginError) loginError.classList.add('hidden');
 
         try {
-            await auth.signInWithEmailAndPassword(auth, email, password);
+            await auth.signInWithEmailAndPassword(email, password);
             hideAuthModal();
             console.log('Usuario inició sesión:', auth.currentUser.email);
         } catch (error) {
@@ -4543,13 +4543,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.log('ℹ️ Saltando verificación de nombre de usuario duplicado (requiere configuración adicional)');
 
                 console.log('🔐 Creando cuenta con Firebase Auth...');
-                const userCredential = await auth.createUserWithEmailAndPassword(auth, email, password);
+                const userCredential = await auth.createUserWithEmailAndPassword(email, password);
                 const user = userCredential.user;
                 console.log('✅ Cuenta creada exitosamente:', user.uid);
 
                 // Crear perfil completo en Firestore
                 console.log('💾 Guardando perfil en Firestore...');
-                await doc.set(db.doc( 'users', user.uid), {
+                await .set(db.collection('users', user.uid), {
                     username: username, // Username único elegido en el registro
                     name: '', // Nombre real (se llenará después en el perfil)
                     lastName: '', // Apellido (se llenará después en el perfil)
@@ -4637,7 +4637,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // CARGAR MODO OSCURO INMEDIATAMENTE AL INICIAR SESIÓN
             try {
                 console.log('🌙 Cargando preferencia de modo oscuro del usuario...');
-                const userDoc = await doc.get(db.doc( 'users', user.uid));
+                const userDoc = await .get(db.collection('users', user.uid));
                 const userData = userDoc.data();
                 
                 if (userData && userData.darkMode !== undefined) {
@@ -4908,7 +4908,7 @@ async function addCardToCollection(cardId, cardName, imageUrl, setName, series, 
             addedAt: new Date()
         };
 
-        await doc.set(db.doc( `users/${currentUser.uid}/my_cards/${cardId}`), cardData);
+        await .set(db.collection(`users/${currentUser.uid}/my_cards/${cardId}`), cardData);
         showNotification(`¡Carta "${cardName}" añadida a tu colección!`, 'success', 4000);
     } catch (error) {
         console.error('Error al añadir carta:', error);
@@ -5145,7 +5145,7 @@ async function loadUserCollection() {
     try {
         if (status) status.textContent = 'Cargando tu colección...';
         const cardsRef = db.collection( 'users', currentUser.uid, 'my_cards');
-        const snap = await collection.get(cardsRef);
+        const snap = await .get(cardsRef);
         const cards = [];
         snap.forEach(d => cards.push({ id: d.id, ...d.data() }));
 
