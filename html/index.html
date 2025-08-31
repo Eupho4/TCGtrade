@@ -1621,6 +1621,13 @@
                 console.error('❌ No se encontró el selector de condición');
             }
             
+            // IMPORTANTE: Marcar que esta carta viene de "Mis Cartas"
+            const fromMyCardsInput = cardElement.querySelector(`input[name="${type}_fromMyCards_${targetCardIndex}"]`);
+            if (fromMyCardsInput) {
+                fromMyCardsInput.value = 'true';
+                console.log('✅ Carta marcada como proveniente de "Mis Cartas"');
+            }
+            
             // Verificar que el nombre se haya establecido correctamente
             const nameInput = cardElement.querySelector(`input[name="${type}_name_${targetCardIndex}"]`);
             if (nameInput) {
@@ -2560,14 +2567,32 @@
                 return;
             }
             
+            // Determinar si la carta viene de "Mis Cartas"
+            const isFromMyCards = cardData.fromMyCards === true;
+            console.log(`📌 Carta ${isFromMyCards ? 'DE MI COLECCIÓN (bloqueada)' : 'DEL BUSCADOR (editable)'}`);
+            
+            // Pre-cargar el campo oculto fromMyCards
+            const fromMyCardsInput = cardElement.querySelector(`input[name*="${type}_fromMyCards_"]`);
+            if (fromMyCardsInput) {
+                fromMyCardsInput.value = isFromMyCards ? 'true' : 'false';
+            }
+            
             // Pre-cargar nombre
             const nameInput = cardElement.querySelector(`input[name*="${type}_name_"]`);
             if (nameInput && cardData.name) {
                 nameInput.value = cardData.name;
-                // Asegurar que NO esté bloqueado en modo edición
-                nameInput.readOnly = false;
-                nameInput.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
-                nameInput.classList.add('bg-white', 'dark:bg-gray-700');
+                
+                if (isFromMyCards) {
+                    // Si es de "Mis Cartas", BLOQUEAR
+                    nameInput.readOnly = true;
+                    nameInput.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                    nameInput.classList.remove('bg-white');
+                } else {
+                    // Si es del buscador, mantener EDITABLE
+                    nameInput.readOnly = false;
+                    nameInput.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                    nameInput.classList.add('bg-white', 'dark:bg-gray-700');
+                }
             }
             
             // Pre-cargar campos ocultos (IMPORTANTE para que funcione la miniatura)
@@ -2595,20 +2620,36 @@
             const conditionSelect = cardElement.querySelector(`select[name*="${type}_condition_"]`);
             if (conditionSelect && cardData.condition) {
                 conditionSelect.value = cardData.condition;
-                // Asegurar que NO esté bloqueado en modo edición
-                conditionSelect.disabled = false;
-                conditionSelect.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
-                conditionSelect.classList.add('bg-white', 'dark:bg-gray-700');
+                
+                if (isFromMyCards) {
+                    // Si es de "Mis Cartas", BLOQUEAR
+                    conditionSelect.disabled = true;
+                    conditionSelect.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                    conditionSelect.classList.remove('bg-white');
+                } else {
+                    // Si es del buscador, mantener EDITABLE
+                    conditionSelect.disabled = false;
+                    conditionSelect.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                    conditionSelect.classList.add('bg-white', 'dark:bg-gray-700');
+                }
             }
             
             // Pre-cargar idioma
             const languageSelect = cardElement.querySelector(`select[name*="${type}_language_"]`);
             if (languageSelect && cardData.language) {
                 languageSelect.value = cardData.language;
-                // Asegurar que NO esté bloqueado en modo edición
-                languageSelect.disabled = false;
-                languageSelect.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
-                languageSelect.classList.add('bg-white', 'dark:bg-gray-700');
+                
+                if (isFromMyCards) {
+                    // Si es de "Mis Cartas", BLOQUEAR
+                    languageSelect.disabled = true;
+                    languageSelect.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                    languageSelect.classList.remove('bg-white');
+                } else {
+                    // Si es del buscador, mantener EDITABLE
+                    languageSelect.disabled = false;
+                    languageSelect.classList.remove('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
+                    languageSelect.classList.add('bg-white', 'dark:bg-gray-700');
+                }
             }
             
             // Mostrar miniatura si hay imagen
@@ -2692,6 +2733,7 @@
                             <input type="hidden" name="${type}_image_${cardIndex}" value="">
                             <input type="hidden" name="${type}_set_${cardIndex}" value="">
                             <input type="hidden" name="${type}_number_${cardIndex}" value="">
+                            <input type="hidden" name="${type}_fromMyCards_${cardIndex}" value="false">
                         </div>
                         <div class="card-search-results absolute z-10 w-full mt-1 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg shadow-lg max-h-60 overflow-y-auto hidden"></div>
                     </div>
@@ -2950,6 +2992,7 @@
                 const languageSelect = cardEl.querySelector(`select[name*="offered_language_"]`);
                 
                 if (nameInput && nameInput.value.trim()) {
+                    const fromMyCardsInput = cardEl.querySelector(`input[name*="offered_fromMyCards_"]`);
                     tradeData.offeredCards.push({
                         name: nameInput.value.trim(),
                         id: idInput ? idInput.value : '',
@@ -2957,7 +3000,8 @@
                         set: setInput ? setInput.value : '',
                         number: numberInput ? numberInput.value : '',
                         condition: conditionSelect ? conditionSelect.value : 'NM',
-                        language: languageSelect ? languageSelect.value : 'Español'
+                        language: languageSelect ? languageSelect.value : 'Español',
+                        fromMyCards: fromMyCardsInput ? fromMyCardsInput.value === 'true' : false
                     });
                 }
             });
@@ -2974,6 +3018,7 @@
                 const languageSelect = cardEl.querySelector(`select[name*="wanted_language_"]`);
                 
                 if (nameInput && nameInput.value.trim()) {
+                    const fromMyCardsInput = cardEl.querySelector(`input[name*="wanted_fromMyCards_"]`);
                     tradeData.wantedCards.push({
                         name: nameInput.value.trim(),
                         id: idInput ? idInput.value : '',
@@ -2981,7 +3026,8 @@
                         set: setInput ? setInput.value : '',
                         number: numberInput ? numberInput.value : '',
                         condition: conditionSelect ? conditionSelect.value : 'NM',
-                        language: languageSelect ? languageSelect.value : 'Español'
+                        language: languageSelect ? languageSelect.value : 'Español',
+                        fromMyCards: fromMyCardsInput ? fromMyCardsInput.value === 'true' : false
                     });
                 }
             });
