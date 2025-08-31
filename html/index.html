@@ -2144,28 +2144,47 @@
             const modal = document.createElement('div');
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
             
-            // Generar HTML para las cartas ofrecidas
+            // Generar HTML para las cartas ofrecidas con diseño mejorado
             const offeredCardsHTML = trade.offeredCards.map(card => `
-                <div class="bg-white dark:bg-gray-700 rounded-lg p-5 shadow-xl flex flex-col items-center hover:shadow-2xl transition-shadow w-full max-w-sm">
-                    ${card.image ? `
-                        <img src="${card.image}" alt="${card.name}" 
-                             class="w-full h-64 object-contain mb-3 rounded">
-                    ` : `
-                        <div class="w-full h-64 bg-gray-200 dark:bg-gray-600 rounded mb-3 flex items-center justify-center">
-                            <span class="text-6xl">🎴</span>
+                <div class="group relative bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300">
+                    <!-- Imagen de la carta -->
+                    <div class="relative aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800">
+                        ${card.image ? `
+                            <img src="${card.image}" alt="${card.name}" 
+                                 class="w-full h-full object-contain p-2">
+                        ` : `
+                            <div class="w-full h-full flex items-center justify-center">
+                                <span class="text-8xl opacity-50">🎴</span>
+                            </div>
+                        `}
+                        <!-- Badge de condición en la esquina -->
+                        <div class="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded-full text-xs font-bold">
+                            ${CARD_CONDITIONS[card.condition]?.icon || '✨'} ${card.condition || 'NM'}
                         </div>
-                    `}
-                    <h4 class="font-bold text-lg text-gray-900 dark:text-white mb-2 text-center">${card.name || 'Sin nombre'}</h4>
-                    <div class="space-y-1 text-sm w-full">
-                        ${card.set ? `<p class="text-gray-600 dark:text-gray-300 text-center"><span class="font-semibold">Set:</span> ${card.set}</p>` : ''}
-                        ${card.number ? `<p class="text-gray-600 dark:text-gray-300 text-center"><span class="font-semibold">Número:</span> #${card.number}</p>` : ''}
-                        <p class="text-gray-600 dark:text-gray-300 text-center">
-                            <span class="font-semibold">Estado:</span> 
-                            ${CARD_CONDITIONS[card.condition]?.icon || ''} ${CARD_CONDITIONS[card.condition]?.label || card.condition || 'No especificado'}
-                        </p>
-                        <p class="text-gray-600 dark:text-gray-300 text-center">
-                            <span class="font-semibold">Idioma:</span> ${card.language || 'Español'}
-                        </p>
+                    </div>
+                    
+                    <!-- Información de la carta -->
+                    <div class="p-4 space-y-2">
+                        <h4 class="font-bold text-base text-gray-900 dark:text-white text-center line-clamp-2">
+                            ${card.name || 'Sin nombre'}
+                        </h4>
+                        
+                        <!-- Detalles en formato compacto -->
+                        <div class="flex flex-wrap gap-2 justify-center text-xs">
+                            ${card.set ? `
+                                <span class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full">
+                                    ${card.set}
+                                </span>
+                            ` : ''}
+                            ${card.number ? `
+                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full">
+                                    #${card.number}
+                                </span>
+                            ` : ''}
+                            <span class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full">
+                                🌐 ${card.language || 'Español'}
+                            </span>
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -2177,28 +2196,47 @@
                     ? 'grid grid-cols-1 md:grid-cols-2 gap-4 justify-items-center'
                     : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center';
             
-            // Generar HTML para las cartas buscadas
+            // Generar HTML para las cartas buscadas con el mismo diseño mejorado
             const wantedCardsHTML = trade.wantedCards.map(card => `
-                <div class="bg-white dark:bg-gray-700 rounded-lg p-5 shadow-xl flex flex-col items-center hover:shadow-2xl transition-shadow w-full max-w-sm">
-                    ${card.image ? `
-                        <img src="${card.image}" alt="${card.name}" 
-                             class="w-full h-64 object-contain mb-3 rounded">
-                    ` : `
-                        <div class="w-full h-64 bg-gray-200 dark:bg-gray-600 rounded mb-3 flex items-center justify-center">
-                            <span class="text-6xl">🎴</span>
+                <div class="group relative bg-gradient-to-b from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl overflow-hidden shadow-lg hover:shadow-2xl transform hover:-translate-y-1 transition-all duration-300">
+                    <!-- Imagen de la carta -->
+                    <div class="relative aspect-[3/4] bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-700 dark:to-gray-800">
+                        ${card.image ? `
+                            <img src="${card.image}" alt="${card.name}" 
+                                 class="w-full h-full object-contain p-2">
+                        ` : `
+                            <div class="w-full h-full flex items-center justify-center">
+                                <span class="text-8xl opacity-50">🎴</span>
+                            </div>
+                        `}
+                        <!-- Badge de condición en la esquina -->
+                        <div class="absolute top-2 right-2 bg-black bg-opacity-75 text-white px-2 py-1 rounded-full text-xs font-bold">
+                            ${CARD_CONDITIONS[card.condition]?.icon || '✨'} ${card.condition || 'NM'}
                         </div>
-                    `}
-                    <h4 class="font-bold text-lg text-gray-900 dark:text-white mb-2 text-center">${card.name || 'Sin nombre'}</h4>
-                    <div class="space-y-1 text-sm w-full">
-                        ${card.set ? `<p class="text-gray-600 dark:text-gray-300 text-center"><span class="font-semibold">Set:</span> ${card.set}</p>` : ''}
-                        ${card.number ? `<p class="text-gray-600 dark:text-gray-300 text-center"><span class="font-semibold">Número:</span> #${card.number}</p>` : ''}
-                        <p class="text-gray-600 dark:text-gray-300 text-center">
-                            <span class="font-semibold">Estado:</span> 
-                            ${CARD_CONDITIONS[card.condition]?.icon || ''} ${CARD_CONDITIONS[card.condition]?.label || card.condition || 'No especificado'}
-                        </p>
-                        <p class="text-gray-600 dark:text-gray-300 text-center">
-                            <span class="font-semibold">Idioma:</span> ${card.language || 'Español'}
-                        </p>
+                    </div>
+                    
+                    <!-- Información de la carta -->
+                    <div class="p-4 space-y-2">
+                        <h4 class="font-bold text-base text-gray-900 dark:text-white text-center line-clamp-2">
+                            ${card.name || 'Sin nombre'}
+                        </h4>
+                        
+                        <!-- Detalles en formato compacto -->
+                        <div class="flex flex-wrap gap-2 justify-center text-xs">
+                            ${card.set ? `
+                                <span class="bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 px-2 py-1 rounded-full">
+                                    ${card.set}
+                                </span>
+                            ` : ''}
+                            ${card.number ? `
+                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-2 py-1 rounded-full">
+                                    #${card.number}
+                                </span>
+                            ` : ''}
+                            <span class="bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 px-2 py-1 rounded-full">
+                                🌐 ${card.language || 'Español'}
+                            </span>
+                        </div>
                     </div>
                 </div>
             `).join('');
@@ -2211,54 +2249,80 @@
                     : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 justify-items-center';
             
             modal.innerHTML = `
-                <div class="bg-white dark:bg-gray-800 rounded-lg max-w-7xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
-                    <!-- Header -->
-                    <div class="sticky top-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-6 z-10">
+                <div class="bg-white dark:bg-gray-900 rounded-2xl max-w-7xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+                    <!-- Header con gradiente -->
+                    <div class="bg-gradient-to-r from-orange-500 to-orange-600 dark:from-orange-700 dark:to-orange-800 p-6">
                         <div class="flex justify-between items-start">
-                            <div>
-                                <h2 class="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-                                    🔄 ${trade.title || 'Intercambio sin título'}
+                            <div class="text-white">
+                                <h2 class="text-3xl font-bold mb-2">
+                                    ${trade.title || 'Intercambio sin título'}
                                 </h2>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">
-                                    Creado por: <span class="font-semibold">${trade.userName || 'Usuario'}</span> • 
-                                    ${trade.createdAt ? new Date(trade.createdAt).toLocaleDateString('es-ES') : 'Fecha desconocida'}
-                                </p>
+                                <div class="flex items-center gap-4 text-sm opacity-90">
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd"/>
+                                        </svg>
+                                        ${trade.userName || trade.user || 'Usuario'}
+                                    </span>
+                                    <span class="flex items-center gap-1">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                                            <path fill-rule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clip-rule="evenodd"/>
+                                        </svg>
+                                        ${trade.createdAt ? new Date(trade.createdAt).toLocaleDateString('es-ES') : 'Fecha desconocida'}
+                                    </span>
+                                </div>
                             </div>
                             <button onclick="this.closest('.fixed').remove()" 
-                                    class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-3xl">
-                                &times;
+                                    class="text-white hover:text-gray-200 transition-colors">
+                                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
                             </button>
                         </div>
                     </div>
                     
-                    <!-- Content -->
-                    <div class="p-6">
-                        <!-- Trade Flow -->
-                        <div class="flex flex-col lg:flex-row items-stretch justify-center gap-6 mb-8">
-                            <!-- Offered Cards -->
-                            <div class="flex-1 w-full max-w-2xl mx-auto">
-                                <h3 class="text-xl font-bold text-blue-600 dark:text-blue-400 mb-4 text-center">
-                                    📤 Cartas Ofrecidas
-                                </h3>
-                                <div class="${offeredGridClass}">
-                                    ${offeredCardsHTML || '<p class="text-gray-500 text-center italic">No hay cartas ofrecidas</p>'}
+                    <!-- Content con scroll -->
+                    <div class="overflow-y-auto max-h-[calc(90vh-120px)] bg-gray-50 dark:bg-gray-800">
+                        <div class="p-8">
+                            <!-- Trade Flow mejorado -->
+                            <div class="flex flex-col lg:flex-row items-start justify-center gap-8">
+                                <!-- Offered Cards -->
+                                <div class="flex-1 w-full">
+                                    <div class="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm">
+                                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                            <span class="bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400 p-2 rounded-lg">
+                                                📤
+                                            </span>
+                                            Ofrece
+                                        </h3>
+                                        <div class="${offeredGridClass} gap-4">
+                                            ${offeredCardsHTML || '<p class="text-gray-500 text-center italic py-8">No hay cartas ofrecidas</p>'}
+                                        </div>
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            <!-- Arrow -->
-                            <div class="flex items-center justify-center px-4">
-                                <div class="text-5xl lg:text-6xl text-orange-500 animate-pulse">
-                                    ⇄
+                                
+                                <!-- Separador visual -->
+                                <div class="flex items-center justify-center lg:pt-20">
+                                    <div class="bg-gradient-to-r from-orange-400 to-orange-600 text-white p-4 rounded-full shadow-lg">
+                                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                                        </svg>
+                                    </div>
                                 </div>
-                            </div>
-                            
-                            <!-- Wanted Cards -->
-                            <div class="flex-1 w-full max-w-2xl mx-auto">
-                                <h3 class="text-xl font-bold text-green-600 dark:text-green-400 mb-4 text-center">
-                                    📥 Cartas Buscadas
-                                </h3>
-                                <div class="${wantedGridClass}">
-                                    ${wantedCardsHTML || '<p class="text-gray-500 text-center italic">No hay cartas buscadas</p>'}
+                                
+                                <!-- Wanted Cards -->
+                                <div class="flex-1 w-full">
+                                    <div class="bg-white dark:bg-gray-900 rounded-xl p-6 shadow-sm">
+                                        <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                                            <span class="bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-400 p-2 rounded-lg">
+                                                📥
+                                            </span>
+                                            Busca
+                                        </h3>
+                                        <div class="${wantedGridClass} gap-4">
+                                            ${wantedCardsHTML || '<p class="text-gray-500 text-center italic py-8">No hay cartas buscadas</p>'}
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
