@@ -2287,14 +2287,18 @@
             const offeredContainer = document.getElementById('proposalOfferedCardsContainer');
             const wantedContainer = document.getElementById('proposalWantedCardsContainer');
             
+            console.log('📋 Pre-cargando cartas para propuesta:', originalTrade);
+            
             // Pre-cargar las cartas que el otro busca (para que las ofrezcas)
             originalTrade.wantedCards.forEach((card, index) => {
+                console.log('📤 Pre-cargando carta ofrecida:', card);
                 const cardHtml = createProposalCardInput('offered', index, card, true);
                 offeredContainer.insertAdjacentHTML('beforeend', cardHtml);
             });
             
             // Pre-cargar las cartas que el otro ofrece (para que las selecciones)
             originalTrade.offeredCards.forEach((card, index) => {
+                console.log('📥 Pre-cargando carta buscada:', card);
                 const cardHtml = createProposalCardInput('wanted', index, card, true);
                 wantedContainer.insertAdjacentHTML('beforeend', cardHtml);
             });
@@ -2303,6 +2307,13 @@
         // Función para crear un input de carta en la propuesta
         function createProposalCardInput(type, index, cardData = {}, isPreloaded = false) {
             const uniqueId = `proposal_${type}_${Date.now()}_${index}`;
+            
+            // Asegurar que la condición tenga un valor por defecto
+            if (!cardData.condition) {
+                cardData.condition = 'NM';
+            }
+            
+            console.log(`🎴 Creando input de carta con condición: ${cardData.condition}`);
             
             return `
                 <div class="proposal-card bg-white dark:bg-gray-700 rounded-lg p-3 border border-gray-200 dark:border-gray-600">
@@ -2330,7 +2341,7 @@
                                         class="flex-1 p-1 text-xs border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white ${isPreloaded ? 'bg-gray-100 dark:bg-gray-600' : ''} focus:outline-none focus:ring-2 focus:ring-green-400">
                                     ${Object.entries(CARD_CONDITIONS).map(([key, condition]) => `
                                         <option value="${key}" ${cardData.condition === key ? 'selected' : ''}>
-                                            ${condition.icon} ${condition.label}
+                                            ${condition.icon} ${condition.code}
                                         </option>
                                     `).join('')}
                                 </select>
