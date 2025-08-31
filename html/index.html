@@ -1267,8 +1267,10 @@
                     resultsContainer.innerHTML = '';
                 }
                 
-                // Mostrar miniatura de la carta seleccionada
-                showCardThumbnail(cardElement, cardImage, cardName);
+                // Solo mostrar miniatura si viene de "Mis Cartas" (cuando se bloquea)
+                if (shouldLock) {
+                    showCardThumbnail(cardElement, cardImage, cardName);
+                }
                 
                 // Actualizar título generado
                 updateGeneratedTitle();
@@ -1366,54 +1368,17 @@
         window.handleCardInputKeypress = function(event, type, cardIndex) {
             if (event.key === 'Enter') {
                 event.preventDefault();
-                const input = event.target;
-                
-                // Si hay texto en el input, bloquear y añadir nueva fila
-                if (input.value.trim() && !input.readOnly) {
-                    // Bloquear el input actual
-                    input.readOnly = true;
-                    input.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
-                    
-                    // Añadir nueva fila vacía
-                    addCardToTrade(type);
-                    
-                    // Enfocar la nueva fila
-                    setTimeout(() => {
-                        const containerId = type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer';
-                        const container = document.getElementById(containerId);
-                        const newCards = container.querySelectorAll('.trade-card');
-                        const lastCard = newCards[newCards.length - 1];
-                        const newInput = lastCard?.querySelector('.card-name-input');
-                        if (newInput) {
-                            newInput.focus();
-                        }
-                    }, 100);
-                }
+                // Por ahora, Enter no hace nada automáticamente
+                // El usuario debe hacer click en "Añadir carta"
+                console.log('↩️ Enter presionado - usar botón "Añadir carta" para confirmar');
             }
         };
         
         // Función para manejar cuando el input pierde el foco
         window.handleCardInputBlur = function(input, type, cardIndex) {
-            // Si hay texto y no está bloqueado, y no hay una siguiente fila vacía, añadir una
-            if (input.value.trim() && !input.readOnly) {
-                const containerId = type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer';
-                const container = document.getElementById(containerId);
-                const cards = container.querySelectorAll('.trade-card');
-                
-                // Verificar si esta es la última carta
-                const isLastCard = cardIndex === cards.length - 1;
-                
-                if (isLastCard) {
-                    // Bloquear el input actual
-                    input.readOnly = true;
-                    input.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
-                    
-                    // Añadir nueva fila vacía
-                    setTimeout(() => {
-                        addCardToTrade(type);
-                    }, 100);
-                }
-            }
+            // Por ahora, no hacer nada automáticamente al perder el foco
+            // El usuario debe hacer click en "Añadir carta" para confirmar
+            console.log('👁️ Input perdió el foco - usar botón "Añadir carta" para confirmar');
         };
         
         // Función para añadir cartas desde "Mis Cartas"
