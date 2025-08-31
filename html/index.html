@@ -197,6 +197,26 @@
             // Mostrar resultados de búsqueda
             if (searchResultsSection) searchResultsSection.classList.remove('hidden');
         }
+        
+        function showInboxSection() {
+            // Ocultar otras secciones
+            if (heroSection) heroSection.classList.add('hidden');
+            if (howItWorksSection) howItWorksSection.classList.add('hidden');
+            if (searchResultsSection) searchResultsSection.classList.add('hidden');
+            if (myCardsSection) myCardsSection.classList.add('hidden');
+            if (profileSection) profileSection.classList.add('hidden');
+            if (helpSection) helpSection.classList.add('hidden');
+            if (interchangesSection) interchangesSection.classList.add('hidden');
+            
+            // Mostrar sección del buzón
+            const inboxSection = document.getElementById('inboxSection');
+            if (inboxSection) {
+                inboxSection.classList.remove('hidden');
+                
+                // Cargar datos del buzón
+                loadInbox();
+            }
+        }
 
         function showMyCardsSection() {
             // Ocultar otras secciones
@@ -246,6 +266,8 @@
             if (myCardsSection) myCardsSection.classList.add('hidden');
             if (profileSection) profileSection.classList.add('hidden');
             if (helpSection) helpSection.classList.add('hidden');
+            const inboxSection = document.getElementById('inboxSection');
+            if (inboxSection) inboxSection.classList.add('hidden');
 
             // Mostrar sección de intercambios
             if (interchangesSection) interchangesSection.classList.remove('hidden');
@@ -2643,13 +2665,26 @@
                 return;
             }
             
+            // Obtener el intercambio original
+            const allTrades = [];
+            // Buscar en todos los usuarios
+            const userKeys = Object.keys(localStorage).filter(key => key.startsWith('userTrades_'));
+            userKeys.forEach(key => {
+                const trades = JSON.parse(localStorage.getItem(key) || '[]');
+                trades.forEach(trade => {
+                    allTrades.push({...trade, ownerKey: key});
+                });
+            });
+            
+            const originalTradeData = allTrades.find(t => t.id === originalTradeId);
+            
             // Recopilar datos de la propuesta
             const proposalData = {
                 id: 'proposal_' + Date.now(),
                 originalTradeId: originalTradeId,
                 fromUserId: currentUser.uid,
-                fromUserName: currentUser.displayName || currentUser.email,
-                message: document.getElementById('proposalMessage').value,
+                fromUserName: localStorage.getItem(`username_${currentUser.uid}`) || currentUser.email.split('@')[0],
+                message: document.getElementById('proposalMessage')?.value || '',
                 offeredCards: [],
                 wantedCards: [],
                 status: 'pending',
@@ -2696,7 +2731,68 @@
                 return;
             }
             
-            // Guardar la propuesta (por ahora en localStorage, luego en Firebase)
+            // Actualizar el intercambio original con las cartas extras
+            if (originalTradeData) {
+                // Añadir las cartas ofrecidas como cartas adicionales que se buscan
+                proposalData.offeredCards.forEach(card => {
+                    // Verificar si la carta ya existe
+                    const exists = originalTradeData.wantedCards.some(wc => 
+                        wc.name === card.name && 
+                        wc.condition === card.condition && 
+                        wc.language === card.language
+                    );
+                    
+                    if (!exists) {
+                        originalTradeData.wantedCards.push({
+                            ...card,
+                            fromProposal: true,
+                            proposalId: proposalData.id,
+                            addedBy: proposalData.fromUserName
+                        });
+                    }
+                });
+                
+                // Marcar que tiene propuestas
+                originalTradeData.hasProposals = true;
+                originalTradeData.proposalCount = (originalTradeData.proposalCount || 0) + 1;
+                originalTradeData.lastProposalAt = new Date().toISOString();
+                
+                // Guardar el intercambio actualizado
+                const ownerKey = originalTradeData.ownerKey;
+                const ownerTrades = JSON.parse(localStorage.getItem(ownerKey) || '[]');
+                const tradeIndex = ownerTrades.findIndex(t => t.id === originalTradeId);
+                if (tradeIndex !== -1) {
+                    ownerTrades[tradeIndex] = originalTradeData;
+                    localStorage.setItem(ownerKey, JSON.stringify(ownerTrades));
+                }
+                
+                // Crear notificación para el dueño del intercambio
+                const ownerId = ownerKey.replace('userTrades_', '');
+                const notification = {
+                    id: `notif_${Date.now()}`,
+                    type: 'proposal',
+                    title: '📬 Nueva propuesta recibida',
+                    message: `${proposalData.fromUserName} ha enviado una propuesta para tu intercambio "${originalTradeData.title}"`,
+                    tradeId: originalTradeId,
+                    proposalId: proposalData.id,
+                    from: proposalData.fromUserName,
+                    timestamp: new Date().toISOString(),
+                    read: false
+                };
+                
+                // Guardar notificación
+                const notificationsKey = `notifications_${ownerId}`;
+                const notifications = JSON.parse(localStorage.getItem(notificationsKey) || '[]');
+                notifications.unshift(notification);
+                localStorage.setItem(notificationsKey, JSON.stringify(notifications));
+                
+                // Actualizar badge si es el usuario actual
+                if (ownerId === currentUser.uid) {
+                    updateNotificationBadge();
+                }
+            }
+            
+            // Guardar la propuesta
             const proposalsKey = `proposals_${originalTradeId}`;
             const existingProposals = JSON.parse(localStorage.getItem(proposalsKey) || '[]');
             existingProposals.push(proposalData);
@@ -2704,9 +2800,336 @@
             
             // Cerrar modal y mostrar confirmación
             document.getElementById('proposalModal').remove();
-            showNotification('¡Propuesta enviada con éxito! El usuario será notificado.', 'success', 5000);
+            showNotification('✅ Propuesta enviada con éxito! El usuario será notificado.', 'success', 5000);
             
-            console.log('📤 Propuesta enviada:', proposalData);
+            // Actualizar la vista de intercambios si está visible
+            if (document.getElementById('availableTradesContainer')) {
+                loadAvailableTrades();
+            }
+        };
+        
+        // Función para actualizar el contador de notificaciones
+        function updateNotificationBadge() {
+            if (!currentUser) {
+                const badge = document.getElementById('notificationBadge');
+                if (badge) badge.classList.add('hidden');
+                return;
+            }
+            
+            const notificationsKey = `notifications_${currentUser.uid}`;
+            const notifications = JSON.parse(localStorage.getItem(notificationsKey) || '[]');
+            const unreadCount = notifications.filter(n => !n.read).length;
+            
+            const badge = document.getElementById('notificationBadge');
+            if (badge) {
+                if (unreadCount > 0) {
+                    badge.textContent = unreadCount > 9 ? '9+' : unreadCount;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            }
+        }
+        
+        // Función para cargar el Buzón
+        function loadInbox() {
+            if (!currentUser) {
+                const container = document.getElementById('notificationsList');
+                if (container) {
+                    container.innerHTML = `
+                        <div class="text-center text-gray-500 dark:text-gray-400 py-8">
+                            <p>Debes iniciar sesión para ver tu buzón</p>
+                        </div>
+                    `;
+                }
+                return;
+            }
+            
+            // Cargar notificaciones
+            loadNotifications();
+            
+            // Cargar propuestas recibidas
+            loadReceivedProposals();
+            
+            // Cargar propuestas enviadas
+            loadSentProposals();
+        }
+        
+        // Función para cargar notificaciones
+        function loadNotifications() {
+            if (!currentUser) return;
+            
+            const notificationsKey = `notifications_${currentUser.uid}`;
+            const notifications = JSON.parse(localStorage.getItem(notificationsKey) || '[]');
+            
+            const container = document.getElementById('notificationsList');
+            if (!container) return;
+            
+            if (notifications.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 dark:text-gray-400 py-8">
+                        <span class="text-4xl">📭</span>
+                        <p class="mt-2">No tienes notificaciones</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = notifications.map(notif => `
+                <div class="notification-item bg-gray-50 dark:bg-gray-700 rounded-lg p-4 ${!notif.read ? 'border-l-4 border-purple-500' : ''}">
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <h4 class="font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                                ${notif.title}
+                                ${!notif.read ? '<span class="bg-purple-500 text-white text-xs px-2 py-1 rounded-full">Nuevo</span>' : ''}
+                            </h4>
+                            <p class="text-gray-600 dark:text-gray-300 mt-1">${notif.message}</p>
+                            <div class="flex items-center gap-4 mt-2 text-sm text-gray-500 dark:text-gray-400">
+                                <span>De: ${notif.from}</span>
+                                <span>${formatRelativeTime(notif.timestamp)}</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            ${notif.tradeId ? `
+                                <button onclick="viewTradeDetails('${notif.tradeId}')"
+                                        class="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm">
+                                    Ver Intercambio
+                                </button>
+                            ` : ''}
+                            ${!notif.read ? `
+                                <button onclick="markNotificationAsRead('${notif.id}')"
+                                        class="px-3 py-1 bg-gray-500 hover:bg-gray-600 text-white rounded text-sm">
+                                    Marcar como leído
+                                </button>
+                            ` : ''}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Función para cargar propuestas recibidas
+        function loadReceivedProposals() {
+            if (!currentUser) return;
+            
+            const container = document.getElementById('receivedProposalsList');
+            if (!container) return;
+            
+            const receivedProposals = [];
+            
+            // Buscar propuestas en todos los intercambios del usuario
+            const userTrades = JSON.parse(localStorage.getItem(`userTrades_${currentUser.uid}`) || '[]');
+            
+            userTrades.forEach(trade => {
+                const proposalsKey = `proposals_${trade.id}`;
+                const proposals = JSON.parse(localStorage.getItem(proposalsKey) || '[]');
+                proposals.forEach(proposal => {
+                    receivedProposals.push({
+                        ...proposal,
+                        tradeName: trade.title,
+                        tradeId: trade.id
+                    });
+                });
+            });
+            
+            if (receivedProposals.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 dark:text-gray-400 py-8">
+                        <span class="text-4xl">📭</span>
+                        <p class="mt-2">No has recibido propuestas</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = receivedProposals.map(proposal => `
+                <div class="proposal-item bg-white dark:bg-gray-700 rounded-lg shadow p-4">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <h4 class="font-semibold text-gray-900 dark:text-white">
+                                Propuesta para: ${proposal.tradeName}
+                            </h4>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                De: ${proposal.fromUserName} • ${formatRelativeTime(proposal.createdAt)}
+                            </p>
+                        </div>
+                        <span class="px-2 py-1 text-xs rounded-full ${
+                            proposal.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            proposal.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                            'bg-red-100 text-red-800'
+                        }">
+                            ${proposal.status === 'pending' ? 'Pendiente' :
+                              proposal.status === 'accepted' ? 'Aceptada' : 'Rechazada'}
+                        </span>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-4 mb-3">
+                        <div>
+                            <h5 class="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Te ofrece:</h5>
+                            <ul class="space-y-1">
+                                ${proposal.offeredCards.map(card => `
+                                    <li class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                                        ${card.image ? `<img src="${card.image}" class="w-8 h-10 object-contain rounded">` : '🎴'}
+                                        ${card.name} (${card.condition || 'NM'})
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                        <div>
+                            <h5 class="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Busca:</h5>
+                            <ul class="space-y-1">
+                                ${proposal.wantedCards.map(card => `
+                                    <li class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                                        ${card.image ? `<img src="${card.image}" class="w-8 h-10 object-contain rounded">` : '🎴'}
+                                        ${card.name} (${card.condition || 'NM'})
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    ${proposal.message ? `
+                        <div class="bg-gray-50 dark:bg-gray-800 rounded p-3 mb-3">
+                            <p class="text-sm text-gray-600 dark:text-gray-300">"${proposal.message}"</p>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="flex gap-2">
+                        <button onclick="viewProposalDetails('${proposal.id}', '${proposal.tradeId}')"
+                                class="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded text-sm">
+                            Ver Detalles
+                        </button>
+                        ${proposal.status === 'pending' ? `
+                            <button onclick="acceptProposal('${proposal.id}', '${proposal.tradeId}')"
+                                    class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded text-sm">
+                                Aceptar
+                            </button>
+                            <button onclick="rejectProposal('${proposal.id}', '${proposal.tradeId}')"
+                                    class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded text-sm">
+                                Rechazar
+                            </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Función para cargar propuestas enviadas
+        function loadSentProposals() {
+            if (!currentUser) return;
+            
+            const container = document.getElementById('sentProposalsList');
+            if (!container) return;
+            
+            const sentProposals = [];
+            
+            // Buscar todas las propuestas enviadas por el usuario
+            const proposalKeys = Object.keys(localStorage).filter(key => key.startsWith('proposals_'));
+            
+            proposalKeys.forEach(key => {
+                const proposals = JSON.parse(localStorage.getItem(key) || '[]');
+                const userProposals = proposals.filter(p => p.fromUserId === currentUser.uid);
+                userProposals.forEach(proposal => {
+                    sentProposals.push(proposal);
+                });
+            });
+            
+            if (sentProposals.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center text-gray-500 dark:text-gray-400 py-8">
+                        <span class="text-4xl">📭</span>
+                        <p class="mt-2">No has enviado propuestas</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = sentProposals.map(proposal => `
+                <div class="proposal-item bg-white dark:bg-gray-700 rounded-lg shadow p-4">
+                    <div class="flex items-start justify-between mb-3">
+                        <div>
+                            <h4 class="font-semibold text-gray-900 dark:text-white">
+                                Propuesta enviada
+                            </h4>
+                            <p class="text-sm text-gray-500 dark:text-gray-400">
+                                ${formatRelativeTime(proposal.createdAt)}
+                            </p>
+                        </div>
+                        <span class="px-2 py-1 text-xs rounded-full ${
+                            proposal.status === 'pending' ? 'bg-yellow-100 text-yellow-800' :
+                            proposal.status === 'accepted' ? 'bg-green-100 text-green-800' :
+                            'bg-red-100 text-red-800'
+                        }">
+                            ${proposal.status === 'pending' ? 'Pendiente' :
+                              proposal.status === 'accepted' ? 'Aceptada' : 'Rechazada'}
+                        </span>
+                    </div>
+                    
+                    <div class="grid md:grid-cols-2 gap-4 mb-3">
+                        <div>
+                            <h5 class="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Ofreces:</h5>
+                            <ul class="space-y-1">
+                                ${proposal.offeredCards.map(card => `
+                                    <li class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                                        ${card.image ? `<img src="${card.image}" class="w-8 h-10 object-contain rounded">` : '🎴'}
+                                        ${card.name} (${card.condition || 'NM'})
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                        <div>
+                            <h5 class="font-medium text-sm text-gray-700 dark:text-gray-300 mb-2">Buscas:</h5>
+                            <ul class="space-y-1">
+                                ${proposal.wantedCards.map(card => `
+                                    <li class="text-sm text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                                        ${card.image ? `<img src="${card.image}" class="w-8 h-10 object-contain rounded">` : '🎴'}
+                                        ${card.name} (${card.condition || 'NM'})
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    ${proposal.status === 'pending' ? `
+                        <button onclick="cancelProposal('${proposal.id}', '${proposal.originalTradeId}')"
+                                class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded text-sm">
+                            Cancelar Propuesta
+                        </button>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+        
+        // Función para formatear tiempo relativo
+        function formatRelativeTime(timestamp) {
+            const now = new Date();
+            const date = new Date(timestamp);
+            const diff = now - date;
+            const seconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(seconds / 60);
+            const hours = Math.floor(minutes / 60);
+            const days = Math.floor(hours / 24);
+            
+            if (days > 0) return `hace ${days} día${days > 1 ? 's' : ''}`;
+            if (hours > 0) return `hace ${hours} hora${hours > 1 ? 's' : ''}`;
+            if (minutes > 0) return `hace ${minutes} minuto${minutes > 1 ? 's' : ''}`;
+            return 'hace unos segundos';
+        }
+        
+        // Función para marcar notificación como leída
+        window.markNotificationAsRead = function(notifId) {
+            if (!currentUser) return;
+            
+            const notificationsKey = `notifications_${currentUser.uid}`;
+            const notifications = JSON.parse(localStorage.getItem(notificationsKey) || '[]');
+            
+            const notif = notifications.find(n => n.id === notifId);
+            if (notif) {
+                notif.read = true;
+                localStorage.setItem(notificationsKey, JSON.stringify(notifications));
+                loadNotifications();
+                updateNotificationBadge();
+            }
         };
 
         function viewTradeDetails(tradeId) {
@@ -4933,6 +5356,16 @@
                     showInterchangesSection();
                 });
             }
+            
+            // Inbox link
+            const inboxLink = document.getElementById('inboxLink');
+            if (inboxLink) {
+                inboxLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('📬 Inbox link clicked');
+                    showInboxSection();
+                });
+            }
 
             const profileLink = document.getElementById('profileLink');
             if (profileLink) {
@@ -5544,6 +5977,41 @@
                 });
             }
 
+            // Configurar tabs del buzón
+            const inboxTabs = document.querySelectorAll('.inbox-tab');
+            inboxTabs.forEach(tab => {
+                tab.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    // Remover clase active de todos los tabs
+                    inboxTabs.forEach(t => {
+                        t.classList.remove('active', 'border-purple-500', 'text-purple-600');
+                        t.classList.add('border-transparent', 'text-gray-500');
+                    });
+                    
+                    // Añadir clase active al tab clickeado
+                    tab.classList.add('active', 'border-purple-500', 'text-purple-600');
+                    tab.classList.remove('border-transparent', 'text-gray-500');
+                    
+                    // Ocultar todos los contenidos
+                    document.querySelectorAll('.inbox-content').forEach(content => {
+                        content.classList.add('hidden');
+                    });
+                    
+                    // Mostrar el contenido correspondiente
+                    if (tab.id === 'inboxNotificationsTab') {
+                        document.getElementById('inboxNotificationsContent').classList.remove('hidden');
+                        loadNotifications();
+                    } else if (tab.id === 'inboxProposalsTab') {
+                        document.getElementById('inboxProposalsContent').classList.remove('hidden');
+                        loadReceivedProposals();
+                    } else if (tab.id === 'inboxSentProposalsTab') {
+                        document.getElementById('inboxSentProposalsContent').classList.remove('hidden');
+                        loadSentProposals();
+                    }
+                });
+            });
+
             // Escuchar cambios de autenticación
             onAuthStateChanged(auth, async (user) => {
                 currentUser = user;
@@ -5553,12 +6021,18 @@
                 if (myCardsNavLink) myCardsNavLink.classList.remove('hidden');
 
                 if (user) {
-                    // Usuario conectado: ocultar login/register, mostrar logout
+                    // Usuario conectado: ocultar login/register, mostrar logout y buzón
                     if (loginNavLink) loginNavLink.classList.add('hidden');
                     if (registerNavLink) registerNavLink.classList.add('hidden');
                     if (logoutNavLink) logoutNavLink.classList.remove('hidden');
                     // Mi Perfil siempre visible (funciona diferente según estado)
                     if (profileNavLink) profileNavLink.classList.remove('hidden');
+                    // Mostrar buzón para usuarios autenticados
+                    const inboxNavLink = document.getElementById('inboxNavLink');
+                    if (inboxNavLink) inboxNavLink.classList.remove('hidden');
+                    
+                    // Actualizar badge de notificaciones
+                    updateNotificationBadge();
                     
                     // CARGAR MODO OSCURO INMEDIATAMENTE AL INICIAR SESIÓN
                     try {
@@ -6787,6 +7261,7 @@
                     <li><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="navHomeLink"><span class="icon">🏠</span> <span data-i18n="nav.home">Inicio</span></a></li>
                     <li id="myCardsNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="myCardsLink"><span class="icon">📦</span> <span data-i18n="nav.myCards">Mis Cartas</span></a></li>
                     <li id="interchangesNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="interchangesLink"><span class="icon">🤝</span> <span data-i18n="nav.interchanges">Intercambios</span></a></li>
+                    <li id="inboxNavLink" class="hidden"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap relative" id="inboxLink"><span class="icon">📬</span> <span>Buzón</span><span id="notificationBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"></span></a></li>
                     <li id="loginNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="loginLink"><span class="icon">🚪</span> <span data-i18n="nav.login">Iniciar Sesión</span></a></li>
                     <li id="registerNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="registerLink"><span class="icon">📝</span> <span data-i18n="nav.register">Registrarse</span></a></li>
                     <li id="profileNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center text-sm h-12 whitespace-nowrap" id="profileLink"><span class="icon">👤</span> <span data-i18n="nav.profile">Mi Perfil</span></a></li>
@@ -6928,6 +7403,57 @@
                 </div>
             </div>
         </section>
+
+        <!-- Sección de Buzón -->
+        <div id="inboxSection" class="hidden">
+            <div class="max-w-6xl mx-auto">
+                <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg overflow-hidden">
+                    <div class="bg-gradient-to-r from-purple-600 to-indigo-600 p-6">
+                        <h2 class="text-3xl font-bold text-white flex items-center gap-3">
+                            📬 Buzón de Notificaciones
+                        </h2>
+                        <p class="text-purple-100 mt-2">Gestiona tus propuestas y mensajes</p>
+                    </div>
+                    
+                    <div class="border-b border-gray-200 dark:border-gray-700">
+                        <nav class="flex space-x-8 px-6" aria-label="Tabs">
+                            <button id="inboxNotificationsTab" class="inbox-tab active py-4 px-1 border-b-2 border-purple-500 text-purple-600 font-medium text-sm">
+                                🔔 Notificaciones
+                            </button>
+                            <button id="inboxProposalsTab" class="inbox-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium text-sm">
+                                💼 Propuestas Recibidas
+                            </button>
+                            <button id="inboxSentProposalsTab" class="inbox-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium text-sm">
+                                📤 Propuestas Enviadas
+                            </button>
+                        </nav>
+                    </div>
+                    
+                    <div class="p-6">
+                        <!-- Tab de Notificaciones -->
+                        <div id="inboxNotificationsContent" class="inbox-content">
+                            <div id="notificationsList" class="space-y-3">
+                                <!-- Las notificaciones se cargarán aquí -->
+                            </div>
+                        </div>
+                        
+                        <!-- Tab de Propuestas Recibidas -->
+                        <div id="inboxProposalsContent" class="inbox-content hidden">
+                            <div id="receivedProposalsList" class="space-y-4">
+                                <!-- Las propuestas recibidas se cargarán aquí -->
+                            </div>
+                        </div>
+                        
+                        <!-- Tab de Propuestas Enviadas -->
+                        <div id="inboxSentProposalsContent" class="inbox-content hidden">
+                            <div id="sentProposalsList" class="space-y-4">
+                                <!-- Las propuestas enviadas se cargarán aquí -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <!-- Sección de Ayuda -->
         <section id="helpSection" class="mb-12 hidden">
