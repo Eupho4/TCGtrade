@@ -3485,12 +3485,47 @@
         
         // Sistema de valoración con Pokéballs
         const POKEBALL_RATINGS = {
-            0: { name: 'Sin valorar', icon: '⚪', color: 'gray' },
-            1: { name: 'Premier Ball', icon: '⚪', color: 'white', emoji: '⚪' },
-            2: { name: 'Poké Ball', icon: '🔴', color: 'red', emoji: '🔴' },
-            3: { name: 'Great Ball', icon: '🔵', color: 'blue', emoji: '🔵' },
-            4: { name: 'Ultra Ball', icon: '⚫', color: 'black', emoji: '⚫' },
-            5: { name: 'Master Ball', icon: '🟣', color: 'purple', emoji: '🟣' }
+            0: { 
+                name: 'Sin valorar', 
+                icon: '⚪', 
+                color: 'gray',
+                emoji: '⚪'
+            },
+            1: { 
+                name: 'Premier Ball', 
+                icon: '⚪', 
+                color: 'white', 
+                emoji: '⚪',
+                image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/premier-ball.png'
+            },
+            2: { 
+                name: 'Poké Ball', 
+                icon: '🔴', 
+                color: 'red', 
+                emoji: '🔴',
+                image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png'
+            },
+            3: { 
+                name: 'Great Ball', 
+                icon: '🔵', 
+                color: 'blue', 
+                emoji: '🔵',
+                image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/great-ball.png'
+            },
+            4: { 
+                name: 'Ultra Ball', 
+                icon: '⚫', 
+                color: 'black', 
+                emoji: '⚫',
+                image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ultra-ball.png'
+            },
+            5: { 
+                name: 'Master Ball', 
+                icon: '🟣', 
+                color: 'purple', 
+                emoji: '🟣',
+                image: 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png'
+            }
         };
         
         // Función para mostrar el modal de valoración
@@ -3517,12 +3552,12 @@
                         <div class="flex justify-center gap-3 mb-4" id="pokeballRating">
                             ${[1, 2, 3, 4, 5].map(rating => `
                                 <button onclick="selectRating(${rating})" 
-                                        class="pokeball-rating transform transition-all hover:scale-125"
+                                        class="pokeball-rating transform transition-all hover:scale-125 p-2"
                                         data-rating="${rating}"
                                         title="${POKEBALL_RATINGS[rating].name}">
-                                    <span class="text-4xl opacity-30 grayscale transition-all">
-                                        ${POKEBALL_RATINGS[rating].emoji}
-                                    </span>
+                                    <img src="${POKEBALL_RATINGS[rating].image}" 
+                                         alt="${POKEBALL_RATINGS[rating].name}"
+                                         class="w-12 h-12 opacity-30 grayscale transition-all pokeball-img">
                                 </button>
                             `).join('')}
                         </div>
@@ -3567,28 +3602,32 @@
             const pokeballs = document.querySelectorAll('.pokeball-rating');
             pokeballs.forEach((ball, index) => {
                 const ballRating = index + 1;
-                const span = ball.querySelector('span');
+                const img = ball.querySelector('img');
                 
                 if (ballRating <= rating) {
                     // Pokéball seleccionada
-                    span.classList.remove('opacity-30', 'grayscale');
-                    span.classList.add('opacity-100');
+                    img.classList.remove('opacity-30', 'grayscale');
+                    img.classList.add('opacity-100');
                     
                     // Añadir animación de rebote
                     ball.classList.add('animate-bounce');
                     setTimeout(() => ball.classList.remove('animate-bounce'), 500);
                 } else {
                     // Pokéball no seleccionada
-                    span.classList.add('opacity-30', 'grayscale');
-                    span.classList.remove('opacity-100');
+                    img.classList.add('opacity-30', 'grayscale');
+                    img.classList.remove('opacity-100');
                 }
             });
             
-            // Actualizar texto
+            // Actualizar texto con imagen
             const ratingText = document.getElementById('ratingText');
             ratingText.innerHTML = `
-                <span class="font-semibold">${POKEBALL_RATINGS[rating].name}</span>
-                <span class="text-lg ml-2">${POKEBALL_RATINGS[rating].emoji}</span>
+                <div class="flex items-center justify-center gap-2">
+                    <span class="font-semibold">${POKEBALL_RATINGS[rating].name}</span>
+                    <img src="${POKEBALL_RATINGS[rating].image}" 
+                         alt="${POKEBALL_RATINGS[rating].name}"
+                         class="w-6 h-6 inline-block">
+                </div>
             `;
             
             // Habilitar botón de enviar
@@ -3675,31 +3714,55 @@
         }
         
         // Función para mostrar valoración con Pokéballs
-        window.displayPokeballRating = function(rating, showNumber = false) {
+        window.displayPokeballRating = function(rating, showNumber = false, size = 'small') {
             const fullBalls = Math.floor(rating);
             const hasHalf = rating % 1 >= 0.5;
             
-            let display = '';
+            // Determinar tamaño de las imágenes
+            const sizeClasses = {
+                'small': 'w-5 h-5',
+                'medium': 'w-6 h-6',
+                'large': 'w-8 h-8'
+            };
+            const imgSize = sizeClasses[size] || sizeClasses['small'];
+            
+            let display = '<div class="inline-flex items-center gap-1">';
             
             // Mostrar Pokéballs llenas
             for (let i = 1; i <= fullBalls; i++) {
-                display += `<span title="${POKEBALL_RATINGS[i].name}">${POKEBALL_RATINGS[i].emoji}</span>`;
+                display += `
+                    <img src="${POKEBALL_RATINGS[i].image}" 
+                         alt="${POKEBALL_RATINGS[i].name}"
+                         title="${POKEBALL_RATINGS[i].name}"
+                         class="${imgSize} inline-block">
+                `;
             }
             
             // Mostrar media Pokéball si aplica
             if (hasHalf && fullBalls < 5) {
-                display += `<span class="opacity-50">${POKEBALL_RATINGS[fullBalls + 1].emoji}</span>`;
+                display += `
+                    <img src="${POKEBALL_RATINGS[fullBalls + 1].image}" 
+                         alt="${POKEBALL_RATINGS[fullBalls + 1].name}"
+                         title="${POKEBALL_RATINGS[fullBalls + 1].name}"
+                         class="${imgSize} inline-block opacity-50">
+                `;
             }
             
-            // Mostrar Pokéballs vacías
+            // Mostrar Pokéballs vacías (usar Premier Ball con muy baja opacidad)
             const emptyCount = 5 - Math.ceil(rating);
             for (let i = 0; i < emptyCount; i++) {
-                display += `<span class="opacity-20">⚪</span>`;
+                display += `
+                    <img src="${POKEBALL_RATINGS[1].image}" 
+                         alt="Vacío"
+                         class="${imgSize} inline-block opacity-20 grayscale">
+                `;
             }
             
             if (showNumber) {
-                display += ` <span class="text-sm text-gray-500">(${rating.toFixed(1)})</span>`;
+                display += ` <span class="text-sm text-gray-500 ml-2">(${rating.toFixed(1)})</span>`;
             }
+            
+            display += '</div>';
             
             return display;
         };
@@ -3716,7 +3779,7 @@
             
             if (ratingDisplay && ratingStats) {
                 if (userStats.averageRating && userStats.totalRatings > 0) {
-                    ratingDisplay.innerHTML = displayPokeballRating(userStats.averageRating, true);
+                    ratingDisplay.innerHTML = displayPokeballRating(userStats.averageRating, true, 'large');
                     ratingStats.innerHTML = `
                         <div>
                             <span class="font-semibold text-2xl">${userStats.totalRatings}</span> 
@@ -9153,28 +9216,38 @@
                             
                             <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
                                 <!-- Distribución por Pokéballs -->
-                                <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                    <div class="text-2xl mb-2">🟣</div>
+                                <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-lg transition-shadow">
+                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" 
+                                         alt="Master Ball" 
+                                         class="w-12 h-12 mx-auto mb-2">
                                     <div class="text-sm font-semibold text-gray-700 dark:text-gray-300">Master Ball</div>
                                     <div class="text-xl font-bold text-purple-600 dark:text-purple-400" id="masterBallCount">0</div>
                                 </div>
-                                <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                    <div class="text-2xl mb-2">⚫</div>
+                                <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-lg transition-shadow">
+                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ultra-ball.png" 
+                                         alt="Ultra Ball" 
+                                         class="w-12 h-12 mx-auto mb-2">
                                     <div class="text-sm font-semibold text-gray-700 dark:text-gray-300">Ultra Ball</div>
                                     <div class="text-xl font-bold text-gray-800 dark:text-gray-200" id="ultraBallCount">0</div>
                                 </div>
-                                <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                    <div class="text-2xl mb-2">🔵</div>
+                                <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-lg transition-shadow">
+                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/great-ball.png" 
+                                         alt="Great Ball" 
+                                         class="w-12 h-12 mx-auto mb-2">
                                     <div class="text-sm font-semibold text-gray-700 dark:text-gray-300">Great Ball</div>
                                     <div class="text-xl font-bold text-blue-600 dark:text-blue-400" id="greatBallCount">0</div>
                                 </div>
-                                <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                    <div class="text-2xl mb-2">🔴</div>
+                                <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-lg transition-shadow">
+                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" 
+                                         alt="Poké Ball" 
+                                         class="w-12 h-12 mx-auto mb-2">
                                     <div class="text-sm font-semibold text-gray-700 dark:text-gray-300">Poké Ball</div>
                                     <div class="text-xl font-bold text-red-600 dark:text-red-400" id="pokeBallCount">0</div>
                                 </div>
-                                <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-                                    <div class="text-2xl mb-2">⚪</div>
+                                <div class="text-center p-4 bg-gray-50 dark:bg-gray-700 rounded-lg hover:shadow-lg transition-shadow">
+                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/premier-ball.png" 
+                                         alt="Premier Ball" 
+                                         class="w-12 h-12 mx-auto mb-2">
                                     <div class="text-sm font-semibold text-gray-700 dark:text-gray-300">Premier Ball</div>
                                     <div class="text-xl font-bold text-gray-600 dark:text-gray-400" id="premierBallCount">0</div>
                                 </div>
