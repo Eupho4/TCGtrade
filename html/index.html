@@ -1235,13 +1235,13 @@
                             languageSelect.classList.add('bg-gray-100', 'dark:bg-gray-700', 'cursor-not-allowed');
                         }
                         
-                        // Añadir nueva fila vacía después de bloquear
+                        // SOLO desde Mis Cartas: Añadir nueva fila vacía después de bloquear
                         setTimeout(() => {
                             addCardToTrade(type);
                         }, 100);
                     } else {
-                        // Desde el buscador API - NO bloquear
-                        console.log('✅ Carta seleccionada desde buscador (sin bloquear):', cardName);
+                        // Desde el buscador API - NO bloquear y NO crear nueva línea
+                        console.log('✅ Carta seleccionada desde buscador (sin bloquear, sin nueva línea):', cardName);
                     }
                 } else {
                     console.error('❌ No se encontró el input de nombre');
@@ -2576,32 +2576,32 @@
         function addCardToTrade(type) {
             const container = document.getElementById(type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer');
             
-            // Verificar si ya existe una fila vacía al final
+            // Verificar todas las filas y bloquear las que tienen contenido
             const allCards = container.querySelectorAll('.trade-card');
             let hasEmptyRow = false;
             
             if (allCards.length > 0) {
-                const lastCard = allCards[allCards.length - 1];
-                const lastInput = lastCard.querySelector('input[name*="_name_"]');
-                
-                // Verificar si la última fila está vacía
-                if (lastInput && !lastInput.value.trim() && !lastInput.readOnly) {
-                    hasEmptyRow = true;
-                    console.log('✓ Ya existe una fila vacía, no se añadirá otra');
-                } else if (lastInput && lastInput.value.trim() && !lastInput.readOnly) {
-                    // Si tiene contenido y no está bloqueada, bloquearla
-                    console.log(`🔒 Bloqueando carta con contenido: ${lastInput.value}`);
-                    lockExistingCard(lastCard);
+                // Revisar todas las filas
+                allCards.forEach((card, index) => {
+                    const nameInput = card.querySelector('input[name*="_name_"]');
                     
-                    // Mostrar miniatura si hay imagen
-                    const imageInput = lastCard.querySelector('input[name*="_image_"]');
-                    if (imageInput && imageInput.value) {
-                        const nameInput = lastCard.querySelector('input[name*="_name_"]');
-                        if (nameInput) {
-                            showCardThumbnail(lastCard, imageInput.value, nameInput.value);
+                    if (nameInput && !nameInput.readOnly) {
+                        if (nameInput.value.trim()) {
+                            // Si tiene contenido y no está bloqueada, bloquearla
+                            console.log(`🔒 Bloqueando carta ${index} con contenido: ${nameInput.value}`);
+                            lockExistingCard(card);
+                            
+                            // Mostrar miniatura si hay imagen
+                            const imageInput = card.querySelector('input[name*="_image_"]');
+                            if (imageInput && imageInput.value) {
+                                showCardThumbnail(card, imageInput.value, nameInput.value);
+                            }
+                        } else {
+                            // Hay una fila vacía
+                            hasEmptyRow = true;
                         }
                     }
-                }
+                });
             }
             
             // Solo añadir nueva fila si no hay una vacía
