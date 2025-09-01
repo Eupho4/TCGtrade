@@ -6307,6 +6307,20 @@
                 if (searchResultsSection) searchResultsSection.classList.add('hidden');
                 if (inboxSection) inboxSection.classList.add('hidden');
                 
+                // Actualizar manualmente los enlaces de navegación
+                const loginNavLink = document.getElementById('loginNavLink');
+                const registerNavLink = document.getElementById('registerNavLink');
+                const logoutNavLink = document.getElementById('logoutNavLink');
+                const chatNavLink = document.getElementById('chatNavLink');
+                const inboxNavLink = document.getElementById('inboxNavLink');
+                
+                // Mostrar enlaces de login/register, ocultar logout y chat
+                if (loginNavLink) loginNavLink.classList.remove('hidden');
+                if (registerNavLink) registerNavLink.classList.remove('hidden');
+                if (logoutNavLink) logoutNavLink.classList.add('hidden');
+                if (chatNavLink) chatNavLink.classList.add('hidden');
+                if (inboxNavLink) inboxNavLink.classList.add('hidden');
+                
                 // Mostrar la pantalla inicial (hero y how it works)
                 showInitialSections();
                 
@@ -7153,7 +7167,7 @@
             // Escuchar cambios de autenticación
             onAuthStateChanged(auth, async (user) => {
                 currentUser = user;
-                console.log('Estado de autenticación:', !!user);
+                console.log('🔐 onAuthStateChanged ejecutado. Usuario:', !!user);
 
                 // Inicializar sistema de chat si el usuario está autenticado
                 if (user && !chatManager) {
@@ -7238,10 +7252,30 @@
                         console.error('Error al cargar preferencia de modo oscuro:', error);
                     }
                 } else {
+                    console.log('🔓 Usuario desconectado, actualizando navegación...');
+                    
                     // Usuario desconectado: mostrar login/register, ocultar logout
-                    if (loginNavLink) loginNavLink.classList.remove('hidden');
-                    if (registerNavLink) registerNavLink.classList.remove('hidden');
-                    if (logoutNavLink) logoutNavLink.classList.add('hidden');
+                    if (loginNavLink) {
+                        loginNavLink.classList.remove('hidden');
+                        console.log('✅ Login link mostrado');
+                    } else {
+                        console.warn('⚠️ loginNavLink no encontrado');
+                    }
+                    
+                    if (registerNavLink) {
+                        registerNavLink.classList.remove('hidden');
+                        console.log('✅ Register link mostrado');
+                    } else {
+                        console.warn('⚠️ registerNavLink no encontrado');
+                    }
+                    
+                    if (logoutNavLink) {
+                        logoutNavLink.classList.add('hidden');
+                        console.log('✅ Logout link ocultado');
+                    } else {
+                        console.warn('⚠️ logoutNavLink no encontrado');
+                    }
+                    
                     // Ocultar chat y buzón para usuarios no autenticados
                     if (chatNavLink) chatNavLink.classList.add('hidden');
                     if (inboxNavLink) inboxNavLink.classList.add('hidden');
