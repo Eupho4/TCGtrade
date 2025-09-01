@@ -10,6 +10,62 @@ class ChatUI {
         this.activeChats = new Map(); // Almacenar chats activos
         this.minimizedChats = new Set(); // Chats minimizados
         this.createMinimizedBar(); // Crear barra de chats minimizados
+        this.loadPersistedChats(); // Cargar chats guardados de sesiones anteriores
+    }
+    
+    // Guardar estado de chats en localStorage
+    saveChatsState() {
+        const chatsState = {
+            activeChats: [],
+            minimizedChats: []
+        };
+        
+        // Guardar chats activos
+        this.activeChats.forEach((chatData, chatId) => {
+            chatsState.activeChats.push({
+                chatId: chatId,
+                otherUserName: chatData.otherUserName,
+                tradeTitle: chatData.tradeTitle,
+                isMinimized: this.minimizedChats.has(chatId)
+            });
+        });
+        
+        // Guardar en localStorage
+        if (this.chatManager.auth.currentUser) {
+            const userId = this.chatManager.auth.currentUser.uid;
+            localStorage.setItem(`chatsState_${userId}`, JSON.stringify(chatsState));
+        }
+    }
+    
+    // Cargar chats persistidos de sesiones anteriores
+    async loadPersistedChats() {
+        // Esperar un momento para asegurar que el usuario esté autenticado
+        setTimeout(async () => {
+            if (this.chatManager.auth.currentUser) {
+                const userId = this.chatManager.auth.currentUser.uid;
+                const savedState = localStorage.getItem(`chatsState_${userId}`);
+                
+                if (savedState) {
+                    try {
+                        const chatsState = JSON.parse(savedState);
+                        console.log('📂 Restaurando chats guardados:', chatsState);
+                        
+                        // Restaurar cada chat
+                        for (const chat of chatsState.activeChats) {
+                            // Recrear la ventana de chat
+                            await this.openChat(chat.chatId, chat.otherUserName, chat.tradeTitle);
+                            
+                            // Si estaba minimizado, minimizarlo
+                            if (chat.isMinimized) {
+                                this.minimizeChat(chat.chatId);
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error al restaurar chats:', error);
+                    }
+                }
+            }
+        }, 1000); // Esperar 1 segundo para asegurar autenticación
     }
 
     // Crear ventana de chat flotante
@@ -118,6 +174,9 @@ class ChatUI {
             otherUserName: otherUserName,
             tradeTitle: tradeTitle
         });
+        
+        // Guardar estado en localStorage
+        this.saveChatsState();
 
         // Animar entrada
         setTimeout(() => {
@@ -342,6 +401,9 @@ class ChatUI {
         
         // Actualizar barra de minimizados
         this.updateMinimizedBar();
+        
+        // Guardar estado
+        this.saveChatsState();
     }
     
     // Restaurar chat específico
@@ -352,6 +414,7 @@ class ChatUI {
             this.minimizedChats.delete(chatId);
             this.updateMinimizedBar();
             this.focusChatWindow(chatId);
+            this.saveChatsState();
         }
     }
     
@@ -365,6 +428,7 @@ class ChatUI {
         });
         this.minimizedChats.clear();
         this.updateMinimizedBar();
+        this.saveChatsState();
     }
 
     // Cerrar chat
@@ -378,6 +442,7 @@ class ChatUI {
                 this.activeChats.delete(chatId);
                 this.minimizedChats.delete(chatId);
                 this.updateMinimizedBar();
+                this.saveChatsState();
                 
                 // Desconectar listeners
                 this.chatManager.disconnectChat(chatId);
@@ -482,22 +547,25 @@ class ChatUI {
 
     // Abrir chat
     async openChat(chatId, otherUserName = 'Usuario', tradeTitle = '') {
+        // Verificar si el chat ya está activo
+        const isNewChat = !document.getElementById(`chat-window-${chatId}`);
+        
         // Crear ventana si no existe
-        if (!document.getElementById(`chat-window-${chatId}`)) {
+        if (isNewChat) {
             this.createChatWindow(chatId, otherUserName, tradeTitle);
+            
+            // Solo configurar listeners si es un chat nuevo
+            // Cargar mensajes
+            this.chatManager.listenToMessages(chatId, (messages) => {
+                this.displayMessages(chatId, messages);
+            });
+            
+            // Marcar mensajes como leídos
+            await this.chatManager.markMessagesAsRead(chatId);
+        } else {
+            // Si ya existe, solo enfocarlo
+            this.focusChatWindow(chatId);
         }
-        
-        // Cargar mensajes
-        this.chatManager.listenToMessages(chatId, (messages) => {
-            this.displayMessages(chatId, messages);
-        });
-        
-        // Marcar mensajes como leídos
-        await this.chatManager.markMessagesAsRead(chatId);
-        
-        // Escuchar indicador de escribiendo
-        // Aquí necesitarías obtener el ID del otro usuario
-        // Por ahora lo dejamos como placeholder
         
         this.currentChatId = chatId;
     }

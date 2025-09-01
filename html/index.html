@@ -2197,16 +2197,8 @@
                 // Inicializar chat para este intercambio
                 const chatId = await chatManager.initializeTradeChat(tradeId, otherUserId, otherUserName);
                 
-                // Abrir ventana de chat
-                chatUI.openChat(chatId, otherUserName, tradeTitle);
-                
-                // Escuchar mensajes
-                chatManager.listenToMessages(chatId, (messages) => {
-                    chatUI.displayMessages(chatId, messages);
-                });
-                
-                // Marcar mensajes como leídos
-                await chatManager.markMessagesAsRead(chatId);
+                // Abrir ventana de chat (el método openChat ya maneja los listeners)
+                await chatUI.openChat(chatId, otherUserName, tradeTitle);
                 
                 console.log('✅ Chat abierto exitosamente');
                 
