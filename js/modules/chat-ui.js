@@ -614,7 +614,8 @@ class ChatUI {
 
     // Crear elemento de lista de chat
     createChatListItem(chat) {
-        const otherUser = chat.otherUser || { displayName: 'Usuario' };
+        const otherUser = chat.otherUser || {};
+        const displayName = otherUser.displayName || 'Chat de Intercambio';
         const lastMessageTime = chat.lastMessageTime ? new Date(chat.lastMessageTime).toLocaleString('es-ES', {
             day: '2-digit',
             month: '2-digit',
@@ -625,9 +626,12 @@ class ChatUI {
         // Extraer el título del intercambio si existe
         const tradeTitle = chat.tradeId ? `Intercambio #${chat.tradeId.substring(0, 8)}` : 'Chat';
         
+        // Para chats de intercambio, usar el título del intercambio como nombre principal
+        const chatTitle = chat.isTradeChat ? tradeTitle : displayName;
+        
         return `
             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                 onclick="window.chatUI.openChatFromList('${chat.id}', '${otherUser.displayName || 'Usuario'}', '${tradeTitle}')">
+                 onclick="window.chatUI.openChatFromList('${chat.id}', '${displayName}', '${tradeTitle}')">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
                         <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
@@ -635,10 +639,10 @@ class ChatUI {
                         </div>
                         <div>
                             <h4 class="font-semibold text-gray-800 dark:text-white">
-                                ${tradeTitle}
+                                ${chatTitle}
                             </h4>
                             <p class="text-sm text-gray-600 dark:text-gray-400">
-                                ${otherUser.displayName || 'Usuario'}: ${chat.lastMessage ? this.truncateText(chat.lastMessage, 40) : 'Sin mensajes'}
+                                ${chat.lastMessage ? this.truncateText(chat.lastMessage, 40) : 'Sin mensajes'}
                             </p>
                         </div>
                     </div>
