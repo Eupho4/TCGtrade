@@ -7141,6 +7141,15 @@
                             }
                         }
                     });
+                    
+                    // Cargar chats persistidos después de un pequeño delay
+                    setTimeout(async () => {
+                        console.log('⏰ Cargando chats persistidos después de autenticación...');
+                        if (chatUI && typeof chatUI.loadPersistedChats === 'function') {
+                            await chatUI.loadPersistedChats();
+                        }
+                    }, 1500); // Esperar 1.5 segundos para asegurar que todo esté inicializado
+                    
                 } else if (!user && chatManager) {
                     // Limpiar chat si el usuario cierra sesión
                     chatManager.disconnectAll();
