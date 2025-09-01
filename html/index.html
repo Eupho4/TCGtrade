@@ -6432,6 +6432,39 @@
             console.log('✅ Event listeners configurados correctamente');
         }
 
+        // Función para animar la Pokéball cambiante
+        function initBouncingPokeball() {
+            const pokeball = document.getElementById('bouncingPokeball');
+            if (!pokeball) return;
+            
+            const pokeballs = [
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png',
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/great-ball.png',
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ultra-ball.png',
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png',
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/premier-ball.png',
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/dive-ball.png',
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/luxury-ball.png',
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/timer-ball.png'
+            ];
+            
+            let currentIndex = 0;
+            
+            // Cambiar la Pokéball cada 2 segundos
+            setInterval(() => {
+                currentIndex = (currentIndex + 1) % pokeballs.length;
+                pokeball.style.opacity = '0';
+                
+                setTimeout(() => {
+                    pokeball.src = pokeballs[currentIndex];
+                    pokeball.style.opacity = '1';
+                }, 150);
+            }, 2000);
+            
+            // Añadir transición suave
+            pokeball.style.transition = 'opacity 0.15s ease-in-out';
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🚀 DOM cargado, configurando eventos...');
             
@@ -7100,6 +7133,9 @@
                     }
                 });
             }
+
+            // Inicializar la Pokéball animada
+            initBouncingPokeball();
 
             // Mostrar secciones iniciales
             showInitialSections();
@@ -8306,7 +8342,8 @@
                     <!-- Logo y título principal -->
                     <div class="mb-8">
                         <div class="inline-flex items-center justify-center mb-4">
-                            <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" 
+                            <img id="bouncingPokeball" 
+                                 src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png" 
                                  alt="Pokéball" class="w-16 h-16 animate-bounce">
                         </div>
                         <h1 class="text-5xl md:text-6xl font-bold text-gray-800 dark:text-white mb-4">
