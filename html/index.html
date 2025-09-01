@@ -7207,7 +7207,18 @@
                         if (chatUI && typeof chatUI.loadPersistedChats === 'function') {
                             await chatUI.loadPersistedChats();
                         }
+                        // Actualizar badge de chats
+                        if (chatUI && typeof chatUI.updateChatBadge === 'function') {
+                            await chatUI.updateChatBadge();
+                        }
                     }, 1500); // Esperar 1.5 segundos para asegurar que todo esté inicializado
+                    
+                    // Actualizar badge de chats cada 10 segundos
+                    setInterval(async () => {
+                        if (chatUI && typeof chatUI.updateChatBadge === 'function') {
+                            await chatUI.updateChatBadge();
+                        }
+                    }, 10000);
                     
                 } else if (!user && chatManager) {
                     // Limpiar chat si el usuario cierra sesión
