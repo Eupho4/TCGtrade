@@ -6109,15 +6109,16 @@
             console.log('🔄 Cargando sets desde la API...');
 
             try {
-                // Timeout reducido para sets
+                // Timeout más generoso para sets (pueden ser muchos)
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos
 
-                const response = await fetch('/api/pokemontcg/sets?pageSize=50', {
+                // Intentar primero con menos sets para ver si funciona
+                const response = await fetch('/api/pokemontcg/sets?pageSize=20&orderBy=-releaseDate', {
                     method: 'GET',
                     signal: controller.signal,
                     headers: {
-                        'Content-Type': 'application/json'
+                        'Accept': 'application/json'
                     }
                 });
 
@@ -6158,40 +6159,43 @@
 
             } catch (error) {
                 console.error('Error al cargar sets:', error);
-                console.log('🔄 Intentando cargar sets básicos como fallback...');
+                console.log('🔄 Usando sets locales como fallback...');
                 
-                // Fallback: usar sets básicos si la API falla
-                try {
-                    const fallbackResponse = await fetch('/api/pokemontcg/sets?pageSize=10');
-                    if (fallbackResponse.ok) {
-                        const fallbackData = await fallbackResponse.json();
-                        allSets = fallbackData.data || [];
-                        console.log('✅ Sets básicos cargados como fallback:', allSets.length);
-                        
-                        if (allSets.length > 0) {
-                            // Poblar filtros con datos básicos
-                            const uniqueSeries = [...new Set(allSets.map(set => set.series))].filter(Boolean).sort();
-                            if (seriesFilter) {
-                                seriesFilter.innerHTML = '<option value="">Todas las Series</option>';
-                                uniqueSeries.forEach(series => {
-                                    const option = document.createElement('option');
-                                    option.value = series;
-                                    option.textContent = series;
-                                    seriesFilter.appendChild(option);
-                                });
-                            }
-                            populateSetFilter(allSets);
-                            if (setFilter) setFilter.disabled = false;
-                            return; // Exit successfully
-                        }
-                    }
-                } catch (fallbackError) {
-                    console.error('Fallback también falló:', fallbackError);
+                // Fallback: usar sets locales predefinidos si la API falla
+                allSets = [
+                    { id: 'sv', name: 'Scarlet & Violet', series: 'Scarlet & Violet', releaseDate: '2023-03-31' },
+                    { id: 'pgo', name: 'Pokémon GO', series: 'Sword & Shield', releaseDate: '2022-07-01' },
+                    { id: 'astralradiance', name: 'Astral Radiance', series: 'Sword & Shield', releaseDate: '2022-05-27' },
+                    { id: 'brilliantstars', name: 'Brilliant Stars', series: 'Sword & Shield', releaseDate: '2022-02-25' },
+                    { id: 'fusionstrikes', name: 'Fusion Strike', series: 'Sword & Shield', releaseDate: '2021-11-12' },
+                    { id: 'evolvingskies', name: 'Evolving Skies', series: 'Sword & Shield', releaseDate: '2021-08-27' },
+                    { id: 'chillingReign', name: 'Chilling Reign', series: 'Sword & Shield', releaseDate: '2021-06-18' },
+                    { id: 'battlestyles', name: 'Battle Styles', series: 'Sword & Shield', releaseDate: '2021-03-19' },
+                    { id: 'shiningfates', name: 'Shining Fates', series: 'Sword & Shield', releaseDate: '2021-02-19' },
+                    { id: 'vividvoltage', name: 'Vivid Voltage', series: 'Sword & Shield', releaseDate: '2020-11-13' },
+                    { id: 'championsPath', name: 'Champions Path', series: 'Sword & Shield', releaseDate: '2020-09-25' },
+                    { id: 'darknessAblaze', name: 'Darkness Ablaze', series: 'Sword & Shield', releaseDate: '2020-08-14' },
+                    { id: 'rebelclash', name: 'Rebel Clash', series: 'Sword & Shield', releaseDate: '2020-05-01' },
+                    { id: 'base1', name: 'Base Set', series: 'Base', releaseDate: '1999-01-09' },
+                    { id: 'base2', name: 'Jungle', series: 'Base', releaseDate: '1999-06-16' },
+                    { id: 'base3', name: 'Fossil', series: 'Base', releaseDate: '1999-10-10' }
+                ];
+                
+                console.log('✅ Sets locales cargados:', allSets.length);
+                
+                // Poblar filtros con datos locales
+                const uniqueSeries = [...new Set(allSets.map(set => set.series))].filter(Boolean).sort();
+                if (seriesFilter) {
+                    seriesFilter.innerHTML = '<option value="">Todas las Series</option>';
+                    uniqueSeries.forEach(series => {
+                        const option = document.createElement('option');
+                        option.value = series;
+                        option.textContent = series;
+                        seriesFilter.appendChild(option);
+                    });
                 }
-                
-                // Si todo falla, deshabilitar filtros
-                if (setFilter) setFilter.disabled = true;
-                if (seriesFilter) seriesFilter.disabled = true;
+                populateSetFilter(allSets);
+                if (setFilter) setFilter.disabled = false;
                 if (myCardsErrorMessage) {
                     myCardsErrorMessage.textContent = 'No se pudieron cargar los filtros. La API está lenta. Intenta más tarde o configura tu API Key.';
                     myCardsErrorMessage.classList.remove('hidden');
