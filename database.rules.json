@@ -1,0 +1,52 @@
+{
+  "rules": {
+    "chats": {
+      "$chatId": {
+        ".read": "auth != null && (auth.uid in data.child('metadata').child('participants').val())",
+        ".write": "auth != null",
+        
+        "metadata": {
+          ".validate": "newData.hasChildren(['participants', 'createdAt'])",
+          
+          "participants": {
+            "$userId": {
+              ".validate": "$userId === auth.uid || data.exists()"
+            }
+          }
+        },
+        
+        "messages": {
+          "$messageId": {
+            ".write": "auth != null && (!data.exists() || data.child('senderId').val() === auth.uid)",
+            ".validate": "newData.hasChildren(['senderId', 'message', 'timestamp']) && newData.child('senderId').val() === auth.uid"
+          }
+        },
+        
+        "typing": {
+          "$userId": {
+            ".write": "$userId === auth.uid",
+            ".validate": "newData.isBoolean()"
+          }
+        }
+      }
+    },
+    
+    "userChats": {
+      "$userId": {
+        ".read": "$userId === auth.uid",
+        ".write": "$userId === auth.uid"
+      }
+    },
+    
+    "notifications": {
+      "$userId": {
+        ".read": "$userId === auth.uid",
+        ".write": "auth != null",
+        
+        "$notificationId": {
+          ".validate": "newData.hasChildren(['type', 'timestamp', 'read'])"
+        }
+      }
+    }
+  }
+}

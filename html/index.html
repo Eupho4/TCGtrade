@@ -67,6 +67,11 @@
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
         import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously, signInWithCustomToken, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
         import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
+        import { getDatabase } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
+        
+        // Importar módulos de chat
+        import ChatManager from '/js/modules/chat.js';
+        import ChatUI from '/js/modules/chat-ui.js';
 
         // CONFIGURACIÓN DE FIREBASE - REEMPLAZA CON TUS DATOS
         const firebaseConfig = {
@@ -90,6 +95,8 @@
         let currentUser = null;
         let allSets = []; // Cache para todos los sets de la API
         let userCardsCache = []; // Cache para las cartas del usuario
+        let chatManager = null; // Gestor de chat
+        let chatUI = null; // UI del chat
 
         // Referencias a elementos del DOM
         let searchInput, searchResultsSection, heroSection, howItWorksSection, cardsContainer, loadingSpinner, noResultsMessage, errorMessage;
@@ -2030,6 +2037,9 @@
                                     <button class="btn-primary px-3 py-1 rounded text-xs" onclick="proposeTrade('${trade.id}')">
                                         💬 Proponer
                                     </button>
+                                    <button class="btn-secondary px-3 py-1 rounded text-xs" onclick="openTradeChat('${trade.id}', '${trade.userId || ''}', '${trade.title}')">
+                                        💭 Chat
+                                    </button>
                                     <button class="btn-secondary px-3 py-1 rounded text-xs" onclick="viewTradeDetails('${trade.id}')">
                                         👁️ Ver
                                     </button>
@@ -2140,6 +2150,54 @@
                 loadUserTrades();
             }
         }
+
+        // Función para abrir chat de intercambio
+        async function openTradeChat(tradeId, otherUserId, tradeTitle) {
+            if (!currentUser) {
+                showNotification('Debes iniciar sesión para usar el chat', 'warning');
+                showAuthModal('login');
+                return;
+            }
+
+            if (!chatManager || !chatUI) {
+                showNotification('El sistema de chat no está disponible', 'error');
+                return;
+            }
+
+            try {
+                // Si no tenemos el ID del otro usuario, intentar obtenerlo del intercambio
+                if (!otherUserId) {
+                    const trade = findTradeById(tradeId);
+                    if (trade) {
+                        otherUserId = trade.userId || trade.creatorId || 'unknown';
+                    }
+                }
+
+                // Generar nombre del otro usuario
+                const otherUserName = otherUserId === 'unknown' ? 'Usuario' : `Usuario_${otherUserId.substring(0, 6)}`;
+                
+                // Inicializar chat para este intercambio
+                const chatId = await chatManager.initializeTradeChat(tradeId, otherUserId, otherUserName);
+                
+                // Abrir ventana de chat
+                chatUI.openChat(chatId, otherUserName, tradeTitle);
+                
+                // Escuchar mensajes
+                chatManager.listenToMessages(chatId, (messages) => {
+                    chatUI.displayMessages(chatId, messages);
+                });
+                
+                // Marcar mensajes como leídos
+                await chatManager.markMessagesAsRead(chatId);
+                
+            } catch (error) {
+                console.error('Error al abrir chat:', error);
+                showNotification('Error al abrir el chat', 'error');
+            }
+        }
+        
+        // Hacer la función disponible globalmente
+        window.openTradeChat = openTradeChat;
 
         function proposeTrade(tradeId) {
             console.log('💬 Proponiendo intercambio:', tradeId);
@@ -6330,6 +6388,20 @@
                     showInboxSection();
                 });
             }
+            
+            // Chat link
+            const chatLink = document.getElementById('chatLink');
+            if (chatLink) {
+                chatLink.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('💬 Chat link clicked');
+                    if (chatUI) {
+                        chatUI.showChatList();
+                    } else {
+                        showNotification('El sistema de chat no está disponible', 'error');
+                    }
+                });
+            }
 
             const profileLink = document.getElementById('profileLink');
             if (profileLink) {
@@ -7021,6 +7093,33 @@
                 currentUser = user;
                 console.log('Estado de autenticación:', !!user);
 
+                // Inicializar sistema de chat si el usuario está autenticado
+                if (user && !chatManager) {
+                    chatManager = new ChatManager(auth, db);
+                    chatUI = new ChatUI(chatManager);
+                    window.chatManager = chatManager; // Hacer disponible globalmente
+                    window.chatUI = chatUI; // Hacer disponible globalmente
+                    
+                    // Escuchar actualizaciones de mensajes no leídos
+                    window.addEventListener('unreadCountUpdated', (event) => {
+                        const totalUnread = chatManager.getTotalUnreadCount();
+                        const chatBadge = document.getElementById('chatBadge');
+                        if (chatBadge) {
+                            if (totalUnread > 0) {
+                                chatBadge.textContent = totalUnread > 99 ? '99+' : totalUnread;
+                                chatBadge.classList.remove('hidden');
+                            } else {
+                                chatBadge.classList.add('hidden');
+                            }
+                        }
+                    });
+                } else if (!user && chatManager) {
+                    // Limpiar chat si el usuario cierra sesión
+                    chatManager.disconnectAll();
+                    chatManager = null;
+                    chatUI = null;
+                }
+
                 // Mis Cartas siempre visible
                 if (myCardsNavLink) myCardsNavLink.classList.remove('hidden');
 
@@ -7031,9 +7130,11 @@
                     if (logoutNavLink) logoutNavLink.classList.remove('hidden');
                     // Mi Perfil siempre visible (funciona diferente según estado)
                     if (profileNavLink) profileNavLink.classList.remove('hidden');
-                    // Mostrar buzón para usuarios autenticados
+                    // Mostrar buzón y chat para usuarios autenticados
                     const inboxNavLink = document.getElementById('inboxNavLink');
                     if (inboxNavLink) inboxNavLink.classList.remove('hidden');
+                    const chatNavLink = document.getElementById('chatNavLink');
+                    if (chatNavLink) chatNavLink.classList.remove('hidden');
                     
                     // Actualizar badge de notificaciones
                     updateNotificationBadge();
@@ -7060,6 +7161,9 @@
                     if (loginNavLink) loginNavLink.classList.remove('hidden');
                     if (registerNavLink) registerNavLink.classList.remove('hidden');
                     if (logoutNavLink) logoutNavLink.classList.add('hidden');
+                    // Ocultar chat para usuarios no autenticados
+                    const chatNavLink = document.getElementById('chatNavLink');
+                    if (chatNavLink) chatNavLink.classList.add('hidden');
                     // Mi Perfil siempre visible (redirige a login si no está conectado)
                     if (profileNavLink) profileNavLink.classList.remove('hidden');
                     
@@ -8264,6 +8368,7 @@
                     <li id="myCardsNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="myCardsLink"><span class="icon">📦</span> <span data-i18n="nav.myCards">Mis Cartas</span></a></li>
                     <li id="interchangesNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="interchangesLink"><span class="icon">🤝</span> <span data-i18n="nav.interchanges">Intercambios</span></a></li>
                     <li id="inboxNavLink" class="hidden"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap relative" id="inboxLink"><span class="icon">📬</span> <span>Buzón</span><span id="notificationBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"></span></a></li>
+                    <li id="chatNavLink" class="hidden"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap relative" id="chatLink"><span class="icon">💬</span> <span>Chats</span><span id="chatBadge" class="hidden absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"></span></a></li>
                     <li id="loginNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="loginLink"><span class="icon">🚪</span> <span data-i18n="nav.login">Iniciar Sesión</span></a></li>
                     <li id="registerNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="registerLink"><span class="icon">📝</span> <span data-i18n="nav.register">Registrarse</span></a></li>
                     <li id="profileNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center text-sm h-12 whitespace-nowrap" id="profileLink"><span class="icon">👤</span> <span data-i18n="nav.profile">Mi Perfil</span></a></li>
