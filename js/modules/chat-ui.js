@@ -303,6 +303,14 @@ class ChatUI {
         const currentUser = this.chatManager.auth.currentUser;
         if (!currentUser) return;
 
+        // Guardar el último mensaje para detectar nuevos
+        const lastMessageId = this.lastMessageIds?.get(chatId);
+        const newMessages = messages.filter(msg => !this.processedMessages?.has(msg.id));
+        
+        // Inicializar sets si no existen
+        if (!this.processedMessages) this.processedMessages = new Set();
+        if (!this.lastMessageIds) this.lastMessageIds = new Map();
+
         // Limpiar y reconstruir mensajes
         container.innerHTML = messages.length === 0 ? 
             '<div class="text-center text-gray-500 dark:text-gray-400 text-sm py-8"><p>Inicio de la conversación</p></div>' : '';
@@ -311,12 +319,77 @@ class ChatUI {
             const isOwnMessage = msg.senderId === currentUser.uid;
             const messageEl = this.createMessageElement(msg, isOwnMessage);
             container.appendChild(messageEl);
+            
+            // Marcar mensaje como procesado
+            if (msg.id) {
+                this.processedMessages.add(msg.id);
+            }
         });
+
+        // Si hay mensajes nuevos que no son míos, reproducir sonido
+        if (newMessages.length > 0) {
+            const hasNewMessageFromOther = newMessages.some(msg => msg.senderId !== currentUser.uid);
+            if (hasNewMessageFromOther) {
+                this.playNotificationSound();
+            }
+        }
+
+        // Actualizar último mensaje
+        if (messages.length > 0) {
+            const lastMsg = messages[messages.length - 1];
+            if (lastMsg.id) {
+                this.lastMessageIds.set(chatId, lastMsg.id);
+            }
+        }
 
         // Scroll al final
         container.scrollTop = container.scrollHeight;
     }
+    
+    // Reproducir sonido de notificación
+    playNotificationSound() {
+        try {
+            // Crear un sonido simple usando Web Audio API
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800; // Frecuencia en Hz
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.2);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.2);
+            
+            console.log('🔔 Sonido de notificación reproducido');
+        } catch (error) {
+            console.log('No se pudo reproducir el sonido:', error);
+        }
+    }
 
+    // Obtener marcas de verificación según el estado del mensaje
+    getCheckMarks(msg) {
+        if (!msg) return '';
+        
+        // Si el mensaje ha sido leído (doble check azul)
+        if (msg.read) {
+            return '<span class="text-xs" style="color: #4FC3F7;">✓✓</span>';
+        }
+        // Si el mensaje ha sido entregado (doble check gris)
+        else if (msg.delivered) {
+            return '<span class="text-xs text-gray-300">✓✓</span>';
+        }
+        // Si el mensaje ha sido enviado (un check gris)
+        else {
+            return '<span class="text-xs text-gray-300">✓</span>';
+        }
+    }
+    
     // Crear elemento de mensaje
     createMessageElement(msg, isOwnMessage) {
         const messageDiv = document.createElement('div');
@@ -356,10 +429,7 @@ class ChatUI {
                         <span class="text-xs ${isOwnMessage ? 'text-orange-100' : 'text-gray-500 dark:text-gray-400'}">
                             ${time}
                         </span>
-                        ${isOwnMessage && msg.read ? 
-                            '<span class="text-xs text-orange-100">✓✓</span>' : 
-                            isOwnMessage ? '<span class="text-xs text-orange-200">✓</span>' : ''
-                        }
+                        ${isOwnMessage ? this.getCheckMarks(msg) : ''}
                     </div>
                 </div>
                 <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 ${isOwnMessage ? 'text-right' : ''}">

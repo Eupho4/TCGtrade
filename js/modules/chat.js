@@ -36,6 +36,7 @@ class ChatManager {
 
     // Generar ID para chat de intercambio específico
     generateTradeChatId(tradeId) {
+        // El ID del chat es único por intercambio, así ambos usuarios acceden al mismo chat
         return `trade_${tradeId}`;
     }
 
@@ -109,24 +110,47 @@ class ChatManager {
             message: message,
             type: messageType, // 'text', 'image', 'card_offer', 'system'
             timestamp: serverTimestamp(),
-            read: false
+            delivered: false, // Entregado
+            read: false, // Leído
+            readBy: {} // Quién ha leído el mensaje
         };
 
         // Enviar mensaje
         const messageRef = await push(messagesRef, newMessage);
+        
+        // Marcar como entregado inmediatamente
+        setTimeout(() => {
+            update(ref(this.realtimeDb, `chats/${chatId}/messages/${messageRef.key}`), {
+                delivered: true
+            });
+        }, 100);
         
         // Actualizar último mensaje en metadata
         const chatMetaRef = ref(this.realtimeDb, `chats/${chatId}/metadata`);
         await update(chatMetaRef, {
             lastMessage: message,
             lastMessageTime: serverTimestamp(),
-            lastMessageSender: currentUser.uid
+            lastMessageSender: currentUser.uid,
+            [`unreadCount_${this.getOtherUserId(chatId)}`]: serverTimestamp() // Incrementar contador para el otro usuario
         });
 
-        // Incrementar contador de no leídos para el otro usuario
-        this.incrementUnreadCount(chatId, currentUser.uid);
+        // Notificar al otro usuario
+        this.notifyOtherUser(chatId, message);
 
         return messageRef.key;
+    }
+    
+    // Obtener el ID del otro usuario en el chat
+    getOtherUserId(chatId) {
+        // Extraer del chatId que tiene formato: trade_TRADEID
+        // Por ahora retornamos un placeholder, esto se mejorará
+        return 'otherUser';
+    }
+    
+    // Notificar al otro usuario sobre nuevo mensaje
+    async notifyOtherUser(chatId, message) {
+        // Aquí se implementará la notificación push/sonido
+        console.log('📬 Notificando nuevo mensaje en chat:', chatId);
     }
 
     // Enviar notificación de carta ofrecida
@@ -148,20 +172,39 @@ class ChatManager {
         if (!currentUser) return;
 
         const messagesRef = ref(this.realtimeDb, `chats/${chatId}/messages`);
-        const messagesQuery = query(messagesRef, orderByChild('read'));
+        const messagesQuery = query(messagesRef, orderByChild('timestamp'));
         
         onValue(messagesQuery, (snapshot) => {
+            const updates = {};
             snapshot.forEach((childSnapshot) => {
                 const message = childSnapshot.val();
-                if (message.senderId !== currentUser.uid && !message.read) {
-                    const messageRef = ref(this.realtimeDb, `chats/${chatId}/messages/${childSnapshot.key}`);
-                    update(messageRef, { read: true });
+                const messageKey = childSnapshot.key;
+                
+                // Marcar como leído si no es mi mensaje y no está leído
+                if (message.senderId !== currentUser.uid) {
+                    if (!message.read) {
+                        updates[`${messageKey}/read`] = true;
+                        updates[`${messageKey}/readBy/${currentUser.uid}`] = serverTimestamp();
+                        updates[`${messageKey}/readTime`] = serverTimestamp();
+                    }
                 }
             });
+            
+            // Aplicar todas las actualizaciones de una vez
+            if (Object.keys(updates).length > 0) {
+                const messagesRef = ref(this.realtimeDb, `chats/${chatId}/messages`);
+                update(messagesRef, updates);
+            }
         }, { onlyOnce: true });
 
         // Resetear contador de no leídos
         this.resetUnreadCount(chatId);
+        
+        // Actualizar metadata del chat
+        const chatMetaRef = ref(this.realtimeDb, `chats/${chatId}/metadata`);
+        update(chatMetaRef, {
+            [`lastRead_${currentUser.uid}`]: serverTimestamp()
+        });
     }
 
     // Escuchar mensajes nuevos
