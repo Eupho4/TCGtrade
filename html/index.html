@@ -81,6 +81,8 @@
             storageBucket: "tcgtrade-7ba27.firebasestorage.app",
             messagingSenderId: "207150886257",
             appId: "1:207150886257:web:26edebbeb7df7a1d935ad0",
+            // IMPORTANTE: Añade tu URL de Realtime Database aquí después de configurarla en Firebase Console
+            databaseURL: "https://tcgtrade-7ba27-default-rtdb.firebaseio.com" // Actualiza con tu URL real
          };
 
         // Inicializar Firebase
@@ -2041,7 +2043,7 @@
                                     <button class="btn-primary px-3 py-1 rounded text-xs" onclick="proposeTrade('${trade.id}')">
                                         💬 Proponer
                                     </button>
-                                    <button class="btn-secondary px-3 py-1 rounded text-xs" onclick="openTradeChat('${trade.id}', '${escapedUserId}', '${escapedTitle}')">
+                                    <button class="btn-secondary px-3 py-1 rounded text-xs" data-trade-id="${trade.id}" data-user-id="${escapedUserId}" data-trade-title="${escapedTitle}" onclick="window.openTradeChat && window.openTradeChat('${trade.id}', '${escapedUserId}', '${escapedTitle}')">
                                         💭 Chat
                                     </button>
                                     <button class="btn-secondary px-3 py-1 rounded text-xs" onclick="viewTradeDetails('${trade.id}')">
@@ -7094,6 +7096,25 @@
                         loadSentProposals();
                     }
                 });
+            });
+
+            // Event listener delegado para botones de chat (como respaldo)
+            document.addEventListener('click', function(e) {
+                if (e.target && e.target.textContent && e.target.textContent.includes('💭 Chat')) {
+                    e.preventDefault();
+                    const button = e.target;
+                    const tradeId = button.getAttribute('data-trade-id');
+                    const userId = button.getAttribute('data-user-id');
+                    const tradeTitle = button.getAttribute('data-trade-title');
+                    
+                    console.log('Chat button clicked via delegated event:', { tradeId, userId, tradeTitle });
+                    
+                    if (window.openTradeChat && tradeId) {
+                        window.openTradeChat(tradeId, userId || '', tradeTitle || '');
+                    } else {
+                        console.error('openTradeChat no está disponible o falta tradeId');
+                    }
+                }
             });
 
             // Escuchar cambios de autenticación
