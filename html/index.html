@@ -458,6 +458,10 @@
                     targetContent = document.getElementById('helpFAQContent');
                     targetTab = document.getElementById('helpFAQTab');
                     break;
+                case 'newFeatures':
+                    targetContent = document.getElementById('helpNewFeaturesContent');
+                    targetTab = document.getElementById('helpNewFeaturesTab');
+                    break;
             }
 
             if (targetContent) {
@@ -6540,6 +6544,11 @@
             if (helpFAQTab) {
                 helpFAQTab.addEventListener('click', () => switchHelpTab('faq'));
             }
+            
+            const helpNewFeaturesTab = document.getElementById('helpNewFeaturesTab');
+            if (helpNewFeaturesTab) {
+                helpNewFeaturesTab.addEventListener('click', () => switchHelpTab('newFeatures'));
+            }
 
             // Event listeners para tabs de intercambios
             const tradesActiveTab = document.getElementById('tradesActiveTab');
@@ -8499,6 +8508,9 @@
                             <button id="helpFAQTab" class="help-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium text-sm">
                                 ❓ FAQ
                             </button>
+                            <button id="helpNewFeaturesTab" class="help-tab py-4 px-1 border-b-2 border-transparent text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 font-medium text-sm">
+                                ✨ Novedades
+                            </button>
                         </nav>
                     </div>
                 </div>
@@ -8506,40 +8518,69 @@
                 <!-- Contenido de Primeros Pasos -->
                 <div id="helpGettingStartedContent" class="help-tab-content">
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                        <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
                             <span class="icon mr-2">🚀</span> Primeros Pasos en TCGtrade
                         </h3>
                         
                         <div class="space-y-6">
                             <div class="border-l-4 border-orange-500 pl-4">
-                                <h4 class="text-lg font-semibold text-gray-800 mb-2">1. Crear tu Cuenta</h4>
-                                <p class="text-gray-600 mb-3">Regístrate con tu email y crea un nombre de usuario único. Este será tu identificador en la plataforma.</p>
-                                <div class="bg-gray-50 p-3 rounded-lg">
-                                    <p class="text-sm text-gray-700"><strong>💡 Consejo:</strong> Elige un nombre de usuario que refleje tu pasión por Pokémon TCG.</p>
+                                <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">1. Crear tu Cuenta</h4>
+                                <p class="text-gray-600 dark:text-gray-400 mb-3">Regístrate con tu email y crea un nombre de usuario único. Este será tu identificador en toda la plataforma.</p>
+                                <div class="bg-gray-50 dark:bg-gray-700 p-3 rounded-lg">
+                                    <p class="text-sm text-gray-700 dark:text-gray-300">
+                                        <strong>💡 Nuevo:</strong> Tu nombre de usuario aparecerá en todos tus intercambios. 
+                                        Puedes recuperar tu contraseña desde la pantalla de login si la olvidas.
+                                    </p>
                                 </div>
                             </div>
 
                             <div class="border-l-4 border-blue-500 pl-4">
-                                <h4 class="text-lg font-semibold text-gray-800 mb-2">2. Construir tu Colección</h4>
-                                <p class="text-gray-600 mb-3">Busca cartas en nuestra base de datos y añádelas a tu colección personal. Especifica la condición y el idioma de cada carta.</p>
-                                <div class="bg-blue-50 p-3 rounded-lg">
-                                    <p class="text-sm text-blue-700"><strong>📝 Nota:</strong> Cuanto más detallada sea tu colección, mejores intercambios podrás encontrar.</p>
+                                <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">2. Construir tu Colección</h4>
+                                <p class="text-gray-600 dark:text-gray-400 mb-3">Busca cartas y añádelas a tu colección personal con todos los detalles.</p>
+                                <div class="bg-blue-50 dark:bg-blue-900/30 p-3 rounded-lg">
+                                    <ul class="text-sm text-blue-700 dark:text-blue-300 space-y-1">
+                                        <li>✅ Selecciona la condición (Mint, NM, EX, etc.)</li>
+                                        <li>✅ Elige el idioma (Español, Inglés, Japonés, Chino, Coreano, etc.)</li>
+                                        <li>✅ Las imágenes se guardan automáticamente</li>
+                                        <li>✅ Puedes ver tu colección en "Mis Cartas"</li>
+                                    </ul>
                                 </div>
                             </div>
 
                             <div class="border-l-4 border-green-500 pl-4">
-                                <h4 class="text-lg font-semibold text-gray-800 mb-2">3. Crear tu Primer Intercambio</h4>
-                                <p class="text-gray-600 mb-3">Selecciona las cartas que quieres ofrecer y las que buscas. Especifica las condiciones deseadas.</p>
-                                <div class="bg-green-50 p-3 rounded-lg">
-                                    <p class="text-sm text-green-700"><strong>🤝 Consejo:</strong> Sé específico sobre las condiciones que aceptas para evitar malentendidos.</p>
+                                <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">3. Crear tu Primer Intercambio</h4>
+                                <p class="text-gray-600 dark:text-gray-400 mb-3">Crea intercambios de dos formas:</p>
+                                <div class="bg-green-50 dark:bg-green-900/30 p-3 rounded-lg">
+                                    <ul class="text-sm text-green-700 dark:text-green-300 space-y-1">
+                                        <li>🔍 <strong>Búsqueda en API:</strong> Busca cartas en tiempo real</li>
+                                        <li>📚 <strong>Desde Mis Cartas:</strong> Selecciona directamente de tu colección</li>
+                                        <li>🔒 Las cartas de tu colección se bloquean automáticamente</li>
+                                        <li>✏️ Puedes modificar tus intercambios en cualquier momento</li>
+                                    </ul>
                                 </div>
                             </div>
 
                             <div class="border-l-4 border-purple-500 pl-4">
-                                <h4 class="text-lg font-semibold text-gray-800 mb-2">4. Conectar con Otros Coleccionistas</h4>
-                                <p class="text-gray-600 mb-3">Explora los intercambios disponibles y propón ofertas. Comunícate de forma respetuosa con otros usuarios.</p>
-                                <div class="bg-purple-50 p-3 rounded-lg">
-                                    <p class="text-sm text-purple-700"><strong>🌟 Recordatorio:</strong> La comunidad se basa en la confianza y el respeto mutuo.</p>
+                                <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">4. Sistema de Propuestas</h4>
+                                <p class="text-gray-600 dark:text-gray-400 mb-3">Responde a intercambios de otros usuarios con contrapropuestas.</p>
+                                <div class="bg-purple-50 dark:bg-purple-900/30 p-3 rounded-lg">
+                                    <ul class="text-sm text-purple-700 dark:text-purple-300 space-y-1">
+                                        <li>💬 Propón intercambios alternativos</li>
+                                        <li>📨 Recibe notificaciones en tu Buzón</li>
+                                        <li>👁️ Ve los detalles completos de cada propuesta</li>
+                                        <li>✅ Acepta, rechaza o contraoferta</li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <div class="border-l-4 border-yellow-500 pl-4">
+                                <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">5. Sistema de Valoraciones</h4>
+                                <p class="text-gray-600 dark:text-gray-400 mb-3">Valora a otros usuarios después de completar intercambios.</p>
+                                <div class="bg-yellow-50 dark:bg-yellow-900/30 p-3 rounded-lg">
+                                    <p class="text-sm text-yellow-700 dark:text-yellow-300">
+                                        <strong>🎯 Sistema Pokéball:</strong> Valora de 1 a 5 usando Pokéballs 
+                                        (Premier, Poké, Great, Ultra, Master Ball). Las valoraciones aparecen en tu perfil.
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -8549,14 +8590,61 @@
                 <!-- Contenido de Intercambios -->
                 <div id="helpTradingContent" class="help-tab-content hidden">
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                        <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
-                            <span class="icon mr-2">🤝</span> Guía de Intercambios
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
+                            <span class="icon mr-2">🤝</span> Guía Completa de Intercambios
                         </h3>
                         
                         <div class="space-y-6">
-                            <div class="bg-gray-50 p-4 rounded-lg">
-                                <h4 class="text-lg font-semibold text-gray-800 mb-3">¿Cómo Funcionan los Intercambios?</h4>
-                                <p class="text-gray-600 mb-3">Los intercambios en TCGtrade te permiten intercambiar cartas con otros coleccionistas de forma segura y transparente.</p>
+                            <div class="bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 p-4 rounded-lg">
+                                <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">📋 Crear un Intercambio</h4>
+                                <div class="space-y-3">
+                                    <div class="bg-white/70 dark:bg-gray-800/70 p-3 rounded">
+                                        <h5 class="font-medium text-gray-700 dark:text-gray-300 mb-2">Métodos de Selección:</h5>
+                                        <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                            <li>• <strong>Búsqueda API:</strong> Escribe el nombre y selecciona de los resultados</li>
+                                            <li>• <strong>Desde Mis Cartas:</strong> Click en "📚 Desde Mis Cartas" para tu colección</li>
+                                            <li>• <strong>Bloqueo Inteligente:</strong> Las cartas de API se bloquean al añadir, las de colección se bloquean automáticamente</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 p-4 rounded-lg">
+                                <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">💬 Sistema de Propuestas</h4>
+                                <div class="grid md:grid-cols-2 gap-3">
+                                    <div class="bg-white/70 dark:bg-gray-800/70 p-3 rounded">
+                                        <h5 class="font-medium text-green-700 dark:text-green-300 mb-2">Enviar Propuesta:</h5>
+                                        <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                            <li>1. Click en "Ver" en un intercambio</li>
+                                            <li>2. Click en "Proponer Intercambio"</li>
+                                            <li>3. Ofrece tus cartas</li>
+                                            <li>4. Añade un mensaje opcional</li>
+                                        </ul>
+                                    </div>
+                                    <div class="bg-white/70 dark:bg-gray-800/70 p-3 rounded">
+                                        <h5 class="font-medium text-green-700 dark:text-green-300 mb-2">Gestionar Propuestas:</h5>
+                                        <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                            <li>• Ve al Buzón para ver propuestas</li>
+                                            <li>• Acepta, rechaza o contraoferta</li>
+                                            <li>• Recibe notificaciones automáticas</li>
+                                            <li>• Ve detalles completos con imágenes</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="bg-gradient-to-r from-orange-50 to-red-50 dark:from-orange-900/20 dark:to-red-900/20 p-4 rounded-lg">
+                                <h4 class="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">📊 Contador de Ofertas</h4>
+                                <p class="text-gray-600 dark:text-gray-400 mb-3">En los resultados de búsqueda, verás cuántas personas ofrecen cada carta:</p>
+                                <div class="bg-white/70 dark:bg-gray-800/70 p-3 rounded">
+                                    <ul class="text-sm text-gray-600 dark:text-gray-400 space-y-1">
+                                        <li>• Click en el número de "Ofrecidas" para ver quién las ofrece</li>
+                                        <li>• Ve qué buscan a cambio</li>
+                                        <li>• Contacta directamente con los usuarios</li>
+                                        <li>• Encuentra intercambios más fácilmente</li>
+                                    </ul>
+                                </div>
+                            </div>
                                 
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                                     <div class="bg-white p-3 rounded border">
@@ -8767,56 +8855,122 @@
                 <!-- Contenido de FAQ -->
                 <div id="helpFAQContent" class="help-tab-content hidden">
                     <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                        <h3 class="text-xl font-bold text-gray-800 mb-6 flex items-center">
-                            <span class="icon mr-2">❓</span> Preguntas Frecuentes (FAQ)
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
+                            <span class="icon mr-2">❓</span> Preguntas Frecuentes Actualizadas
                         </h3>
                         
                         <div class="space-y-4">
-                            <div class="border border-gray-200 rounded-lg">
-                                <button class="faq-question w-full px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-lg">
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg">
+                                <button class="faq-question w-full px-4 py-3 text-left bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-lg">
                                     <div class="flex justify-between items-center">
-                                        <span class="font-semibold text-gray-800">¿Cómo puedo empezar a intercambiar cartas?</span>
-                                        <span class="text-gray-500">+</span>
+                                        <span class="font-semibold text-gray-800 dark:text-gray-200">🚀 ¿Cómo empiezo en TCGtrade?</span>
+                                        <span class="text-gray-500 dark:text-gray-400">+</span>
                                     </div>
                                 </button>
-                                <div class="faq-answer hidden px-4 py-3 border-t">
-                                    <p class="text-gray-600">Primero crea tu cuenta, luego busca cartas y añádelas a tu colección. Una vez que tengas cartas, puedes crear intercambios o responder a los de otros usuarios.</p>
+                                <div class="faq-answer hidden px-4 py-3 border-t dark:border-gray-700">
+                                    <p class="text-gray-600 dark:text-gray-400">
+                                        1. Regístrate con email y nombre de usuario<br>
+                                        2. Busca cartas y añádelas a tu colección<br>
+                                        3. Crea intercambios o responde a propuestas<br>
+                                        4. Usa el Buzón para gestionar notificaciones<br>
+                                        5. Valora a otros usuarios con Pokéballs
+                                    </p>
                                 </div>
                             </div>
 
-                            <div class="border border-gray-200 rounded-lg">
-                                <button class="faq-question w-full px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-lg">
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg">
+                                <button class="faq-question w-full px-4 py-3 text-left bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-lg">
                                     <div class="flex justify-between items-center">
-                                        <span class="font-semibold text-gray-800">¿Qué significa NM, EX, GD en las condiciones?</span>
-                                        <span class="text-gray-500">+</span>
+                                        <span class="font-semibold text-gray-800 dark:text-gray-200">💬 ¿Cómo funciona el sistema de propuestas?</span>
+                                        <span class="text-gray-500 dark:text-gray-400">+</span>
                                     </div>
                                 </button>
-                                <div class="faq-answer hidden px-4 py-3 border-t">
-                                    <p class="text-gray-600">Son las siglas del sistema de condiciones de CardMarket: NM = Near Mint, EX = Excellent, GD = Good. Puedes ver la guía completa en la sección "Condiciones de Cartas".</p>
+                                <div class="faq-answer hidden px-4 py-3 border-t dark:border-gray-700">
+                                    <p class="text-gray-600 dark:text-gray-400">
+                                        Ve un intercambio → Click en "Proponer Intercambio" → Ofrece tus cartas → 
+                                        El dueño recibe notificación en su Buzón → Puede aceptar, rechazar o contraoferta → 
+                                        Recibes respuesta en tu Buzón. Todo con imágenes de cartas y detalles completos.
+                                    </p>
                                 </div>
                             </div>
 
-                            <div class="border border-gray-200 rounded-lg">
-                                <button class="faq-question w-full px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-lg">
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg">
+                                <button class="faq-question w-full px-4 py-3 text-left bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-lg">
                                     <div class="flex justify-between items-center">
-                                        <span class="font-semibold text-gray-800">¿Es seguro intercambiar cartas aquí?</span>
-                                        <span class="text-gray-500">+</span>
+                                        <span class="font-semibold text-gray-800 dark:text-gray-200">🎯 ¿Qué son las valoraciones con Pokéballs?</span>
+                                        <span class="text-gray-500 dark:text-gray-400">+</span>
                                     </div>
                                 </button>
-                                <div class="faq-answer hidden px-4 py-3 border-t">
-                                    <p class="text-gray-600">Sí, pero siempre toma precauciones: usa fotos detalladas, comunícate claramente, y usa métodos de envío con seguimiento. La comunidad se basa en la confianza mutua.</p>
+                                <div class="faq-answer hidden px-4 py-3 border-t dark:border-gray-700">
+                                    <p class="text-gray-600 dark:text-gray-400">
+                                        Sistema único de valoración: 1⭐ Premier Ball (blanca), 2⭐ Poké Ball (roja), 
+                                        3⭐ Great Ball (azul), 4⭐ Ultra Ball (negra), 5⭐ Master Ball (morada). 
+                                        Las valoraciones aparecen en tu perfil con promedio y reseñas.
+                                    </p>
                                 </div>
                             </div>
 
-                            <div class="border border-gray-200 rounded-lg">
-                                <button class="faq-question w-full px-4 py-3 text-left bg-gray-50 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-lg">
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg">
+                                <button class="faq-question w-full px-4 py-3 text-left bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-lg">
                                     <div class="flex justify-between items-center">
-                                        <span class="font-semibold text-gray-800">¿Puedo cambiar mi nombre de usuario?</span>
-                                        <span class="text-gray-500">+</span>
+                                        <span class="font-semibold text-gray-800 dark:text-gray-200">📚 ¿Cómo añado cartas desde mi colección?</span>
+                                        <span class="text-gray-500 dark:text-gray-400">+</span>
                                     </div>
                                 </button>
-                                <div class="faq-answer hidden px-4 py-3 border-t">
-                                    <p class="text-gray-600">Por el momento, el nombre de usuario no se puede cambiar una vez creado. Elige cuidadosamente al registrarte.</p>
+                                <div class="faq-answer hidden px-4 py-3 border-t dark:border-gray-700">
+                                    <p class="text-gray-600 dark:text-gray-400">
+                                        En crear/modificar intercambio: Click en "📚 Desde Mis Cartas" → 
+                                        Selecciona de tu colección → Las cartas se bloquean automáticamente → 
+                                        Las imágenes y datos se copian. También funciona en propuestas.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg">
+                                <button class="faq-question w-full px-4 py-3 text-left bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-lg">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-semibold text-gray-800 dark:text-gray-200">🔍 ¿Qué es el contador de "Ofrecidas"?</span>
+                                        <span class="text-gray-500 dark:text-gray-400">+</span>
+                                    </div>
+                                </button>
+                                <div class="faq-answer hidden px-4 py-3 border-t dark:border-gray-700">
+                                    <p class="text-gray-600 dark:text-gray-400">
+                                        En búsquedas, verás cuántas personas ofrecen cada carta. 
+                                        Click en el número para ver quién las tiene y qué buscan a cambio. 
+                                        Facilita encontrar intercambios compatibles.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg">
+                                <button class="faq-question w-full px-4 py-3 text-left bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-lg">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-semibold text-gray-800 dark:text-gray-200">🌙 ¿Cómo activo el modo oscuro?</span>
+                                        <span class="text-gray-500 dark:text-gray-400">+</span>
+                                    </div>
+                                </button>
+                                <div class="faq-answer hidden px-4 py-3 border-t dark:border-gray-700">
+                                    <p class="text-gray-600 dark:text-gray-400">
+                                        Ve a tu Perfil → Configuración → Activa "Modo Oscuro". 
+                                        Se guarda automáticamente y persiste entre sesiones. 
+                                        Todos los modales y secciones son compatibles.
+                                    </p>
+                                </div>
+                            </div>
+
+                            <div class="border border-gray-200 dark:border-gray-700 rounded-lg">
+                                <button class="faq-question w-full px-4 py-3 text-left bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-400 rounded-lg">
+                                    <div class="flex justify-between items-center">
+                                        <span class="font-semibold text-gray-800 dark:text-gray-200">📧 ¿Cómo recupero mi contraseña?</span>
+                                        <span class="text-gray-500 dark:text-gray-400">+</span>
+                                    </div>
+                                </button>
+                                <div class="faq-answer hidden px-4 py-3 border-t dark:border-gray-700">
+                                    <p class="text-gray-600 dark:text-gray-400">
+                                        En la pantalla de login → Click en "¿Olvidaste tu contraseña?" → 
+                                        Ingresa tu email → Recibirás un enlace de recuperación. 
+                                        Revisa spam si no llega.
+                                    </p>
                                 </div>
                             </div>
 
@@ -8831,6 +8985,108 @@
                                     <p class="text-gray-600">Primero intenta resolverlo directamente con el otro usuario. Si no es posible, contacta con nuestro soporte técnico usando el botón "Contactar Soporte".</p>
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contenido de Novedades -->
+                <div id="helpNewFeaturesContent" class="help-tab-content hidden">
+                    <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
+                        <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
+                            <span class="icon mr-2">✨</span> Funcionalidades Nuevas de TCGtrade
+                        </h3>
+                        
+                        <div class="space-y-6">
+                            <!-- Sistema de Buzón -->
+                            <div class="bg-gradient-to-r from-purple-100 to-pink-100 dark:from-purple-900/30 dark:to-pink-900/30 p-4 rounded-lg">
+                                <h4 class="text-lg font-bold text-purple-800 dark:text-purple-200 mb-3 flex items-center">
+                                    📨 Sistema de Buzón Completo
+                                </h4>
+                                <ul class="space-y-2 text-gray-700 dark:text-gray-300">
+                                    <li>✅ <strong>Notificaciones:</strong> Recibe alertas de nuevas propuestas y respuestas</li>
+                                    <li>✅ <strong>Propuestas Recibidas:</strong> Gestiona todas las ofertas que recibes</li>
+                                    <li>✅ <strong>Propuestas Enviadas:</strong> Rastrea tus propuestas activas</li>
+                                    <li>✅ <strong>Badge de Notificaciones:</strong> Contador visual en el menú</li>
+                                </ul>
+                            </div>
+
+                            <!-- Sistema de Valoraciones -->
+                            <div class="bg-gradient-to-r from-yellow-100 to-orange-100 dark:from-yellow-900/30 dark:to-orange-900/30 p-4 rounded-lg">
+                                <h4 class="text-lg font-bold text-yellow-800 dark:text-yellow-200 mb-3 flex items-center">
+                                    <img src="https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png" 
+                                         class="w-6 h-6 mr-2" alt="Master Ball">
+                                    Sistema de Valoraciones con Pokéballs
+                                </h4>
+                                <ul class="space-y-2 text-gray-700 dark:text-gray-300">
+                                    <li>✅ Valora de 1-5 con Pokéballs reales (Premier → Master)</li>
+                                    <li>✅ Pestaña dedicada en el perfil con historial</li>
+                                    <li>✅ Promedio visual con imágenes de Pokéballs</li>
+                                    <li>✅ Reseñas con comentarios y fecha</li>
+                                    <li>✅ Estadísticas detalladas por tipo de Pokéball</li>
+                                </ul>
+                            </div>
+
+                            <!-- Mejoras en Intercambios -->
+                            <div class="bg-gradient-to-r from-green-100 to-emerald-100 dark:from-green-900/30 dark:to-emerald-900/30 p-4 rounded-lg">
+                                <h4 class="text-lg font-bold text-green-800 dark:text-green-200 mb-3 flex items-center">
+                                    🔄 Mejoras en Sistema de Intercambios
+                                </h4>
+                                <ul class="space-y-2 text-gray-700 dark:text-gray-300">
+                                    <li>✅ <strong>Selección desde Mi Colección:</strong> Añade cartas directamente</li>
+                                    <li>✅ <strong>Bloqueo Inteligente:</strong> Campos se bloquean según origen</li>
+                                    <li>✅ <strong>Vista Detallada:</strong> Modal con imágenes grandes y detalles</li>
+                                    <li>✅ <strong>Propuestas con Imágenes:</strong> Todas las cartas muestran sus imágenes</li>
+                                    <li>✅ <strong>Modificación Flexible:</strong> Edita intercambios existentes</li>
+                                </ul>
+                            </div>
+
+                            <!-- Contador de Ofrecidas -->
+                            <div class="bg-gradient-to-r from-blue-100 to-indigo-100 dark:from-blue-900/30 dark:to-indigo-900/30 p-4 rounded-lg">
+                                <h4 class="text-lg font-bold text-blue-800 dark:text-blue-200 mb-3 flex items-center">
+                                    📊 Contador de Cartas Ofrecidas
+                                </h4>
+                                <ul class="space-y-2 text-gray-700 dark:text-gray-300">
+                                    <li>✅ Ve cuántas personas ofrecen cada carta</li>
+                                    <li>✅ Click para ver lista de usuarios</li>
+                                    <li>✅ Descubre qué buscan a cambio</li>
+                                    <li>✅ Encuentra intercambios compatibles rápidamente</li>
+                                </ul>
+                            </div>
+
+                            <!-- Mejoras de UX -->
+                            <div class="bg-gradient-to-r from-gray-100 to-slate-100 dark:from-gray-900/30 dark:to-slate-900/30 p-4 rounded-lg">
+                                <h4 class="text-lg font-bold text-gray-800 dark:text-gray-200 mb-3 flex items-center">
+                                    🎨 Mejoras de Experiencia de Usuario
+                                </h4>
+                                <ul class="space-y-2 text-gray-700 dark:text-gray-300">
+                                    <li>✅ <strong>Modo Oscuro Persistente:</strong> Se mantiene entre sesiones</li>
+                                    <li>✅ <strong>Recuperación de Contraseña:</strong> Por email con enlace</li>
+                                    <li>✅ <strong>Enter para Login:</strong> Presiona Enter para iniciar sesión</li>
+                                    <li>✅ <strong>Notificaciones Personalizadas:</strong> Diseño moderno sin alerts</li>
+                                    <li>✅ <strong>Idiomas Adicionales:</strong> Chino y Coreano disponibles</li>
+                                    <li>✅ <strong>Condición Mint:</strong> Añadida a todas las selecciones</li>
+                                </ul>
+                            </div>
+
+                            <!-- Seguridad -->
+                            <div class="bg-gradient-to-r from-red-100 to-rose-100 dark:from-red-900/30 dark:to-rose-900/30 p-4 rounded-lg">
+                                <h4 class="text-lg font-bold text-red-800 dark:text-red-200 mb-3 flex items-center">
+                                    🔒 Mejoras de Seguridad
+                                </h4>
+                                <ul class="space-y-2 text-gray-700 dark:text-gray-300">
+                                    <li>✅ Solo puedes modificar tus propios intercambios</li>
+                                    <li>✅ Validación de propietario en todas las acciones</li>
+                                    <li>✅ Logout limpia todos los datos sensibles</li>
+                                    <li>✅ Nombres de usuario únicos y bloqueados</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="mt-8 p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 rounded-lg">
+                            <p class="text-center text-gray-700 dark:text-gray-300">
+                                <strong>🚀 TCGtrade evoluciona constantemente</strong><br>
+                                <span class="text-sm">Estas funcionalidades han sido añadidas recientemente para mejorar tu experiencia</span>
+                            </p>
                         </div>
                     </div>
                 </div>
