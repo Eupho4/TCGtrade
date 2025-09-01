@@ -2622,11 +2622,18 @@
                             </p>
                         ` : `
                             <div class="space-y-2">
-                                ${userCards.map(card => {
-                                    const safeCardName = (card.name || '').replace(/'/g, "\\'");
-                                    const safeImageUrl = (card.image || '').replace(/'/g, "\\'");
-                                    const safeSet = (card.set || '').replace(/'/g, "\\'");
-                                    const safeNumber = (card.number || '').replace(/'/g, "\\'");
+                                ${userCards.map((card, idx) => {
+                                    // Guardar los datos en un atributo data para evitar problemas con las comillas
+                                    const cardDataStr = JSON.stringify({
+                                        type: type,
+                                        id: card.id,
+                                        name: card.name || '',
+                                        image: card.image || '',
+                                        set: card.set || '',
+                                        number: card.number || '',
+                                        language: card.language || 'Español',
+                                        condition: card.condition || 'NM'
+                                    });
                                     
                                     return `
                                         <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600">
@@ -2643,7 +2650,8 @@
                                                     ${card.set || 'Set desconocido'} • ${card.condition || 'NM'} • ${card.language || 'Español'}
                                                 </div>
                                             </div>
-                                            <button onclick="selectFromMyCardsToProposal('${type}', '${card.id}', '${safeCardName}', '${safeImageUrl}', '${safeSet}', '${safeNumber}', '${card.language || 'Español'}', '${card.condition || 'NM'}'); this.closest('.fixed').remove();"
+                                            <button data-card='${cardDataStr.replace(/'/g, "&apos;")}' 
+                                                    onclick="const data = JSON.parse(this.getAttribute('data-card').replace(/&apos;/g, &quot;'&quot;)); selectFromMyCardsToProposal(data.type, data.id, data.name, data.image, data.set, data.number, data.language, data.condition); this.closest('.fixed').remove();"
                                                     class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-semibold">
                                                 Seleccionar
                                             </button>
@@ -2667,7 +2675,15 @@
         
         // Función para seleccionar carta desde Mis Cartas para propuesta
         window.selectFromMyCardsToProposal = function(type, cardId, cardName, cardImage, setName, cardNumber, language, condition) {
-            const container = document.getElementById(`proposal${type === 'offered' ? 'Offered' : 'Wanted'}CardsContainer`);
+            const containerId = `proposal${type === 'offered' ? 'Offered' : 'Wanted'}CardsContainer`;
+            const container = document.getElementById(containerId);
+            
+            if (!container) {
+                console.error('❌ No se encontró el contenedor:', containerId);
+                showNotification('Error al añadir la carta. Por favor, intenta de nuevo.', 'error');
+                return;
+            }
+            
             const index = container.children.length;
             
             // Crear los datos de la carta
@@ -2685,6 +2701,9 @@
             // Crear el HTML de la carta (bloqueada porque viene de Mis Cartas)
             const cardHtml = createProposalCardInput(type, index, cardData, true);
             container.insertAdjacentHTML('beforeend', cardHtml);
+            
+            // Mostrar notificación de éxito
+            showNotification('Carta añadida desde tu colección', 'success', 2000);
         };
         
         // Función para manejar el envío de la propuesta
