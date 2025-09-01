@@ -6242,6 +6242,23 @@
             try {
                 console.log('🚪 Cerrando sesión...');
                 
+                // Limpiar sistema de chat antes de cerrar sesión
+                if (window.chatManager) {
+                    window.chatManager.disconnectAll();
+                    window.chatManager = null;
+                }
+                if (window.chatUI) {
+                    // Cerrar todas las ventanas de chat abiertas
+                    const chatWindows = document.querySelectorAll('[id^="chat-window-"]');
+                    chatWindows.forEach(window => window.remove());
+                    
+                    // Limpiar barra de chats minimizados
+                    const minimizedBar = document.getElementById('minimized-chats-bar');
+                    if (minimizedBar) minimizedBar.remove();
+                    
+                    window.chatUI = null;
+                }
+                
                 // Cerrar sesión en Firebase
                 await signOut(auth);
                 
@@ -6271,12 +6288,14 @@
                 const interchangesSection = document.getElementById('interchangesSection');
                 const helpSection = document.getElementById('helpSection');
                 const searchResultsSection = document.getElementById('searchResultsSection');
+                const inboxSection = document.getElementById('inboxSection');
                 
                 if (profileSection) profileSection.classList.add('hidden');
                 if (myCardsSection) myCardsSection.classList.add('hidden');
                 if (interchangesSection) interchangesSection.classList.add('hidden');
                 if (helpSection) helpSection.classList.add('hidden');
                 if (searchResultsSection) searchResultsSection.classList.add('hidden');
+                if (inboxSection) inboxSection.classList.add('hidden');
                 
                 // Mostrar la pantalla inicial (hero y how it works)
                 showInitialSections();
@@ -6289,9 +6308,7 @@
                 window.scrollTo(0, 0);
                 
                 console.log('✅ Sesión cerrada exitosamente');
-                
-                // Opcional: Mostrar mensaje de confirmación
-                // alert('Has cerrado sesión exitosamente');
+                showNotification('Has cerrado sesión exitosamente', 'success', 3000);
                 
             } catch (error) {
                 console.error('❌ Error al cerrar sesión:', error);
@@ -7164,6 +7181,15 @@
                     chatUI = null;
                 }
 
+                // Obtener referencias a los elementos de navegación
+                const loginNavLink = document.getElementById('loginNavLink');
+                const registerNavLink = document.getElementById('registerNavLink');
+                const logoutNavLink = document.getElementById('logoutNavLink');
+                const profileNavLink = document.getElementById('profileNavLink');
+                const myCardsNavLink = document.getElementById('myCardsNavLink');
+                const inboxNavLink = document.getElementById('inboxNavLink');
+                const chatNavLink = document.getElementById('chatNavLink');
+
                 // Mis Cartas siempre visible
                 if (myCardsNavLink) myCardsNavLink.classList.remove('hidden');
 
@@ -7175,9 +7201,7 @@
                     // Mi Perfil siempre visible (funciona diferente según estado)
                     if (profileNavLink) profileNavLink.classList.remove('hidden');
                     // Mostrar buzón y chat para usuarios autenticados
-                    const inboxNavLink = document.getElementById('inboxNavLink');
                     if (inboxNavLink) inboxNavLink.classList.remove('hidden');
-                    const chatNavLink = document.getElementById('chatNavLink');
                     if (chatNavLink) chatNavLink.classList.remove('hidden');
                     
                     // Actualizar badge de notificaciones
@@ -7205,9 +7229,9 @@
                     if (loginNavLink) loginNavLink.classList.remove('hidden');
                     if (registerNavLink) registerNavLink.classList.remove('hidden');
                     if (logoutNavLink) logoutNavLink.classList.add('hidden');
-                    // Ocultar chat para usuarios no autenticados
-                    const chatNavLink = document.getElementById('chatNavLink');
+                    // Ocultar chat y buzón para usuarios no autenticados
                     if (chatNavLink) chatNavLink.classList.add('hidden');
+                    if (inboxNavLink) inboxNavLink.classList.add('hidden');
                     // Mi Perfil siempre visible (redirige a login si no está conectado)
                     if (profileNavLink) profileNavLink.classList.remove('hidden');
                     
