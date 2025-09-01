@@ -2176,20 +2176,27 @@
                 // Obtener el intercambio para conseguir información del usuario
                 const trade = findTradeById(tradeId);
                 let otherUserName = 'Usuario';
+                let isMyTrade = false;
                 
                 if (trade) {
-                    // Usar el nombre de usuario del intercambio si está disponible
-                    otherUserName = trade.user || trade.userName || trade.creatorName || 'Usuario';
+                    // Determinar si soy el creador del intercambio
+                    isMyTrade = trade.userId === currentUser.uid;
                     
-                    // Si no tenemos el ID del otro usuario, intentar obtenerlo
-                    if (!otherUserId) {
+                    if (isMyTrade) {
+                        // Si es mi intercambio, el "otro usuario" es quien quiera contactarme
+                        // Por ahora usamos un nombre genérico
+                        otherUserName = 'Interesado';
+                        otherUserId = otherUserId || 'interested_user';
+                    } else {
+                        // Si no es mi intercambio, el otro usuario es el creador
+                        otherUserName = trade.user || trade.userName || trade.creatorName || 'Usuario';
                         otherUserId = trade.userId || trade.creatorId || 'unknown';
                     }
-                }
-                
-                // Si el nombre es un email, usar solo la parte antes del @
-                if (otherUserName.includes('@')) {
-                    otherUserName = otherUserName.split('@')[0];
+                    
+                    // Si el nombre es un email, usar solo la parte antes del @
+                    if (otherUserName.includes('@')) {
+                        otherUserName = otherUserName.split('@')[0];
+                    }
                 }
                 
                 console.log('📨 Inicializando chat:', { tradeId, otherUserId, otherUserName });
