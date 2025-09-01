@@ -10,62 +10,104 @@ class ChatUI {
         this.activeChats = new Map(); // Almacenar chats activos
         this.minimizedChats = new Set(); // Chats minimizados
         this.createMinimizedBar(); // Crear barra de chats minimizados
-        this.loadPersistedChats(); // Cargar chats guardados de sesiones anteriores
+        // No cargar chats aquí, se hará después de la autenticación
     }
     
     // Guardar estado de chats en localStorage
     saveChatsState() {
-        const chatsState = {
-            activeChats: [],
-            minimizedChats: []
-        };
-        
-        // Guardar chats activos
-        this.activeChats.forEach((chatData, chatId) => {
-            chatsState.activeChats.push({
-                chatId: chatId,
-                otherUserName: chatData.otherUserName,
-                tradeTitle: chatData.tradeTitle,
-                isMinimized: this.minimizedChats.has(chatId)
+        try {
+            if (!this.chatManager || !this.chatManager.auth || !this.chatManager.auth.currentUser) {
+                console.log('⚠️ No se puede guardar estado: usuario no autenticado');
+                return;
+            }
+            
+            const chatsState = {
+                activeChats: [],
+                minimizedChats: [],
+                timestamp: new Date().toISOString()
+            };
+            
+            // Guardar chats activos
+            this.activeChats.forEach((chatData, chatId) => {
+                const chatInfo = {
+                    chatId: chatId,
+                    otherUserName: chatData.otherUserName,
+                    tradeTitle: chatData.tradeTitle,
+                    isMinimized: this.minimizedChats.has(chatId)
+                };
+                chatsState.activeChats.push(chatInfo);
+                console.log('💾 Guardando chat:', chatInfo);
             });
-        });
-        
-        // Guardar en localStorage
-        if (this.chatManager.auth.currentUser) {
+            
+            // Guardar en localStorage
             const userId = this.chatManager.auth.currentUser.uid;
-            localStorage.setItem(`chatsState_${userId}`, JSON.stringify(chatsState));
+            const key = `chatsState_${userId}`;
+            localStorage.setItem(key, JSON.stringify(chatsState));
+            
+            console.log(`✅ Estado de chats guardado (${chatsState.activeChats.length} chats) en:`, key);
+            console.log('📦 Estado guardado:', chatsState);
+            
+        } catch (error) {
+            console.error('❌ Error al guardar estado de chats:', error);
         }
     }
     
     // Cargar chats persistidos de sesiones anteriores
     async loadPersistedChats() {
-        // Esperar un momento para asegurar que el usuario esté autenticado
-        setTimeout(async () => {
-            if (this.chatManager.auth.currentUser) {
-                const userId = this.chatManager.auth.currentUser.uid;
-                const savedState = localStorage.getItem(`chatsState_${userId}`);
+        console.log('🔄 Intentando cargar chats persistidos...');
+        
+        // Verificar que tenemos usuario autenticado
+        if (!this.chatManager || !this.chatManager.auth || !this.chatManager.auth.currentUser) {
+            console.log('⚠️ No hay usuario autenticado, no se pueden cargar chats');
+            return;
+        }
+        
+        const userId = this.chatManager.auth.currentUser.uid;
+        console.log('👤 Cargando chats para usuario:', userId);
+        
+        const savedState = localStorage.getItem(`chatsState_${userId}`);
+        
+        if (!savedState) {
+            console.log('📭 No hay chats guardados para este usuario');
+            return;
+        }
+        
+        try {
+            const chatsState = JSON.parse(savedState);
+            console.log('📂 Chats guardados encontrados:', chatsState);
+            
+            if (!chatsState.activeChats || chatsState.activeChats.length === 0) {
+                console.log('📭 No hay chats activos guardados');
+                return;
+            }
+            
+            console.log(`📬 Restaurando ${chatsState.activeChats.length} chats...`);
+            
+            // Restaurar cada chat
+            for (const chat of chatsState.activeChats) {
+                console.log('💬 Restaurando chat:', chat);
                 
-                if (savedState) {
-                    try {
-                        const chatsState = JSON.parse(savedState);
-                        console.log('📂 Restaurando chats guardados:', chatsState);
-                        
-                        // Restaurar cada chat
-                        for (const chat of chatsState.activeChats) {
-                            // Recrear la ventana de chat
-                            await this.openChat(chat.chatId, chat.otherUserName, chat.tradeTitle);
-                            
-                            // Si estaba minimizado, minimizarlo
-                            if (chat.isMinimized) {
-                                this.minimizeChat(chat.chatId);
-                            }
-                        }
-                    } catch (error) {
-                        console.error('Error al restaurar chats:', error);
+                try {
+                    // Recrear la ventana de chat
+                    await this.openChat(chat.chatId, chat.otherUserName, chat.tradeTitle);
+                    
+                    // Si estaba minimizado, minimizarlo
+                    if (chat.isMinimized) {
+                        console.log('📥 Minimizando chat:', chat.chatId);
+                        this.minimizeChat(chat.chatId);
                     }
+                } catch (chatError) {
+                    console.error('❌ Error al restaurar chat individual:', chatError);
                 }
             }
-        }, 1000); // Esperar 1 segundo para asegurar autenticación
+            
+            console.log('✅ Chats restaurados exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error al parsear chats guardados:', error);
+            // Limpiar estado corrupto
+            localStorage.removeItem(`chatsState_${userId}`);
+        }
     }
 
     // Crear ventana de chat flotante
