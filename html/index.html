@@ -1970,6 +1970,10 @@
 
             let tradesHTML = '';
             trades.forEach(trade => {
+                // Escapar valores para usar en onclick
+                const escapedTitle = (trade.title || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
+                const escapedUserId = (trade.userId || '').replace(/'/g, "\\'");
+                
                 tradesHTML += `
                     <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 hover:border-orange-300 dark:hover:border-orange-400 transition-colors">
                         <div class="flex justify-between items-start mb-3">
@@ -2037,7 +2041,7 @@
                                     <button class="btn-primary px-3 py-1 rounded text-xs" onclick="proposeTrade('${trade.id}')">
                                         💬 Proponer
                                     </button>
-                                    <button class="btn-secondary px-3 py-1 rounded text-xs" onclick="openTradeChat('${trade.id}', '${trade.userId || ''}', '${trade.title}')">
+                                    <button class="btn-secondary px-3 py-1 rounded text-xs" onclick="openTradeChat('${trade.id}', '${escapedUserId}', '${escapedTitle}')">
                                         💭 Chat
                                     </button>
                                     <button class="btn-secondary px-3 py-1 rounded text-xs" onclick="viewTradeDetails('${trade.id}')">
@@ -2151,8 +2155,10 @@
             }
         }
 
-        // Función para abrir chat de intercambio
-        async function openTradeChat(tradeId, otherUserId, tradeTitle) {
+        // Función para abrir chat de intercambio (disponible globalmente)
+        window.openTradeChat = async function(tradeId, otherUserId, tradeTitle) {
+            console.log('🔍 openTradeChat llamado con:', { tradeId, otherUserId, tradeTitle });
+            
             if (!currentUser) {
                 showNotification('Debes iniciar sesión para usar el chat', 'warning');
                 showAuthModal('login');
@@ -2160,7 +2166,8 @@
             }
 
             if (!chatManager || !chatUI) {
-                showNotification('El sistema de chat no está disponible', 'error');
+                console.error('Chat no inicializado:', { chatManager, chatUI });
+                showNotification('El sistema de chat no está disponible. Por favor, recarga la página.', 'error');
                 return;
             }
 
@@ -2176,6 +2183,8 @@
                 // Generar nombre del otro usuario
                 const otherUserName = otherUserId === 'unknown' ? 'Usuario' : `Usuario_${otherUserId.substring(0, 6)}`;
                 
+                console.log('📨 Inicializando chat:', { tradeId, otherUserId, otherUserName });
+                
                 // Inicializar chat para este intercambio
                 const chatId = await chatManager.initializeTradeChat(tradeId, otherUserId, otherUserName);
                 
@@ -2190,14 +2199,13 @@
                 // Marcar mensajes como leídos
                 await chatManager.markMessagesAsRead(chatId);
                 
+                console.log('✅ Chat abierto exitosamente');
+                
             } catch (error) {
-                console.error('Error al abrir chat:', error);
-                showNotification('Error al abrir el chat', 'error');
+                console.error('❌ Error al abrir chat:', error);
+                showNotification('Error al abrir el chat: ' + error.message, 'error');
             }
-        }
-        
-        // Hacer la función disponible globalmente
-        window.openTradeChat = openTradeChat;
+        };
 
         function proposeTrade(tradeId) {
             console.log('💬 Proponiendo intercambio:', tradeId);
