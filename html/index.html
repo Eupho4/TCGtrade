@@ -2620,8 +2620,13 @@
             const snapshot = await getDocs(cardsRef);
             const userCards = [];
             snapshot.forEach(doc => {
-                userCards.push({ id: doc.id, ...doc.data() });
+                const cardData = doc.data();
+                console.log('📦 Carta cargada desde Firebase:', cardData);
+                userCards.push({ id: doc.id, ...cardData });
             });
+            
+            console.log('📚 Total de cartas cargadas:', userCards.length);
+            console.log('🎴 Primera carta (ejemplo):', userCards[0]);
             
             // Guardar las cartas en el window para acceso fácil
             window.tempProposalCards = userCards;
@@ -2640,10 +2645,16 @@
                             </p>
                         ` : `
                             <div class="space-y-2">
-                                ${userCards.map((card, idx) => `
+                                ${userCards.map((card, idx) => {
+                                    const cardImage = card.image || card.imageUrl || card.cardImage || card.imageSmall || '';
+                                    return `
                                     <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600">
-                                        ${card.image ? `
-                                            <img src="${card.image}" alt="${card.name}" class="w-12 h-16 object-contain rounded">
+                                        ${cardImage ? `
+                                            <img src="${cardImage}" alt="${card.name}" class="w-12 h-16 object-contain rounded"
+                                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                            <div class="w-12 h-16 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center" style="display:none;">
+                                                <span class="text-xl">🎴</span>
+                                            </div>
                                         ` : `
                                             <div class="w-12 h-16 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center">
                                                 <span class="text-xl">🎴</span>
@@ -2661,7 +2672,8 @@
                                             Seleccionar
                                         </button>
                                     </div>
-                                `).join('')}
+                                    `;
+                                }).join('')}
                             </div>
                         `}
                     </div>
@@ -2690,12 +2702,23 @@
             
             console.log('🎴 Carta seleccionada:', card);
             
+            // Buscar el campo de imagen correcto
+            const imageUrl = card.image || card.imageUrl || card.cardImage || card.imageSmall || '';
+            
+            console.log('🖼️ Buscando imagen:', {
+                'card.image': card.image,
+                'card.imageUrl': card.imageUrl,
+                'card.cardImage': card.cardImage,
+                'card.imageSmall': card.imageSmall,
+                'Imagen final': imageUrl
+            });
+            
             // Llamar a la función original con los datos correctos
             selectFromMyCardsToProposal(
                 type,
                 card.id,
                 card.name || '',
-                card.image || '',
+                imageUrl,
                 card.set || '',
                 card.number || '',
                 card.language || 'Español',
