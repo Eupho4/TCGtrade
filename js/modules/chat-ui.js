@@ -285,6 +285,9 @@ class ChatUI {
             
             // Dejar de mostrar "escribiendo"
             this.chatManager.setTypingStatus(chatId, false);
+            
+            // Actualizar badge de chats
+            await this.updateChatBadge();
         } catch (error) {
             console.error('Error al enviar mensaje:', error);
             this.showNotification('Error al enviar el mensaje', 'error');
@@ -580,29 +583,70 @@ class ChatUI {
 
     // Mostrar lista de chats
     async showChatList() {
-        const chats = await this.chatManager.getUserChats();
+        // Eliminar modal anterior si existe
+        const existingModal = document.getElementById('chat-list-modal');
+        if (existingModal) {
+            existingModal.remove();
+        }
         
         const modal = document.createElement('div');
+        modal.id = 'chat-list-modal';
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
+        
+        // Función para actualizar la lista
+        const updateChatList = async () => {
+            const chats = await this.chatManager.getUserChats();
+            const container = document.getElementById('chat-list-container');
+            if (!container) return;
+            
+            if (chats.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400 py-8">No tienes conversaciones activas</p>';
+            } else {
+                container.innerHTML = chats.map(chat => this.createChatListItem(chat)).join('');
+            }
+            
+            // Actualizar contador en el título
+            const countBadge = document.getElementById('chat-list-count');
+            if (countBadge) {
+                countBadge.textContent = chats.length > 0 ? `(${chats.length})` : '';
+            }
+        };
         
         modal.innerHTML = `
             <div class="bg-white dark:bg-gray-800 rounded-lg max-w-2xl w-full max-h-[80vh] overflow-hidden">
                 <div class="bg-gradient-to-r from-orange-500 to-orange-600 text-white p-6">
                     <h2 class="text-2xl font-bold flex items-center">
-                        <span class="mr-3">💬</span> Mis Conversaciones
+                        <span class="mr-3">💬</span> 
+                        Mis Conversaciones 
+                        <span id="chat-list-count" class="ml-2 text-sm opacity-90"></span>
                     </h2>
+                    <p class="text-sm mt-2 opacity-90">Todos tus chats de intercambios activos</p>
                 </div>
                 
-                <div class="overflow-y-auto max-h-[60vh] p-4">
-                    ${chats.length === 0 ? 
-                        '<p class="text-center text-gray-500 dark:text-gray-400 py-8">No tienes conversaciones activas</p>' :
-                        chats.map(chat => this.createChatListItem(chat)).join('')
-                    }
+                <div id="chat-list-container" class="overflow-y-auto max-h-[60vh] p-4">
+                    <div class="text-center py-4">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
+                        <p class="text-gray-500 dark:text-gray-400 mt-2">Cargando chats...</p>
+                    </div>
                 </div>
                 
-                <div class="border-t border-gray-200 dark:border-gray-700 p-4">
-                    <button onclick="this.parentElement.parentElement.parentElement.remove()" 
-                            class="w-full px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold">
+                <div class="border-t border-gray-200 dark:border-gray-700 p-4 flex gap-2">
+                    <button onclick="(async () => {
+                        const btn = event.target;
+                        btn.disabled = true;
+                        btn.textContent = '⏳ Actualizando...';
+                        const container = document.getElementById('chat-list-container');
+                        if (container) {
+                            container.innerHTML = '<div class=\"text-center py-4\"><div class=\"inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500\"></div></div>';
+                        }
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        location.reload();
+                    })()" 
+                            class="flex-1 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold transition-all">
+                        🔄 Actualizar Todo
+                    </button>
+                    <button onclick="document.getElementById('chat-list-modal').remove()" 
+                            class="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold transition-all">
                         Cerrar
                     </button>
                 </div>
@@ -610,6 +654,33 @@ class ChatUI {
         `;
         
         document.body.appendChild(modal);
+        
+        // Cargar chats inicialmente
+        updateChatList();
+        
+        // Actualizar cada 2 segundos mientras el modal esté abierto (más frecuente)
+        this.chatListInterval = setInterval(() => {
+            if (document.getElementById('chat-list-modal')) {
+                updateChatList();
+            } else {
+                clearInterval(this.chatListInterval);
+            }
+        }, 2000);
+        
+        // También actualizar cuando se detecte un nuevo chat
+        const handleNewChat = () => {
+            console.log('📱 Nuevo chat detectado, actualizando lista...');
+            updateChatList();
+        };
+        window.addEventListener('chatCreated', handleNewChat);
+        
+        // Limpiar listeners cuando se cierre el modal
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal || (e.target.textContent && e.target.textContent.includes('Cerrar'))) {
+                window.removeEventListener('chatCreated', handleNewChat);
+                clearInterval(this.chatListInterval);
+            }
+        });
     }
 
     // Crear elemento de lista de chat
@@ -624,10 +695,15 @@ class ChatUI {
         }) : '';
         
         // Extraer el título del intercambio si existe
-        const tradeTitle = chat.tradeId ? `Intercambio #${chat.tradeId.substring(0, 8)}` : 'Chat';
+        const tradeId = chat.tradeId || chat.id.replace('trade_', '');
+        const tradeTitle = `Intercambio #${tradeId.substring(0, 8)}`;
         
         // Para chats de intercambio, usar el título del intercambio como nombre principal
-        const chatTitle = chat.isTradeChat ? tradeTitle : displayName;
+        const chatTitle = chat.isTradeChat || chat.id.startsWith('trade_') ? tradeTitle : displayName;
+        
+        // Contar participantes
+        const participantCount = chat.participants ? Object.keys(chat.participants).length : 0;
+        const participantText = participantCount > 0 ? `${participantCount} participante${participantCount > 1 ? 's' : ''}` : '';
         
         return `
             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
@@ -637,13 +713,14 @@ class ChatUI {
                         <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
                             <span class="text-xl">💬</span>
                         </div>
-                        <div>
+                        <div class="flex-1">
                             <h4 class="font-semibold text-gray-800 dark:text-white">
                                 ${chatTitle}
                             </h4>
                             <p class="text-sm text-gray-600 dark:text-gray-400">
                                 ${chat.lastMessage ? this.truncateText(chat.lastMessage, 40) : 'Sin mensajes'}
                             </p>
+                            ${participantText ? `<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${participantText}</p>` : ''}
                         </div>
                     </div>
                     <div class="text-right">
@@ -686,6 +763,15 @@ class ChatUI {
             
             // Marcar mensajes como leídos
             await this.chatManager.markMessagesAsRead(chatId);
+            
+            // Actualizar el badge del chat en la navegación
+            this.updateChatBadge();
+            
+            // Disparar evento de nuevo chat creado
+            window.dispatchEvent(new CustomEvent('chatCreated', {
+                detail: { chatId, otherUserName, tradeTitle }
+            }));
+            console.log('📢 Evento chatCreated disparado para:', chatId);
         } else {
             // Si ya existe, solo enfocarlo
             this.focusChatWindow(chatId);
@@ -701,6 +787,42 @@ class ChatUI {
         return div.innerHTML;
     }
 
+    // Actualizar badge del chat en la navegación
+    async updateChatBadge() {
+        try {
+            const chats = await this.chatManager.getUserChats();
+            const totalChats = chats.length;
+            
+            // Actualizar el badge en el enlace de navegación
+            const chatBadge = document.getElementById('chatBadge');
+            if (chatBadge) {
+                if (totalChats > 0) {
+                    chatBadge.textContent = totalChats;
+                    chatBadge.classList.remove('hidden');
+                } else {
+                    chatBadge.classList.add('hidden');
+                }
+            }
+            
+            // También actualizar si el modal está abierto
+            const chatListContainer = document.getElementById('chat-list-container');
+            if (chatListContainer) {
+                if (chats.length === 0) {
+                    chatListContainer.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400 py-8">No tienes conversaciones activas</p>';
+                } else {
+                    chatListContainer.innerHTML = chats.map(chat => this.createChatListItem(chat)).join('');
+                }
+                
+                const countBadge = document.getElementById('chat-list-count');
+                if (countBadge) {
+                    countBadge.textContent = chats.length > 0 ? `(${chats.length})` : '';
+                }
+            }
+        } catch (error) {
+            console.error('Error al actualizar badge de chat:', error);
+        }
+    }
+    
     truncateText(text, maxLength) {
         if (text.length <= maxLength) return text;
         return text.substring(0, maxLength) + '...';
