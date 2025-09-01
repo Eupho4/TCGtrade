@@ -58,60 +58,7 @@
             transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
         }
         
-        /* Interruptor de modo oscuro personalizado mejorado */
-        .toggle-switch {
-            position: relative;
-            display: inline-block;
-            width: 50px;
-            height: 24px;
-        }
 
-        .toggle-switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: #d1d5db;
-            transition: .4s;
-            border-radius: 34px;
-        }
-
-        .toggle-slider:before {
-            position: absolute;
-            content: "";
-            height: 18px;
-            width: 18px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-
-        input:checked + .toggle-slider {
-            background-color: #f97316;
-        }
-
-        input:checked + .toggle-slider:before {
-            transform: translateX(26px);
-        }
-
-        .toggle-slider:hover {
-            background-color: #9ca3af;
-        }
-
-        input:checked + .toggle-slider:hover {
-            background-color: #ea580c;
-        }
     </style>
 
     <script type="module">
@@ -9777,32 +9724,6 @@
                 <!-- Contenido de Configuración (oculto por defecto) -->
                 <div id="profileSettingsContent" class="profile-tab-content hidden">
                     <div class="space-y-6">
-                        <!-- Sección de Apariencia -->
-                        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
-                            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
-                                <span class="icon mr-2">🎨</span> Apariencia
-                            </h3>
-                            
-                            <!-- Interruptor de Modo Oscuro -->
-                            <div class="flex items-center justify-between py-4 border-b border-gray-200 dark:border-gray-700">
-                                <div class="flex items-center">
-                                    <div class="flex-shrink-0">
-                                        <span class="text-2xl mr-3">🌙</span>
-                                    </div>
-                                    <div>
-                                        <h4 class="text-lg font-semibold text-gray-800 dark:text-white">Modo Oscuro</h4>
-                                        <p class="text-sm text-gray-600 dark:text-gray-300">Cambia entre tema claro y oscuro</p>
-                                    </div>
-                                </div>
-                                <div class="flex items-center">
-                                    <label class="toggle-switch">
-                                        <input type="checkbox" id="darkModeToggle">
-                                        <span class="toggle-slider"></span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- Sección de Seguridad -->
                         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
                             <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center">
