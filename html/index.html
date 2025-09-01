@@ -2032,6 +2032,11 @@
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400">Por: ${trade.user}</span>
                             <div class="flex space-x-2">
+                                <!-- Botón de chat siempre visible para todos -->
+                                <button class="btn-secondary px-3 py-1 rounded text-xs" data-trade-id="${trade.id}" data-user-id="${escapedUserId}" data-trade-title="${escapedTitle}" onclick="window.openTradeChat && window.openTradeChat('${trade.id}', '${escapedUserId}', '${escapedTitle}')">
+                                    💭 Chat
+                                </button>
+                                
                                 ${trade.userId === currentUser?.uid ? `
                                     <button class="btn-secondary px-3 py-1 rounded text-xs" onclick="editTrade('${trade.id}')">
                                         ✏️ Editar
@@ -2042,9 +2047,6 @@
                                 ` : `
                                     <button class="btn-primary px-3 py-1 rounded text-xs" onclick="proposeTrade('${trade.id}')">
                                         💬 Proponer
-                                    </button>
-                                    <button class="btn-secondary px-3 py-1 rounded text-xs" data-trade-id="${trade.id}" data-user-id="${escapedUserId}" data-trade-title="${escapedTitle}" onclick="window.openTradeChat && window.openTradeChat('${trade.id}', '${escapedUserId}', '${escapedTitle}')">
-                                        💭 Chat
                                     </button>
                                     <button class="btn-secondary px-3 py-1 rounded text-xs" onclick="viewTradeDetails('${trade.id}')">
                                         👁️ Ver
@@ -2175,16 +2177,16 @@
 
             try {
                 // Simplificar: usar el ID del intercambio directamente
-                // El chat es compartido por ambos usuarios usando el mismo tradeId
+                // El chat es compartido por TODOS los usuarios usando el mismo tradeId
                 const chatId = `trade_${tradeId}`;
                 
                 // Obtener información del intercambio
                 const trade = findTradeById(tradeId);
-                let displayName = 'Chat de Intercambio';
+                let displayName = 'Chat del Intercambio';
                 
                 if (trade) {
-                    // Usar el título del intercambio como nombre del chat
-                    displayName = trade.title || 'Intercambio';
+                    // Usar un nombre más descriptivo para el chat
+                    displayName = `Chat: ${trade.title || 'Intercambio'}`;
                     
                     // Si no se proporciona título, usar el título del intercambio
                     if (!tradeTitle) {
@@ -2193,13 +2195,19 @@
                 }
                 
                 console.log('📨 Abriendo chat compartido:', { chatId, tradeId, displayName });
+                console.log('👤 Usuario actual:', currentUser.uid);
                 
                 // Inicializar o unirse al chat del intercambio
-                // Este método ahora no sobrescribe, solo añade al usuario actual como participante
+                // TODOS los usuarios pueden participar en el chat
                 await chatManager.initializeTradeChat(tradeId, 'all_users', displayName);
                 
                 // Abrir ventana de chat
                 await chatUI.openChat(chatId, displayName, tradeTitle || displayName);
+                
+                // Automáticamente escuchar mensajes para este chat
+                if (!chatManager.chatListeners.has(chatId)) {
+                    console.log('🔊 Iniciando escucha de mensajes para:', chatId);
+                }
                 
                 console.log('✅ Chat abierto exitosamente');
                 console.log('💡 Tip: Ejecuta chatDebugger.runFullDiagnostic("' + tradeId + '") en la consola para diagnóstico');
