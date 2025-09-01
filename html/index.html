@@ -2599,6 +2599,7 @@
             // Crear modal similar al de addFromMyCards pero para propuesta
             const modal = document.createElement('div');
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-[60] p-4';
+            modal.id = 'proposalCardsModal';
             
             // Cargar las cartas del usuario
             const cardsRef = collection(db, 'users', currentUser.uid, 'my_cards');
@@ -2607,6 +2608,9 @@
             snapshot.forEach(doc => {
                 userCards.push({ id: doc.id, ...doc.data() });
             });
+            
+            // Guardar las cartas en el window para acceso fácil
+            window.tempProposalCards = userCards;
             
             modal.innerHTML = `
                 <div class="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[80vh] overflow-hidden">
@@ -2622,42 +2626,28 @@
                             </p>
                         ` : `
                             <div class="space-y-2">
-                                ${userCards.map((card, idx) => {
-                                    // Guardar los datos en un atributo data para evitar problemas con las comillas
-                                    const cardDataStr = JSON.stringify({
-                                        type: type,
-                                        id: card.id,
-                                        name: card.name || '',
-                                        image: card.image || '',
-                                        set: card.set || '',
-                                        number: card.number || '',
-                                        language: card.language || 'Español',
-                                        condition: card.condition || 'NM'
-                                    });
-                                    
-                                    return `
-                                        <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600">
-                                            ${card.image ? `
-                                                <img src="${card.image}" alt="${card.name}" class="w-12 h-16 object-contain rounded">
-                                            ` : `
-                                                <div class="w-12 h-16 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center">
-                                                    <span class="text-xl">🎴</span>
-                                                </div>
-                                            `}
-                                            <div class="flex-1">
-                                                <div class="font-medium text-sm text-gray-900 dark:text-white">${card.name || 'Sin nombre'}</div>
-                                                <div class="text-xs text-gray-500 dark:text-gray-400">
-                                                    ${card.set || 'Set desconocido'} • ${card.condition || 'NM'} • ${card.language || 'Español'}
-                                                </div>
+                                ${userCards.map((card, idx) => `
+                                    <div class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-600">
+                                        ${card.image ? `
+                                            <img src="${card.image}" alt="${card.name}" class="w-12 h-16 object-contain rounded">
+                                        ` : `
+                                            <div class="w-12 h-16 bg-gray-200 dark:bg-gray-600 rounded flex items-center justify-center">
+                                                <span class="text-xl">🎴</span>
                                             </div>
-                                            <button data-card='${cardDataStr.replace(/'/g, "&apos;")}' 
-                                                    onclick="const data = JSON.parse(this.getAttribute('data-card').replace(/&apos;/g, &quot;'&quot;)); selectFromMyCardsToProposal(data.type, data.id, data.name, data.image, data.set, data.number, data.language, data.condition); this.closest('.fixed').remove();"
-                                                    class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-semibold">
-                                                Seleccionar
-                                            </button>
+                                        `}
+                                        <div class="flex-1">
+                                            <div class="font-medium text-sm text-gray-900 dark:text-white">${card.name || 'Sin nombre'}</div>
+                                            <div class="text-xs text-gray-500 dark:text-gray-400">
+                                                ${card.set || 'Set desconocido'} • ${card.condition || 'NM'} • ${card.language || 'Español'}
+                                            </div>
                                         </div>
-                                    `;
-                                }).join('')}
+                                        <button data-card-index="${idx}" 
+                                                onclick="handleProposalCardSelection(this, '${type}')"
+                                                class="px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded text-sm font-semibold">
+                                            Seleccionar
+                                        </button>
+                                    </div>
+                                `).join('')}
                             </div>
                         `}
                     </div>
@@ -2673,8 +2663,44 @@
             document.body.appendChild(modal);
         };
         
+        // Nueva función para manejar la selección de cartas
+        window.handleProposalCardSelection = function(button, type) {
+            const cardIndex = parseInt(button.getAttribute('data-card-index'));
+            const card = window.tempProposalCards[cardIndex];
+            
+            if (!card) {
+                console.error('❌ No se encontró la carta en el índice:', cardIndex);
+                showNotification('Error al seleccionar la carta', 'error');
+                return;
+            }
+            
+            console.log('🎴 Carta seleccionada:', card);
+            
+            // Llamar a la función original con los datos correctos
+            selectFromMyCardsToProposal(
+                type,
+                card.id,
+                card.name || '',
+                card.image || '',
+                card.set || '',
+                card.number || '',
+                card.language || 'Español',
+                card.condition || 'NM'
+            );
+            
+            // Cerrar el modal
+            const modal = document.getElementById('proposalCardsModal');
+            if (modal) modal.remove();
+        };
+        
         // Función para seleccionar carta desde Mis Cartas para propuesta
         window.selectFromMyCardsToProposal = function(type, cardId, cardName, cardImage, setName, cardNumber, language, condition) {
+            console.log('🎴 selectFromMyCardsToProposal - Datos recibidos:', {
+                type, cardId, cardName, 
+                cardImage: cardImage ? cardImage.substring(0, 50) + '...' : 'NO IMAGE',
+                setName, cardNumber, language, condition
+            });
+            
             const containerId = `proposal${type === 'offered' ? 'Offered' : 'Wanted'}CardsContainer`;
             const container = document.getElementById(containerId);
             
@@ -2698,8 +2724,18 @@
                 fromMyCards: true
             };
             
+            console.log('📝 cardData creado:', cardData);
+            
             // Crear el HTML de la carta (bloqueada porque viene de Mis Cartas)
             const cardHtml = createProposalCardInput(type, index, cardData, true);
+            
+            // Verificar si el HTML contiene la imagen
+            if (cardImage && !cardHtml.includes(cardImage)) {
+                console.error('❌ La imagen no está en el HTML generado');
+            } else if (cardImage) {
+                console.log('✅ Imagen incluida en el HTML');
+            }
+            
             container.insertAdjacentHTML('beforeend', cardHtml);
             
             // Mostrar notificación de éxito
