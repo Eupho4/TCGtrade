@@ -68,9 +68,10 @@ class ChatManager {
                 };
                 
                 await update(chatMetaRef, updates);
-                console.log('📝 Chat existente actualizado:', chatId);
+                console.log('📝 Chat existente actualizado, participante añadido:', currentUser.uid);
             } else {
                 // Si no existe, crear nuevo
+                // IMPORTANTE: Registrar ambos usuarios como participantes para que ambos puedan ver el chat
                 const metadata = {
                     tradeId: tradeId,
                     participants: {
@@ -84,11 +85,13 @@ class ChatManager {
                     },
                     createdAt: serverTimestamp(),
                     lastMessage: null,
-                    lastMessageTime: null
+                    lastMessageTime: null,
+                    // Marcar como chat de intercambio público para que cualquiera pueda unirse
+                    isTradeChat: true
                 };
                 
                 await set(chatMetaRef, metadata);
-                console.log('✨ Nuevo chat creado:', chatId);
+                console.log('✨ Nuevo chat de intercambio creado:', chatId);
             }
         } catch (error) {
             console.error('Error al inicializar chat:', error);
@@ -139,6 +142,28 @@ class ChatManager {
             throw new Error('Usuario no autenticado');
         }
 
+        // Primero, asegurarse de que el usuario está registrado como participante
+        const chatMetaRef = ref(this.realtimeDb, `chats/${chatId}/metadata`);
+        const metaSnapshot = await get(chatMetaRef);
+        
+        if (metaSnapshot.exists()) {
+            const metadata = metaSnapshot.val();
+            // Si el usuario no está en los participantes, añadirlo
+            if (!metadata.participants?.[currentUser.uid]) {
+                const updates = {
+                    [`participants/${currentUser.uid}`]: {
+                        uid: currentUser.uid,
+                        email: currentUser.email,
+                        displayName: currentUser.displayName || currentUser.email.split('@')[0],
+                        lastSeen: serverTimestamp(),
+                        online: true
+                    }
+                };
+                await update(chatMetaRef, updates);
+                console.log('👤 Usuario añadido como participante al enviar mensaje');
+            }
+        }
+
         const messagesRef = ref(this.realtimeDb, `chats/${chatId}/messages`);
         const newMessage = {
             senderId: currentUser.uid,
@@ -163,7 +188,6 @@ class ChatManager {
         }, 100);
         
         // Actualizar último mensaje en metadata
-        const chatMetaRef = ref(this.realtimeDb, `chats/${chatId}/metadata`);
         await update(chatMetaRef, {
             lastMessage: message,
             lastMessageTime: serverTimestamp(),
@@ -245,7 +269,32 @@ class ChatManager {
     }
 
     // Escuchar mensajes nuevos
-    listenToMessages(chatId, callback, limit = 50) {
+    async listenToMessages(chatId, callback, limit = 50) {
+        // Primero, asegurarse de que el usuario está registrado como participante
+        const currentUser = this.auth.currentUser;
+        if (currentUser) {
+            const chatMetaRef = ref(this.realtimeDb, `chats/${chatId}/metadata`);
+            const metaSnapshot = await get(chatMetaRef);
+            
+            if (metaSnapshot.exists()) {
+                const metadata = metaSnapshot.val();
+                // Si el usuario no está en los participantes, añadirlo
+                if (!metadata.participants?.[currentUser.uid]) {
+                    const updates = {
+                        [`participants/${currentUser.uid}`]: {
+                            uid: currentUser.uid,
+                            email: currentUser.email,
+                            displayName: currentUser.displayName || currentUser.email.split('@')[0],
+                            lastSeen: serverTimestamp(),
+                            online: true
+                        }
+                    };
+                    await update(chatMetaRef, updates);
+                    console.log('👤 Usuario añadido como participante al abrir chat');
+                }
+            }
+        }
+        
         const messagesRef = ref(this.realtimeDb, `chats/${chatId}/messages`);
         const messagesQuery = query(messagesRef, orderByChild('timestamp'), limitToLast(limit));
         
@@ -326,8 +375,39 @@ class ChatManager {
                     const chatData = childSnapshot.val();
                     const chatId = childSnapshot.key;
                     
-                    // Verificar si el usuario es participante
-                    if (chatData?.metadata?.participants?.[currentUser.uid]) {
+                    // Incluir el chat si:
+                    // 1. El usuario es participante registrado
+                    // 2. Es un chat de intercambio (isTradeChat) y el usuario ha enviado mensajes
+                    const isParticipant = chatData?.metadata?.participants?.[currentUser.uid];
+                    const isTradeChat = chatData?.metadata?.isTradeChat;
+                    
+                    // Verificar si el usuario ha enviado mensajes en este chat
+                    let hasUserMessages = false;
+                    if (chatData?.messages) {
+                        hasUserMessages = Object.values(chatData.messages).some(
+                            msg => msg.senderId === currentUser.uid
+                        );
+                    }
+                    
+                    if (isParticipant || (isTradeChat && hasUserMessages)) {
+                        // Si el usuario no está registrado como participante pero ha enviado mensajes,
+                        // añadirlo automáticamente
+                        if (!isParticipant && hasUserMessages) {
+                            const updates = {
+                                [`participants/${currentUser.uid}`]: {
+                                    uid: currentUser.uid,
+                                    email: currentUser.email,
+                                    displayName: currentUser.displayName || currentUser.email.split('@')[0],
+                                    lastSeen: serverTimestamp(),
+                                    online: false
+                                }
+                            };
+                            
+                            // Actualizar de forma asíncrona sin esperar
+                            const chatMetaRef = ref(this.realtimeDb, `chats/${chatId}/metadata`);
+                            update(chatMetaRef, updates).catch(console.error);
+                        }
+                        
                         // Obtener el otro participante
                         const participants = Object.values(chatData.metadata.participants || {});
                         const otherParticipant = participants.find(p => p.uid !== currentUser.uid);
@@ -335,7 +415,7 @@ class ChatManager {
                         chats.push({
                             id: chatId,
                             ...chatData.metadata,
-                            otherUser: otherParticipant || { displayName: 'Usuario' },
+                            otherUser: otherParticipant || { displayName: 'Chat de Intercambio' },
                             unreadCount: this.unreadCounts.get(chatId) || 0
                         });
                     }
