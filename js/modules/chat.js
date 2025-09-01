@@ -12,6 +12,7 @@ import {
     limitToLast,
     off,
     set,
+    get,
     onDisconnect,
     update
 } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
@@ -49,31 +50,67 @@ class ChatManager {
 
         const chatId = this.generateTradeChatId(tradeId);
         
-        // Crear o actualizar metadatos del chat
+        // Verificar si el chat ya existe
         const chatMetaRef = ref(this.realtimeDb, `chats/${chatId}/metadata`);
-        const metadata = {
-            tradeId: tradeId,
-            participants: {
-                [currentUser.uid]: {
-                    uid: currentUser.uid,
-                    email: currentUser.email,
-                    displayName: currentUser.displayName || currentUser.email.split('@')[0],
-                    lastSeen: serverTimestamp(),
-                    online: true
+        
+        try {
+            // Intentar obtener metadata existente
+            const snapshot = await get(chatMetaRef);
+            
+            if (snapshot.exists()) {
+                // Si existe, solo actualizar el participante actual
+                const updates = {
+                    [`participants/${currentUser.uid}/uid`]: currentUser.uid,
+                    [`participants/${currentUser.uid}/email`]: currentUser.email,
+                    [`participants/${currentUser.uid}/displayName`]: currentUser.displayName || currentUser.email.split('@')[0],
+                    [`participants/${currentUser.uid}/lastSeen`]: serverTimestamp(),
+                    [`participants/${currentUser.uid}/online`]: true
+                };
+                
+                await update(chatMetaRef, updates);
+                console.log('📝 Chat existente actualizado:', chatId);
+            } else {
+                // Si no existe, crear nuevo
+                const metadata = {
+                    tradeId: tradeId,
+                    participants: {
+                        [currentUser.uid]: {
+                            uid: currentUser.uid,
+                            email: currentUser.email,
+                            displayName: currentUser.displayName || currentUser.email.split('@')[0],
+                            lastSeen: serverTimestamp(),
+                            online: true
+                        }
+                    },
+                    createdAt: serverTimestamp(),
+                    lastMessage: null,
+                    lastMessageTime: null
+                };
+                
+                await set(chatMetaRef, metadata);
+                console.log('✨ Nuevo chat creado:', chatId);
+            }
+        } catch (error) {
+            console.error('Error al inicializar chat:', error);
+            // Si hay error, intentar crear de todos modos
+            const metadata = {
+                tradeId: tradeId,
+                participants: {
+                    [currentUser.uid]: {
+                        uid: currentUser.uid,
+                        email: currentUser.email,
+                        displayName: currentUser.displayName || currentUser.email.split('@')[0],
+                        lastSeen: serverTimestamp(),
+                        online: true
+                    }
                 },
-                [otherUserId]: {
-                    uid: otherUserId,
-                    displayName: otherUserName,
-                    lastSeen: null,
-                    online: false
-                }
-            },
-            createdAt: serverTimestamp(),
-            lastMessage: null,
-            lastMessageTime: null
-        };
-
-        await set(chatMetaRef, metadata);
+                createdAt: serverTimestamp(),
+                lastMessage: null,
+                lastMessageTime: null
+            };
+            
+            await set(chatMetaRef, metadata);
+        }
         
         // Configurar estado de presencia
         this.setupPresence(chatId, currentUser.uid);
@@ -273,22 +310,32 @@ class ChatManager {
     // Obtener lista de chats del usuario
     async getUserChats() {
         const currentUser = this.auth.currentUser;
-        if (!currentUser) return [];
+        if (!currentUser) {
+            console.log('⚠️ No hay usuario autenticado para obtener chats');
+            return [];
+        }
 
-        const chatsRef = ref(this.realtimeDb, 'chats');
-        const chats = [];
-
-        return new Promise((resolve) => {
-            onValue(chatsRef, (snapshot) => {
+        try {
+            const chatsRef = ref(this.realtimeDb, 'chats');
+            const snapshot = await get(chatsRef);
+            
+            const chats = [];
+            
+            if (snapshot.exists()) {
                 snapshot.forEach((childSnapshot) => {
                     const chatData = childSnapshot.val();
                     const chatId = childSnapshot.key;
                     
                     // Verificar si el usuario es participante
-                    if (chatData.metadata?.participants?.[currentUser.uid]) {
+                    if (chatData?.metadata?.participants?.[currentUser.uid]) {
+                        // Obtener el otro participante
+                        const participants = Object.values(chatData.metadata.participants || {});
+                        const otherParticipant = participants.find(p => p.uid !== currentUser.uid);
+                        
                         chats.push({
                             id: chatId,
                             ...chatData.metadata,
+                            otherUser: otherParticipant || { displayName: 'Usuario' },
                             unreadCount: this.unreadCounts.get(chatId) || 0
                         });
                     }
@@ -296,10 +343,15 @@ class ChatManager {
                 
                 // Ordenar por último mensaje
                 chats.sort((a, b) => (b.lastMessageTime || 0) - (a.lastMessageTime || 0));
-                
-                resolve(chats);
-            }, { onlyOnce: true });
-        });
+            }
+            
+            console.log(`📋 ${chats.length} chats encontrados para el usuario`);
+            return chats;
+            
+        } catch (error) {
+            console.error('❌ Error al obtener chats:', error);
+            return [];
+        }
     }
 
     // Incrementar contador de mensajes no leídos
