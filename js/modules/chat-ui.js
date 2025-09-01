@@ -8,6 +8,8 @@ class ChatUI {
         this.currentOtherUserId = null;
         this.isMinimized = false;
         this.activeChats = new Map(); // Almacenar chats activos
+        this.minimizedChats = new Set(); // Chats minimizados
+        this.createMinimizedBar(); // Crear barra de chats minimizados
     }
 
     // Crear ventana de chat flotante
@@ -290,6 +292,41 @@ class ChatUI {
         }
     }
 
+    // Crear barra de chats minimizados
+    createMinimizedBar() {
+        if (document.getElementById('minimized-chats-bar')) return;
+        
+        const bar = document.createElement('div');
+        bar.id = 'minimized-chats-bar';
+        bar.className = 'fixed bottom-4 right-4 bg-orange-500 text-white rounded-full px-4 py-2 shadow-lg cursor-pointer hover:bg-orange-600 transition-colors hidden z-50';
+        bar.innerHTML = `
+            <div class="flex items-center space-x-2">
+                <span class="text-lg">💬</span>
+                <span>Chats (<span id="minimized-count">0</span>)</span>
+            </div>
+        `;
+        
+        bar.addEventListener('click', () => this.restoreAllChats());
+        document.body.appendChild(bar);
+    }
+    
+    // Actualizar contador de chats minimizados
+    updateMinimizedBar() {
+        const bar = document.getElementById('minimized-chats-bar');
+        const count = document.getElementById('minimized-count');
+        
+        if (bar && count) {
+            const minimizedCount = this.minimizedChats.size;
+            count.textContent = minimizedCount;
+            
+            if (minimizedCount > 0) {
+                bar.classList.remove('hidden');
+            } else {
+                bar.classList.add('hidden');
+            }
+        }
+    }
+    
     // Minimizar chat
     minimizeChat(chatId) {
         const chatData = this.activeChats.get(chatId);
@@ -297,19 +334,37 @@ class ChatUI {
 
         const chatWindow = chatData.window;
         
-        if (this.isMinimized) {
-            // Restaurar
-            chatWindow.style.height = '600px';
-            chatWindow.querySelector(`#messages-container-${chatId}`).style.display = 'block';
-            chatWindow.querySelector('.border-t').style.display = 'block';
-            this.isMinimized = false;
-        } else {
-            // Minimizar
-            chatWindow.style.height = '60px';
-            chatWindow.querySelector(`#messages-container-${chatId}`).style.display = 'none';
-            chatWindow.querySelector('.border-t').style.display = 'none';
-            this.isMinimized = true;
+        // Ocultar ventana de chat
+        chatWindow.style.display = 'none';
+        
+        // Añadir a chats minimizados
+        this.minimizedChats.add(chatId);
+        
+        // Actualizar barra de minimizados
+        this.updateMinimizedBar();
+    }
+    
+    // Restaurar chat específico
+    restoreChat(chatId) {
+        const chatWindow = document.getElementById(`chat-window-${chatId}`);
+        if (chatWindow) {
+            chatWindow.style.display = 'flex';
+            this.minimizedChats.delete(chatId);
+            this.updateMinimizedBar();
+            this.focusChatWindow(chatId);
         }
+    }
+    
+    // Restaurar todos los chats
+    restoreAllChats() {
+        this.minimizedChats.forEach(chatId => {
+            const chatWindow = document.getElementById(`chat-window-${chatId}`);
+            if (chatWindow) {
+                chatWindow.style.display = 'flex';
+            }
+        });
+        this.minimizedChats.clear();
+        this.updateMinimizedBar();
     }
 
     // Cerrar chat
@@ -321,6 +376,8 @@ class ChatUI {
             setTimeout(() => {
                 chatWindow.remove();
                 this.activeChats.delete(chatId);
+                this.minimizedChats.delete(chatId);
+                this.updateMinimizedBar();
                 
                 // Desconectar listeners
                 this.chatManager.disconnectChat(chatId);

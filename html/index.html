@@ -2173,16 +2173,24 @@
             }
 
             try {
-                // Si no tenemos el ID del otro usuario, intentar obtenerlo del intercambio
-                if (!otherUserId) {
-                    const trade = findTradeById(tradeId);
-                    if (trade) {
+                // Obtener el intercambio para conseguir información del usuario
+                const trade = findTradeById(tradeId);
+                let otherUserName = 'Usuario';
+                
+                if (trade) {
+                    // Usar el nombre de usuario del intercambio si está disponible
+                    otherUserName = trade.user || trade.userName || trade.creatorName || 'Usuario';
+                    
+                    // Si no tenemos el ID del otro usuario, intentar obtenerlo
+                    if (!otherUserId) {
                         otherUserId = trade.userId || trade.creatorId || 'unknown';
                     }
                 }
-
-                // Generar nombre del otro usuario
-                const otherUserName = otherUserId === 'unknown' ? 'Usuario' : `Usuario_${otherUserId.substring(0, 6)}`;
+                
+                // Si el nombre es un email, usar solo la parte antes del @
+                if (otherUserName.includes('@')) {
+                    otherUserName = otherUserName.split('@')[0];
+                }
                 
                 console.log('📨 Inicializando chat:', { tradeId, otherUserId, otherUserName });
                 
