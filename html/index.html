@@ -6239,7 +6239,11 @@
                 
                 // Limpiar sistema de chat antes de cerrar sesión
                 if (window.chatManager) {
-                    window.chatManager.disconnectAll();
+                    try {
+                        window.chatManager.disconnectAll();
+                    } catch (e) {
+                        console.warn('Error al desconectar chat manager:', e);
+                    }
                     window.chatManager = null;
                 }
                 if (window.chatUI) {
@@ -6253,12 +6257,23 @@
                     
                     window.chatUI = null;
                 }
+                // Limpiar debugger si existe
+                if (window.chatDebugger) {
+                    window.chatDebugger = null;
+                }
+                if (window.chatDebug) {
+                    window.chatDebug = null;
+                }
                 
                 // Cerrar sesión en Firebase
                 await signOut(auth);
                 
                 // Limpiar datos del usuario actual
                 currentUser = null;
+                
+                // Reinicializar variables de chat
+                chatManager = null;
+                chatUI = null;
                 
                 // Limpiar cualquier dato en caché
                 userCardsCache = [];
