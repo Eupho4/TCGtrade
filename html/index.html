@@ -72,6 +72,7 @@
         // Importar módulos de chat
         import ChatManager from '/js/modules/chat.js';
         import ChatUI from '/js/modules/chat-ui.js';
+        import { ChatDebugger } from '/js/modules/chat-debug.js';
 
         // CONFIGURACIÓN DE FIREBASE - REEMPLAZA CON TUS DATOS
         const firebaseConfig = {
@@ -2173,41 +2174,35 @@
             }
 
             try {
-                // Obtener el intercambio para conseguir información del usuario
+                // Simplificar: usar el ID del intercambio directamente
+                // El chat es compartido por ambos usuarios usando el mismo tradeId
+                const chatId = `trade_${tradeId}`;
+                
+                // Obtener información del intercambio
                 const trade = findTradeById(tradeId);
-                let otherUserName = 'Usuario';
-                let isMyTrade = false;
+                let displayName = 'Chat de Intercambio';
                 
                 if (trade) {
-                    // Determinar si soy el creador del intercambio
-                    isMyTrade = trade.userId === currentUser.uid;
+                    // Usar el título del intercambio como nombre del chat
+                    displayName = trade.title || 'Intercambio';
                     
-                    if (isMyTrade) {
-                        // Si es mi intercambio, el "otro usuario" es quien quiera contactarme
-                        // Por ahora usamos un nombre genérico
-                        otherUserName = 'Interesado';
-                        otherUserId = otherUserId || 'interested_user';
-                    } else {
-                        // Si no es mi intercambio, el otro usuario es el creador
-                        otherUserName = trade.user || trade.userName || trade.creatorName || 'Usuario';
-                        otherUserId = trade.userId || trade.creatorId || 'unknown';
-                    }
-                    
-                    // Si el nombre es un email, usar solo la parte antes del @
-                    if (otherUserName.includes('@')) {
-                        otherUserName = otherUserName.split('@')[0];
+                    // Si no se proporciona título, usar el título del intercambio
+                    if (!tradeTitle) {
+                        tradeTitle = trade.title;
                     }
                 }
                 
-                console.log('📨 Inicializando chat:', { tradeId, otherUserId, otherUserName });
+                console.log('📨 Abriendo chat compartido:', { chatId, tradeId, displayName });
                 
-                // Inicializar chat para este intercambio
-                const chatId = await chatManager.initializeTradeChat(tradeId, otherUserId, otherUserName);
+                // Inicializar o unirse al chat del intercambio
+                // Este método ahora no sobrescribe, solo añade al usuario actual como participante
+                await chatManager.initializeTradeChat(tradeId, 'all_users', displayName);
                 
-                // Abrir ventana de chat (el método openChat ya maneja los listeners)
-                await chatUI.openChat(chatId, otherUserName, tradeTitle);
+                // Abrir ventana de chat
+                await chatUI.openChat(chatId, displayName, tradeTitle || displayName);
                 
                 console.log('✅ Chat abierto exitosamente');
+                console.log('💡 Tip: Ejecuta chatDebugger.runFullDiagnostic("' + tradeId + '") en la consola para diagnóstico');
                 
             } catch (error) {
                 console.error('❌ Error al abrir chat:', error);
@@ -7149,8 +7144,11 @@
                 if (user && !chatManager) {
                     chatManager = new ChatManager(auth, db);
                     chatUI = new ChatUI(chatManager);
+                    const chatDebugger = new ChatDebugger(chatManager);
+                    
                     window.chatManager = chatManager; // Hacer disponible globalmente
                     window.chatUI = chatUI; // Hacer disponible globalmente
+                    window.chatDebugger = chatDebugger; // Hacer disponible globalmente
                     
                     // Escuchar actualizaciones de mensajes no leídos
                     window.addEventListener('unreadCountUpdated', (event) => {
