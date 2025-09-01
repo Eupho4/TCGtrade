@@ -6454,7 +6454,7 @@
             searchInput = document.getElementById('searchInput');
             searchResultsSection = document.getElementById('searchResults');
             heroSection = document.getElementById('heroSection');
-            howItWorksSection = document.getElementById('howItWorks');
+            howItWorksSection = document.getElementById('howItWorksSection');
             cardsContainer = document.getElementById('cardsContainer');
             loadingSpinner = document.getElementById('loadingSpinner');
             noResultsMessage = document.getElementById('noResultsMessage');
@@ -8201,8 +8201,7 @@
         body.dark-mode input[type="tel"]::placeholder {
             color: var(--color-input-placeholder);
         }
-        body.dark-mode #howItWorks .card-bg p,
-        body.dark-mode #howItWorks .card-bg h3 { color: white; }
+
         body.dark-mode #myCardsSection h2 { color: white; }
         body        .dark-mode #interchangesSection h2 { color: white; }
 
@@ -8686,26 +8685,6 @@
             </div>
             <p id="noMyCardsMessage" class="text-center text-gray-600 dark:text-gray-400 mt-8 hidden">Aún no tienes cartas en tu colección. ¡Busca y añade algunas!</p>
             <p id="myCardsErrorMessage" class="text-center text-red-500 mt-8 hidden">Error al cargar tu colección. Por favor, inténtalo de nuevo.</p>
-        </section>
-
-        <section id="howItWorks" class="mb-12 text-center">
-            <h2 class="text-3xl font-bold mb-6 text-gray-700 dark:text-white flex items-center justify-center">
-                <span class="icon">⚙️</span> ¿Cómo funciona TCGtrade?
-            </h2>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
-                <div class="card-bg p-6 rounded-xl shadow-md">
-                    <h3 class="text-2xl font-semibold mb-3 text-gray-800 dark:text-white flex items-center justify-center"><span class="icon">➕</span> 1. Crea tu Colección</h3>
-                    <p class="text-gray-600 dark:text-gray-300">Añade las cartas que tienes y las que buscas a tu perfil.</p>
-                </div>
-                <div class="card-bg p-6 rounded-xl shadow-md">
-                    <h3 class="text-2xl font-semibold mb-3 text-gray-800 dark:text-white flex items-center justify-center"><span class="icon">🔎</span> 2. Encuentra Intercambios</h3>
-                    <p class="text-gray-600 dark:text-gray-300">Nuestro sistema te conectará con usuarios que tengan lo que necesitas.</p>
-                </div>
-                <div class="card-bg p-6 rounded-xl shadow-md">
-                    <h3 class="text-2xl font-semibold mb-3 text-gray-800 dark:text-white flex items-center justify-center"><span class="icon">🎉</span> 3. Intercambia y Disfruta</h3>
-                    <p class="text-gray-600 dark:text-gray-300">Acuerda el intercambio de forma segura y completa tu colección.</p>
-                </div>
-            </div>
         </section>
 
         <!-- Sección de Buzón -->
