@@ -170,11 +170,30 @@
         function hideLoadingSpinner() {
             if (loadingSpinner) loadingSpinner.style.display = 'none';
         }
+        
+        // Helper function para ocultar todas las secciones de inicio
+        function hideHomeSections() {
+            if (heroSection) heroSection.classList.add('hidden');
+            const howItWorksSection = document.getElementById('howItWorksSection');
+            const featuresSection = document.getElementById('featuresSection');
+            const ctaSection = document.getElementById('ctaSection');
+            if (howItWorksSection) howItWorksSection.classList.add('hidden');
+            if (featuresSection) featuresSection.classList.add('hidden');
+            if (ctaSection) ctaSection.classList.add('hidden');
+        }
 
         function showInitialSections() {
             // Mostrar secciones iniciales
             if (heroSection) heroSection.classList.remove('hidden');
+            
+            // Mostrar las nuevas secciones de la página de inicio
+            const howItWorksSection = document.getElementById('howItWorksSection');
+            const featuresSection = document.getElementById('featuresSection');
+            const ctaSection = document.getElementById('ctaSection');
+            
             if (howItWorksSection) howItWorksSection.classList.remove('hidden');
+            if (featuresSection) featuresSection.classList.remove('hidden');
+            if (ctaSection) ctaSection.classList.remove('hidden');
 
             // Ocultar otras secciones
             if (searchResultsSection) searchResultsSection.classList.add('hidden');
@@ -190,8 +209,8 @@
 
         function showSearchResults() {
             // Ocultar secciones iniciales
-            if (heroSection) heroSection.classList.add('hidden');
-            if (howItWorksSection) howItWorksSection.classList.add('hidden');
+            hideHomeSections();
+            
             if (searchResultsSection) searchResultsSection.classList.add('hidden');
             if (myCardsSection) myCardsSection.classList.add('hidden');
             if (profileSection) profileSection.classList.add('hidden');
@@ -208,8 +227,7 @@
         
         function showInboxSection() {
             // Ocultar otras secciones
-            if (heroSection) heroSection.classList.add('hidden');
-            if (howItWorksSection) howItWorksSection.classList.add('hidden');
+            hideHomeSections();
             if (searchResultsSection) searchResultsSection.classList.add('hidden');
             if (myCardsSection) myCardsSection.classList.add('hidden');
             if (profileSection) profileSection.classList.add('hidden');
@@ -228,8 +246,7 @@
 
         function showMyCardsSection() {
             // Ocultar otras secciones
-            if (heroSection) heroSection.classList.add('hidden');
-            if (howItWorksSection) howItWorksSection.classList.add('hidden');
+            hideHomeSections();
             if (searchResultsSection) searchResultsSection.classList.add('hidden');
             if (profileSection) profileSection.classList.add('hidden');
             if (interchangesSection) interchangesSection.classList.add('hidden');
@@ -256,8 +273,7 @@
 
         function showHelpSection() {
             // Ocultar otras secciones
-            if (heroSection) heroSection.classList.add('hidden');
-            if (howItWorksSection) howItWorksSection.classList.add('hidden');
+            hideHomeSections();
             if (searchResultsSection) searchResultsSection.classList.add('hidden');
             if (myCardsSection) myCardsSection.classList.add('hidden');
             if (profileSection) profileSection.classList.add('hidden');
@@ -276,8 +292,7 @@
 
         function showInterchangesSection() {
             // Ocultar otras secciones
-            if (heroSection) heroSection.classList.add('hidden');
-            if (howItWorksSection) howItWorksSection.classList.add('hidden');
+            hideHomeSections();
             if (searchResultsSection) searchResultsSection.classList.add('hidden');
             if (myCardsSection) myCardsSection.classList.add('hidden');
             if (profileSection) profileSection.classList.add('hidden');
@@ -323,8 +338,7 @@
 
         function showProfileSection() {
             // Ocultar otras secciones
-            if (heroSection) heroSection.classList.add('hidden');
-            if (howItWorksSection) howItWorksSection.classList.add('hidden');
+            hideHomeSections();
             if (searchResultsSection) searchResultsSection.classList.add('hidden');
             if (myCardsSection) myCardsSection.classList.add('hidden');
             if (interchangesSection) interchangesSection.classList.add('hidden');
