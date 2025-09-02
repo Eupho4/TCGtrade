@@ -595,20 +595,51 @@ class ChatUI {
         
         // Función para actualizar la lista
         const updateChatList = async () => {
-            const chats = await this.chatManager.getUserChats();
             const container = document.getElementById('chat-list-container');
             if (!container) return;
             
-            if (chats.length === 0) {
-                container.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400 py-8">No tienes conversaciones activas</p>';
-            } else {
-                container.innerHTML = chats.map(chat => this.createChatListItem(chat)).join('');
-            }
-            
-            // Actualizar contador en el título
-            const countBadge = document.getElementById('chat-list-count');
-            if (countBadge) {
-                countBadge.textContent = chats.length > 0 ? `(${chats.length})` : '';
+            try {
+                const chats = await this.chatManager.getUserChats();
+                
+                if (chats.length === 0) {
+                    container.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400 py-8">No tienes conversaciones activas</p>';
+                } else {
+                    container.innerHTML = chats.map(chat => this.createChatListItem(chat)).join('');
+                }
+                
+                // Actualizar contador en el título
+                const countBadge = document.getElementById('chat-list-count');
+                if (countBadge) {
+                    countBadge.textContent = chats.length > 0 ? `(${chats.length})` : '';
+                }
+            } catch (error) {
+                console.error('Error al cargar chats:', error);
+                
+                // Mostrar error amigable al usuario
+                container.innerHTML = `
+                    <div class="text-center py-8">
+                        <div class="text-red-500 mb-4">
+                            <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <p class="text-gray-700 dark:text-gray-300 font-semibold mb-2">Error al cargar los chats</p>
+                        <p class="text-gray-500 dark:text-gray-400 text-sm mb-4">
+                            ${error.message === 'Permission denied' ? 
+                                'Permisos de Firebase no configurados correctamente' : 
+                                'No se pudieron cargar las conversaciones'}
+                        </p>
+                        ${error.message === 'Permission denied' ? 
+                            '<p class="text-xs text-gray-400 dark:text-gray-500">Actualiza las reglas en Firebase Console</p>' : 
+                            ''}
+                    </div>
+                `;
+                
+                // Detener actualización automática si hay error de permisos
+                if (error.message === 'Permission denied' && this.chatListInterval) {
+                    clearInterval(this.chatListInterval);
+                    this.chatListInterval = null;
+                }
             }
         };
         
