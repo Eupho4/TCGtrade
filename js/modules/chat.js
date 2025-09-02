@@ -71,12 +71,14 @@ class ChatManager {
                 await update(chatMetaRef, updates);
                 console.log('📝 Chat existente actualizado, participante añadido:', currentUser.uid);
                 
-                // Agregar a userChats
+                // Agregar a userChats (re-agregar si fue borrado)
                 const userChatRef = ref(this.realtimeDb, `userChats/${currentUser.uid}/${chatId}`);
                 await set(userChatRef, {
                     timestamp: serverTimestamp(),
-                    tradeId: tradeId
+                    tradeId: tradeId,
+                    restoredAt: serverTimestamp()
                 });
+                console.log('♻️ Chat restaurado a tu lista');
             } else {
                 // Si no existe, crear nuevo
                 // IMPORTANTE: Registrar ambos usuarios como participantes para que ambos puedan ver el chat
