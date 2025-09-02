@@ -658,7 +658,7 @@ class ChatUI {
         let cachedActiveChats = [];
         let cachedHiddenChats = [];
         let cacheTimestamp = 0;
-        const CACHE_DURATION = 2500; // 2.5 segundos (menor que el intervalo de 3s)
+        const CACHE_DURATION = 10000; // 10 segundos - actualizaciones menos frecuentes
         
         // Función para actualizar la lista
         const updateChatList = async (forceUpdate = false) => {
@@ -677,31 +677,28 @@ class ChatUI {
                 const cacheExpired = now - cacheTimestamp > CACHE_DURATION;
                 const needsInit = cachedActiveChats.length === 0 && cachedHiddenChats.length === 0;
                 
-                // Debug para entender por qué se actualiza
-                if (currentTab === 'hidden' && (forceUpdate || cacheExpired || needsInit)) {
-                    console.log('🔍 Razón de actualización:', {
-                        forceUpdate,
-                        cacheExpired,
-                        tiempoDesdeCache: now - cacheTimestamp,
-                        CACHE_DURATION,
-                        needsInit,
-                        cachedActiveChats: !!cachedActiveChats,
-                        cachedHiddenChats: !!cachedHiddenChats
-                    });
-                }
+                // Solo loguear actualizaciones importantes
+                // Comentado para reducir spam en consola
                 
                 if (forceUpdate || cacheExpired || needsInit) {
-                    cachedActiveChats = await this.chatManager.getUserChats();
-                    cachedHiddenChats = await this.chatManager.getHiddenChats();
+                    // Solo actualizar el cache que necesitamos
+                    if (currentTab === 'active') {
+                        cachedActiveChats = await this.chatManager.getUserChats();
+                        // Solo actualizar hiddenChats si no existe
+                        if (cachedHiddenChats.length === 0) {
+                            cachedHiddenChats = await this.chatManager.getHiddenChats();
+                        }
+                    } else {
+                        cachedHiddenChats = await this.chatManager.getHiddenChats();
+                        // Solo actualizar activeChats si no existe
+                        if (cachedActiveChats.length === 0) {
+                            cachedActiveChats = await this.chatManager.getUserChats();
+                        }
+                    }
                     cacheTimestamp = now;
                     
-                    // Debug temporal
-                    if (currentTab === 'hidden') {
-                        console.log('📋 Cache actualizado - Chats ocultos:', cachedHiddenChats.length, {
-                            ids: cachedHiddenChats.map(c => c.id),
-                            timestamp: new Date().toLocaleTimeString()
-                        });
-                    }
+                    // Debug reducido - solo cambios importantes
+                    // Comentado para reducir spam
                 }
                 
                 let chats = [];
@@ -896,14 +893,14 @@ class ChatUI {
         // Cargar chats inicialmente
         updateChatList(true);
         
-        // Actualizar cada 3 segundos mientras el modal esté abierto (menos frecuente para evitar parpadeo)
+        // Actualizar cada 5 segundos mientras el modal esté abierto
         this.chatListInterval = setInterval(() => {
             if (document.getElementById('chat-list-modal')) {
                 updateChatList(); // Sin forzar, solo si hay cambios
             } else {
                 clearInterval(this.chatListInterval);
             }
-        }, 3000);
+        }, 5000);
         
         // También actualizar cuando se detecte un nuevo chat
         const handleNewChat = () => {
