@@ -931,25 +931,35 @@ class ChatUI {
     // Realizar la eliminación del chat
     async performDeleteChat(chatId) {
         try {
+            console.log('🚀 Iniciando eliminación del chat:', chatId);
+            
             // Cerrar ventana de chat si está abierta
             const chatWindow = document.getElementById(`chat-window-${chatId}`);
             if (chatWindow) {
+                console.log('📤 Cerrando ventana de chat');
                 chatWindow.remove();
                 this.activeChats.delete(chatId);
                 this.minimizedChats.delete(chatId);
             }
             
             // Eliminar de localStorage
+            console.log('💾 Eliminando de localStorage');
             this.removeFromSavedChats(chatId);
             
             // Eliminar de Firebase
             if (this.chatManager) {
+                console.log('🔥 Eliminando de Firebase...');
                 await this.chatManager.deleteChat(chatId);
+                console.log('✅ Eliminado de Firebase exitosamente');
+            } else {
+                console.error('❌ ChatManager no disponible');
+                throw new Error('ChatManager no está inicializado');
             }
             
             // Actualizar la lista
             const updateChatList = document.querySelector('#chat-list-container');
             if (updateChatList) {
+                console.log('📋 Actualizando lista de chats');
                 // Forzar actualización de la lista
                 const event = new Event('chatDeleted');
                 window.dispatchEvent(event);
@@ -1284,6 +1294,47 @@ window.testOpenChat = function(chatId = 'trade_test123') {
         console.log('✅ Llamada a openChat exitosa');
     } catch (error) {
         console.error('❌ Error al abrir chat:', error);
+    }
+};
+
+// Función de prueba para eliminar chat
+window.testDeleteChat = async function(chatId) {
+    console.log('🧪 Probando eliminación de chat:', chatId);
+    
+    if (!window.chatManager) {
+        console.error('❌ chatManager no está disponible');
+        return;
+    }
+    
+    try {
+        await window.chatManager.deleteChat(chatId);
+        console.log('✅ Chat eliminado exitosamente en la prueba');
+    } catch (error) {
+        console.error('❌ Error en prueba de eliminación:', error);
+    }
+};
+
+// Función para verificar si el chat existe
+window.checkChatExists = async function(chatId) {
+    if (!window.chatManager) {
+        console.error('❌ chatManager no está disponible');
+        return;
+    }
+    
+    try {
+        const { getDatabase, ref, get } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js');
+        const db = getDatabase();
+        const chatRef = ref(db, `chats/${chatId}`);
+        const snapshot = await get(chatRef);
+        
+        if (snapshot.exists()) {
+            console.log('✅ El chat existe:', chatId);
+            console.log('📊 Datos:', snapshot.val());
+        } else {
+            console.log('❌ El chat NO existe:', chatId);
+        }
+    } catch (error) {
+        console.error('❌ Error al verificar chat:', error);
     }
 };
 

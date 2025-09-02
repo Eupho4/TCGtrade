@@ -493,21 +493,33 @@ class ChatManager {
     async deleteChat(chatId) {
         try {
             console.log('🗑️ Eliminando chat de Firebase:', chatId);
+            console.log('📊 Estado actual:', {
+                auth: this.auth?.currentUser?.uid,
+                realtimeDb: !!this.realtimeDb,
+                chatId: chatId
+            });
             
             // Desconectar listeners primero
+            console.log('🔌 Desconectando listeners...');
             this.disconnectChat(chatId);
             
             // Eliminar el chat de Firebase
+            console.log('🔥 Construyendo referencia para eliminar...');
             const chatRef = ref(this.realtimeDb, `chats/${chatId}`);
+            console.log('🔥 Ejecutando eliminación...');
             await set(chatRef, null);
             
             // Limpiar contadores locales
             this.unreadCounts.delete(chatId);
             
-            console.log('✅ Chat eliminado de Firebase');
+            console.log('✅ Chat eliminado de Firebase exitosamente');
             return true;
         } catch (error) {
-            console.error('❌ Error al eliminar chat de Firebase:', error);
+            console.error('❌ Error detallado al eliminar chat:', {
+                error: error.message,
+                code: error.code,
+                chatId: chatId
+            });
             throw error;
         }
     }
