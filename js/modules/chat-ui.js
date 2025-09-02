@@ -875,7 +875,7 @@ class ChatUI {
                             <p class="text-xs text-gray-500 dark:text-gray-400">${lastMessageTime}</p>
                                                     <button class="w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors delete-chat-btn"
                                 data-chat-id="${chat.id}"
-                                onclick="event.stopPropagation(); window.forceDeleteChat('${escapedChatId}')">
+                                onclick="event.stopPropagation(); window.hideChat('${escapedChatId}')">
                             ×
                         </button>
                         </div>
@@ -1568,6 +1568,196 @@ window.forceDeleteChat = async function(chatId) {
         if (window.chatUI) {
             window.chatUI.showNotification('Error al eliminar el chat', 'error');
         }
+    }
+};
+
+// Función para ocultar chat (eliminar solo para el usuario actual)
+window.hideChat = async function(chatId) {
+    console.log('🙈 Ocultando chat para el usuario actual:', chatId);
+    
+    // Crear modal de confirmación
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4';
+    
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6 transform transition-all">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900 mb-4">
+                    <svg class="h-6 w-6 text-yellow-600 dark:text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    ¿Ocultar conversación?
+                </h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                    Esta acción ocultará la conversación solo para ti. El otro usuario seguirá viendo el chat.
+                    <br><br>
+                    <strong class="text-yellow-600 dark:text-yellow-400">Los mensajes no se eliminarán.</strong>
+                </p>
+                <div class="flex gap-3 justify-center">
+                    <button id="cancel-hide" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                        Cancelar
+                    </button>
+                    <button id="confirm-hide" class="px-4 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition-colors">
+                        Ocultar Chat
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Esperar confirmación
+    const confirmed = await new Promise((resolve) => {
+        const handleCancel = () => {
+            modal.remove();
+            resolve(false);
+        };
+        
+        const handleConfirm = () => {
+            modal.remove();
+            resolve(true);
+        };
+        
+        document.getElementById('cancel-hide').addEventListener('click', handleCancel);
+        document.getElementById('confirm-hide').addEventListener('click', handleConfirm);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) handleCancel();
+        });
+    });
+    
+    if (!confirmed) {
+        console.log('❌ Ocultación cancelada por el usuario');
+        return;
+    }
+    
+    try {
+        const { getDatabase, ref, remove, update } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js');
+        const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+        
+        const db = getDatabase();
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
+        
+        if (!currentUser) {
+            throw new Error('Usuario no autenticado');
+        }
+        
+        // Normalizar chatId
+        if (chatId.startsWith('trade_trade_')) {
+            chatId = chatId.replace('trade_trade_', 'trade_');
+        }
+        
+        console.log('🗑️ Eliminando referencias del usuario:', currentUser.uid);
+        
+        // 1. Eliminar de userChats del usuario actual
+        const userChatRef = ref(db, `userChats/${currentUser.uid}/${chatId}`);
+        await remove(userChatRef);
+        console.log('✅ Eliminado de userChats');
+        
+        // 2. Marcar como oculto en el participante
+        const participantRef = ref(db, `chats/${chatId}/metadata/participants/${currentUser.uid}`);
+        await update(participantRef, { hidden: true });
+        console.log('✅ Marcado como oculto');
+        
+        // 3. Cerrar ventana si está abierta
+        const chatWindow = document.getElementById(`chat-window-${chatId}`);
+        if (chatWindow) {
+            chatWindow.remove();
+        }
+        
+        // 4. Actualizar UI
+        if (window.chatUI) {
+            window.chatUI.activeChats.delete(chatId);
+            window.chatUI.minimizedChats.delete(chatId);
+            window.chatUI.removeFromSavedChats(chatId);
+            window.chatUI.updateMinimizedBar();
+            window.chatUI.updateChatBadge();
+            window.chatUI.showNotification('Chat ocultado correctamente', 'success');
+        }
+        
+        // 5. Disparar evento
+        window.dispatchEvent(new Event('chatDeleted'));
+        
+        console.log('✅ Chat ocultado exitosamente para el usuario actual');
+        
+    } catch (error) {
+        console.error('❌ Error al ocultar chat:', error);
+        if (window.chatUI) {
+            window.chatUI.showNotification('Error al ocultar el chat', 'error');
+        }
+    }
+};
+
+// Función de diagnóstico para ver por qué no se puede eliminar
+window.diagnoseChat = async function(chatId) {
+    console.log('🔍 Diagnosticando chat:', chatId);
+    
+    try {
+        const { getDatabase, ref, get } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js');
+        const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+        
+        const db = getDatabase();
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
+        
+        console.log('👤 Usuario actual:', currentUser?.uid, currentUser?.email);
+        
+        // Normalizar chatId
+        if (chatId.startsWith('trade_trade_')) {
+            chatId = chatId.replace('trade_trade_', 'trade_');
+        }
+        
+        // Obtener datos del chat
+        const chatRef = ref(db, `chats/${chatId}`);
+        const snapshot = await get(chatRef);
+        
+        if (!snapshot.exists()) {
+            console.log('❌ El chat no existe');
+            return;
+        }
+        
+        const chatData = snapshot.val();
+        console.log('📊 Datos del chat:', chatData);
+        
+        // Verificar participantes
+        if (chatData?.metadata?.participants) {
+            const participants = Object.entries(chatData.metadata.participants);
+            console.log('👥 Participantes:');
+            participants.forEach(([uid, data]) => {
+                console.log(`  - ${uid}: ${data.email || data.displayName || 'Sin nombre'}`);
+            });
+            
+            // Verificar permisos en userChats
+            console.log('\n🔐 Verificando permisos de userChats:');
+            for (const [userId, userData] of participants) {
+                try {
+                    const userChatRef = ref(db, `userChats/${userId}/${chatId}`);
+                    const userChatSnap = await get(userChatRef);
+                    
+                    if (userChatSnap.exists()) {
+                        console.log(`  ✅ userChats/${userId}/${chatId} existe`);
+                    } else {
+                        console.log(`  ⚠️ userChats/${userId}/${chatId} NO existe`);
+                    }
+                } catch (err) {
+                    console.log(`  ❌ Error accediendo a userChats/${userId}:`, err.message);
+                }
+            }
+        }
+        
+        // Contar mensajes
+        const messageCount = Object.keys(chatData.messages || {}).length;
+        console.log(`\n💬 Total de mensajes: ${messageCount}`);
+        
+        // Verificar creador
+        console.log(`\n📝 Creado: ${new Date(chatData.metadata?.createdAt).toLocaleString()}`);
+        console.log(`🏷️ Es chat de intercambio: ${chatData.metadata?.isTradeChat || false}`);
+        
+    } catch (error) {
+        console.error('❌ Error en diagnóstico:', error);
     }
 };
 
