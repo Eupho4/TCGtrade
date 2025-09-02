@@ -7189,11 +7189,18 @@
                     
                     // Escuchar actualizaciones de mensajes no leídos
                     window.addEventListener('unreadCountUpdated', (event) => {
-                        const totalUnread = chatManager.getTotalUnreadCount();
+                        // Contar CHATS con mensajes sin leer (no mensajes totales)
+                        let chatsWithUnread = 0;
+                        for (const [chatId, count] of chatManager.unreadCounts) {
+                            if (count > 0) {
+                                chatsWithUnread++;
+                            }
+                        }
+                        
                         const chatBadge = document.getElementById('chatBadge');
                         if (chatBadge) {
-                            if (totalUnread > 0) {
-                                chatBadge.textContent = totalUnread > 99 ? '99+' : totalUnread;
+                            if (chatsWithUnread > 0) {
+                                chatBadge.textContent = chatsWithUnread;
                                 chatBadge.classList.remove('hidden');
                             } else {
                                 chatBadge.classList.add('hidden');
