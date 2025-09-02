@@ -83,9 +83,14 @@ class ChatUI {
             
             console.log(`📬 Restaurando ${chatsState.activeChats.length} chats...`);
             
+            // Contar cuántos chats hay (minimizados o no)
+            let hasChats = false;
+            let minimizedCount = 0;
+            
             // Restaurar cada chat
             for (const chat of chatsState.activeChats) {
                 console.log('💬 Restaurando chat:', chat);
+                hasChats = true;
                 
                 try {
                     // Recrear la ventana de chat
@@ -95,10 +100,18 @@ class ChatUI {
                     if (chat.isMinimized) {
                         console.log('📥 Minimizando chat:', chat.chatId);
                         this.minimizeChat(chat.chatId);
+                        minimizedCount++;
                     }
                 } catch (chatError) {
                     console.error('❌ Error al restaurar chat individual:', chatError);
                 }
+            }
+            
+            // Si hay chats pero todos están minimizados (o ninguno visible), mostrar la barra
+            if (hasChats && (minimizedCount > 0 || this.activeChats.size === 0)) {
+                console.log('💬 Mostrando barra de chats minimizados');
+                this.createMinimizedBar();
+                this.updateMinimizedBar();
             }
             
             console.log('✅ Chats restaurados exitosamente');
@@ -480,7 +493,8 @@ class ChatUI {
             </div>
         `;
         
-        bar.addEventListener('click', () => this.restoreAllChats());
+        // Al hacer click, mostrar la lista de chats
+        bar.addEventListener('click', () => this.showChatList());
         document.body.appendChild(bar);
     }
     
@@ -490,10 +504,12 @@ class ChatUI {
         const count = document.getElementById('minimized-count');
         
         if (bar && count) {
-            const minimizedCount = this.minimizedChats.size;
-            count.textContent = minimizedCount;
+            // Mostrar el total de chats (activos + minimizados)
+            const totalChats = this.activeChats.size + this.minimizedChats.size;
+            count.textContent = totalChats;
             
-            if (minimizedCount > 0) {
+            // Mostrar la barra si hay CUALQUIER chat (minimizado o no)
+            if (totalChats > 0) {
                 bar.classList.remove('hidden');
             } else {
                 bar.classList.add('hidden');
@@ -821,6 +837,10 @@ class ChatUI {
         }
         
         this.currentChatId = chatId;
+        
+        // Asegurar que la barra de minimizados esté visible si hay chats
+        this.createMinimizedBar();
+        this.updateMinimizedBar();
     }
 
     // Utilidades
