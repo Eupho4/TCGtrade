@@ -1340,4 +1340,84 @@ window.checkChatExists = async function(chatId) {
     }
 };
 
+// Función de eliminación directa sin caché
+window.forceDeleteChat = async function(chatId) {
+    console.log('🚀 Eliminación directa de chat:', chatId);
+    
+    try {
+        const { getDatabase, ref, get, remove } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js');
+        const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+        
+        const db = getDatabase();
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
+        
+        if (!currentUser) {
+            throw new Error('Usuario no autenticado');
+        }
+        
+        // Normalizar chatId
+        if (chatId.startsWith('trade_trade_')) {
+            chatId = chatId.replace('trade_trade_', 'trade_');
+            console.log('📝 ChatId normalizado:', chatId);
+        }
+        
+        const chatRef = ref(db, `chats/${chatId}`);
+        
+        // Obtener participantes primero
+        console.log('👥 Obteniendo datos del chat...');
+        const snapshot = await get(chatRef);
+        
+        if (!snapshot.exists()) {
+            console.log('❌ El chat no existe');
+            return;
+        }
+        
+        const chatData = snapshot.val();
+        console.log('📊 Datos del chat:', chatData);
+        
+        // Eliminar referencias de userChats
+        if (chatData?.metadata?.participants) {
+            const participants = Object.keys(chatData.metadata.participants);
+            console.log('👥 Participantes:', participants);
+            
+            for (const userId of participants) {
+                try {
+                    const userChatRef = ref(db, `userChats/${userId}/${chatId}`);
+                    console.log(`🗑️ Eliminando referencia para ${userId}`);
+                    await remove(userChatRef);
+                } catch (err) {
+                    console.warn(`⚠️ Error eliminando referencia de ${userId}:`, err);
+                }
+            }
+        }
+        
+        // Eliminar el chat
+        console.log('🔥 Eliminando chat principal...');
+        await remove(chatRef);
+        
+        // Verificar eliminación
+        console.log('🔍 Verificando eliminación...');
+        const checkSnapshot = await get(chatRef);
+        
+        if (checkSnapshot.exists()) {
+            console.error('❌ El chat SIGUE existiendo');
+        } else {
+            console.log('✅ Chat eliminado exitosamente');
+        }
+        
+        // Actualizar UI si está disponible
+        if (window.chatUI) {
+            window.chatUI.updateMinimizedBar();
+            window.chatUI.updateChatBadge();
+        }
+        
+        // Disparar evento
+        window.dispatchEvent(new Event('chatDeleted'));
+        
+    } catch (error) {
+        console.error('❌ Error en eliminación directa:', error);
+    }
+};
+
 export default ChatUI;
