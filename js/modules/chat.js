@@ -217,6 +217,20 @@ class ChatManager {
             lastMessageSender: currentUser.uid,
             [`unreadCount_${this.getOtherUserId(chatId)}`]: serverTimestamp() // Incrementar contador para el otro usuario
         });
+        
+        // SIEMPRE actualizar userChats cuando se envía un mensaje
+        // Esto asegura que el chat aparezca en la lista incluso si fue borrado
+        const userChatRef = ref(this.realtimeDb, `userChats/${currentUser.uid}/${chatId}`);
+        await set(userChatRef, {
+            timestamp: serverTimestamp(),
+            lastActivity: serverTimestamp()
+        });
+        console.log('📝 Chat agregado/actualizado en userChats');
+        
+        // Disparar evento para actualizar la UI
+        window.dispatchEvent(new CustomEvent('chatRestored', {
+            detail: { chatId }
+        }));
 
         // Notificar al otro usuario
         this.notifyOtherUser(chatId, message);
