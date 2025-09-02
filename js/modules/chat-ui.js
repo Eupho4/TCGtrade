@@ -781,10 +781,18 @@ class ChatUI {
         };
         window.addEventListener('chatCreated', handleNewChat);
         
+        // Actualizar cuando se elimine un chat
+        const handleDeleteChat = () => {
+            console.log('🗑️ Chat eliminado, actualizando lista...');
+            updateChatList();
+        };
+        window.addEventListener('chatDeleted', handleDeleteChat);
+        
         // Limpiar listeners cuando se cierre el modal
         modal.addEventListener('click', (e) => {
             if (e.target === modal || (e.target.textContent && e.target.textContent.includes('Cerrar'))) {
                 window.removeEventListener('chatCreated', handleNewChat);
+                window.removeEventListener('chatDeleted', handleDeleteChat);
                 clearInterval(this.chatListInterval);
             }
         });
@@ -838,7 +846,12 @@ class ChatUI {
                             ${participantText ? `<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${participantText}</p>` : ''}
                         </div>
                     </div>
-                    <div class="text-right">
+                    <div class="text-right relative">
+                        <button class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors delete-chat-btn"
+                                data-chat-id="${chat.id}"
+                                onclick="event.stopPropagation(); window.chatUI.deleteChat('${escapedChatId}')">
+                            ×
+                        </button>
                         <p class="text-xs text-gray-500 dark:text-gray-400">${lastMessageTime}</p>
                         ${chat.unreadCount > 0 ? 
                             `<span class="inline-block mt-1 px-2 py-1 bg-orange-500 text-white text-xs rounded-full">
@@ -851,6 +864,76 @@ class ChatUI {
         `;
     }
 
+    // Eliminar chat
+    async deleteChat(chatId) {
+        console.log('🗑️ Eliminando chat:', chatId);
+        
+        // Normalizar el chatId por si viene con doble prefijo
+        if (chatId && chatId.startsWith('trade_trade_')) {
+            chatId = chatId.replace('trade_trade_', 'trade_');
+        }
+        
+        // Confirmar eliminación
+        const confirmDelete = confirm('¿Estás seguro de que quieres eliminar esta conversación?\n\nEsto eliminará todos los mensajes y no se puede deshacer.');
+        
+        if (!confirmDelete) {
+            return;
+        }
+        
+        try {
+            // Cerrar ventana de chat si está abierta
+            const chatWindow = document.getElementById(`chat-window-${chatId}`);
+            if (chatWindow) {
+                chatWindow.remove();
+                this.activeChats.delete(chatId);
+                this.minimizedChats.delete(chatId);
+            }
+            
+            // Eliminar de localStorage
+            this.removeFromSavedChats(chatId);
+            
+            // Eliminar de Firebase
+            if (this.chatManager) {
+                await this.chatManager.deleteChat(chatId);
+            }
+            
+            // Actualizar la lista
+            const updateChatList = document.querySelector('#chat-list-container');
+            if (updateChatList) {
+                // Forzar actualización de la lista
+                const event = new Event('chatDeleted');
+                window.dispatchEvent(event);
+            }
+            
+            // Actualizar UI
+            this.updateMinimizedBar();
+            this.updateChatBadge();
+            
+            console.log('✅ Chat eliminado exitosamente');
+            
+        } catch (error) {
+            console.error('❌ Error al eliminar chat:', error);
+            alert('Error al eliminar el chat. Por favor, intenta de nuevo.');
+        }
+    }
+    
+    // Remover chat de los guardados
+    removeFromSavedChats(chatId) {
+        try {
+            const userId = this.chatManager.auth.currentUser?.uid;
+            if (!userId) return;
+            
+            const savedState = localStorage.getItem(`chatsState_${userId}`);
+            if (savedState) {
+                const chatsState = JSON.parse(savedState);
+                chatsState.activeChats = chatsState.activeChats.filter(chat => chat.chatId !== chatId);
+                localStorage.setItem(`chatsState_${userId}`, JSON.stringify(chatsState));
+            }
+        } catch (error) {
+            console.error('Error al actualizar chats guardados:', error);
+        }
+    }
+    
     // Abrir chat desde la lista
     openChatFromList(chatId, otherUserName, tradeId) {
         console.log('🔍 openChatFromList llamado:', { chatId, otherUserName, tradeId });
