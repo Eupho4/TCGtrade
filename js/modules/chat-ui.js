@@ -666,9 +666,15 @@ class ChatUI {
             if (!container) return;
             
             // Debug: rastrear de dónde viene la llamada
-            if (forceUpdate && currentTab === 'hidden') {
-                console.log('📍 updateChatList llamado con forceUpdate=true desde:');
-                console.trace();
+            if (currentTab === 'hidden') {
+                console.log('🔄 updateChatList llamado:', {
+                    forceUpdate,
+                    currentTab,
+                    timestamp: new Date().toLocaleTimeString()
+                });
+                if (forceUpdate) {
+                    console.trace('Stack trace:');
+                }
             }
             
             try {
@@ -697,8 +703,10 @@ class ChatUI {
                     }
                     cacheTimestamp = now;
                     
-                    // Debug reducido - solo cambios importantes
-                    // Comentado para reducir spam
+                    // Debug cuando se actualiza el cache
+                    if (currentTab === 'hidden') {
+                        console.log('📦 Cache actualizado, chats ocultos:', cachedHiddenChats.length);
+                    }
                 }
                 
                 let chats = [];
@@ -735,6 +743,15 @@ class ChatUI {
                         lastActiveChatIds = currentChatIds;
                     } else {
                         lastHiddenChatIds = currentChatIds;
+                    }
+                    
+                    // Debug antes de actualizar DOM
+                    if (currentTab === 'hidden' && chats.length === 0 && lastHiddenChatIds.length > 0) {
+                        console.log('❌ CHATS OCULTOS DESAPARECIENDO:', {
+                            chatsEnVariable: chats.length,
+                            chatsEnCache: cachedHiddenChats.length,
+                            timestamp: new Date().toLocaleTimeString()
+                        });
                     }
                     
                     if (chats.length === 0) {
