@@ -884,11 +884,19 @@ class ChatUI {
             const chats = await this.chatManager.getUserChats();
             const totalChats = chats.length;
             
+            // Contar CHATS con mensajes sin leer (no total de chats)
+            let chatsWithUnread = 0;
+            for (const [chatId, count] of this.chatManager.unreadCounts) {
+                if (count > 0) {
+                    chatsWithUnread++;
+                }
+            }
+            
             // Actualizar el badge en el enlace de navegación
             const chatBadge = document.getElementById('chatBadge');
             if (chatBadge) {
-                if (totalChats > 0) {
-                    chatBadge.textContent = totalChats;
+                if (chatsWithUnread > 0) {
+                    chatBadge.textContent = chatsWithUnread;
                     chatBadge.classList.remove('hidden');
                 } else {
                     chatBadge.classList.add('hidden');
