@@ -665,17 +665,7 @@ class ChatUI {
             const container = document.getElementById('chat-list-container');
             if (!container) return;
             
-            // Debug: rastrear de dónde viene la llamada
-            if (currentTab === 'hidden') {
-                console.log('🔄 updateChatList llamado:', {
-                    forceUpdate,
-                    currentTab,
-                    timestamp: new Date().toLocaleTimeString()
-                });
-                if (forceUpdate) {
-                    console.trace('Stack trace:');
-                }
-            }
+            // Debug comentado
             
             try {
                 // Obtener chats con cache
@@ -703,10 +693,7 @@ class ChatUI {
                     }
                     cacheTimestamp = now;
                     
-                    // Debug cuando se actualiza el cache
-                    if (currentTab === 'hidden') {
-                        console.log('📦 Cache actualizado, chats ocultos:', cachedHiddenChats.length);
-                    }
+                    // Cache actualizado
                 }
                 
                 let chats = [];
@@ -716,8 +703,21 @@ class ChatUI {
                     chats = cachedActiveChats || [];
                     emptyMessage = 'No tienes conversaciones activas';
                 } else {
-                    chats = cachedHiddenChats || [];
+                    // Para chats ocultos, mantener el último estado válido si el nuevo está vacío
+                    if (cachedHiddenChats && cachedHiddenChats.length > 0) {
+                        chats = cachedHiddenChats;
+                    } else if (this.lastValidHiddenChats && this.lastValidHiddenChats.length > 0) {
+                        chats = this.lastValidHiddenChats;
+                        console.log('⚠️ Usando último estado válido de chats ocultos');
+                    } else {
+                        chats = [];
+                    }
                     emptyMessage = 'No tienes conversaciones ocultas';
+                    
+                    // Guardar estado válido
+                    if (chats.length > 0) {
+                        this.lastValidHiddenChats = [...chats];
+                    }
                 }
                 
                 // Crear una firma única de los chats actuales para detectar cambios
@@ -726,19 +726,14 @@ class ChatUI {
                 // Usar la variable correcta según la pestaña actual
                 const lastChatIds = currentTab === 'active' ? lastActiveChatIds : lastHiddenChatIds;
                 
-                // Debug detallado para chats ocultos
-                if (currentTab === 'hidden') {
-                    console.log('📊 Estado antes de actualizar DOM:', {
-                        chats: chats.length,
-                        debeActualizar: forceUpdate || currentChatIds !== lastChatIds,
-                        forceUpdate,
-                        cambio: currentChatIds !== lastChatIds,
-                        firmaActual: currentChatIds.substring(0, 30) + '...'
-                    });
-                }
+                // Estado verificado
                 
                 // Solo actualizar si hay cambios reales o es forzado
-                if (forceUpdate || currentChatIds !== lastChatIds) {
+                // PERO NUNCA vaciar la lista si había chats antes
+                const shouldUpdate = forceUpdate || currentChatIds !== lastChatIds;
+                const preventEmpty = currentTab === 'hidden' && chats.length === 0 && lastHiddenChatIds.length > 0;
+                
+                if (shouldUpdate && !preventEmpty) {
                     // Debug para chats ocultos
                     if (currentTab === 'hidden' && chats.length === 0 && lastChatIds.length > 0) {
                         console.log('⚠️ CHATS DESAPARECIERON:', {
