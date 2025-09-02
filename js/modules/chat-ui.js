@@ -726,6 +726,17 @@ class ChatUI {
                 // Usar la variable correcta según la pestaña actual
                 const lastChatIds = currentTab === 'active' ? lastActiveChatIds : lastHiddenChatIds;
                 
+                // Debug detallado para chats ocultos
+                if (currentTab === 'hidden') {
+                    console.log('📊 Estado antes de actualizar DOM:', {
+                        chats: chats.length,
+                        debeActualizar: forceUpdate || currentChatIds !== lastChatIds,
+                        forceUpdate,
+                        cambio: currentChatIds !== lastChatIds,
+                        firmaActual: currentChatIds.substring(0, 30) + '...'
+                    });
+                }
+                
                 // Solo actualizar si hay cambios reales o es forzado
                 if (forceUpdate || currentChatIds !== lastChatIds) {
                     // Debug para chats ocultos
