@@ -651,7 +651,8 @@ class ChatUI {
         
         // Estado de la pestaña actual
         let currentTab = 'active';
-        let lastChatIds = '';
+        let lastActiveChatIds = '';
+        let lastHiddenChatIds = '';
         
         // Función para actualizar la lista
         const updateChatList = async (forceUpdate = false) => {
@@ -673,9 +674,17 @@ class ChatUI {
                 // Crear una firma única de los chats actuales para detectar cambios
                 const currentChatIds = chats.map(c => `${c.id}-${c.unreadCount || 0}-${c.lastMessageTime || 0}`).join(',');
                 
+                // Usar la variable correcta según la pestaña actual
+                const lastChatIds = currentTab === 'active' ? lastActiveChatIds : lastHiddenChatIds;
+                
                 // Solo actualizar si hay cambios reales o es forzado
                 if (forceUpdate || currentChatIds !== lastChatIds) {
-                    lastChatIds = currentChatIds;
+                    // Actualizar la variable correcta
+                    if (currentTab === 'active') {
+                        lastActiveChatIds = currentChatIds;
+                    } else {
+                        lastHiddenChatIds = currentChatIds;
+                    }
                     
                     if (chats.length === 0) {
                         container.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 py-8">${emptyMessage}</p>`;
@@ -780,7 +789,6 @@ class ChatUI {
         
         activeTab.addEventListener('click', () => {
             currentTab = 'active';
-            lastChatIds = ''; // Reset para forzar actualización
             activeTab.className = 'flex-1 px-4 py-3 text-sm font-medium text-white bg-orange-500 border-b-2 border-orange-600 focus:outline-none';
             hiddenTab.className = 'flex-1 px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none';
             updateChatList(true);
@@ -788,7 +796,6 @@ class ChatUI {
         
         hiddenTab.addEventListener('click', () => {
             currentTab = 'hidden';
-            lastChatIds = ''; // Reset para forzar actualización
             hiddenTab.className = 'flex-1 px-4 py-3 text-sm font-medium text-white bg-orange-500 border-b-2 border-orange-600 focus:outline-none';
             activeTab.className = 'flex-1 px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none';
             updateChatList(true);
