@@ -668,20 +668,25 @@ class ChatUI {
             try {
                 // Obtener chats con cache
                 const now = Date.now();
-                if (forceUpdate || now - cacheTimestamp > CACHE_DURATION) {
+                if (forceUpdate || now - cacheTimestamp > CACHE_DURATION || !cachedActiveChats || !cachedHiddenChats) {
                     cachedActiveChats = await this.chatManager.getUserChats();
                     cachedHiddenChats = await this.chatManager.getHiddenChats();
                     cacheTimestamp = now;
+                    
+                    // Debug temporal
+                    if (currentTab === 'hidden' && cachedHiddenChats.length > 0) {
+                        console.log('📋 Chats ocultos cargados:', cachedHiddenChats.length);
+                    }
                 }
                 
                 let chats = [];
                 let emptyMessage = '';
                 
                 if (currentTab === 'active') {
-                    chats = cachedActiveChats;
+                    chats = cachedActiveChats || [];
                     emptyMessage = 'No tienes conversaciones activas';
                 } else {
-                    chats = cachedHiddenChats;
+                    chats = cachedHiddenChats || [];
                     emptyMessage = 'No tienes conversaciones ocultas';
                 }
                 
@@ -693,6 +698,17 @@ class ChatUI {
                 
                 // Solo actualizar si hay cambios reales o es forzado
                 if (forceUpdate || currentChatIds !== lastChatIds) {
+                    // Debug para chats ocultos
+                    if (currentTab === 'hidden') {
+                        console.log('🔄 Actualizando chats ocultos:', {
+                            cantidad: chats.length,
+                            forzado: forceUpdate,
+                            cambio: currentChatIds !== lastChatIds,
+                            firma_anterior: lastChatIds.substring(0, 50) + '...',
+                            firma_nueva: currentChatIds.substring(0, 50) + '...'
+                        });
+                    }
+                    
                     // Actualizar la variable correcta
                     if (currentTab === 'active') {
                         lastActiveChatIds = currentChatIds;
