@@ -658,7 +658,7 @@ class ChatUI {
         let cachedActiveChats = null;
         let cachedHiddenChats = null;
         let cacheTimestamp = 0;
-        const CACHE_DURATION = 1000; // 1 segundo
+        const CACHE_DURATION = 2500; // 2.5 segundos (menor que el intervalo de 3s)
         
         // Función para actualizar la lista
         const updateChatList = async (forceUpdate = false) => {
@@ -674,8 +674,11 @@ class ChatUI {
                     cacheTimestamp = now;
                     
                     // Debug temporal
-                    if (currentTab === 'hidden' && cachedHiddenChats.length > 0) {
-                        console.log('📋 Chats ocultos cargados:', cachedHiddenChats.length);
+                    if (currentTab === 'hidden') {
+                        console.log('📋 Cache actualizado - Chats ocultos:', cachedHiddenChats.length, {
+                            ids: cachedHiddenChats.map(c => c.id),
+                            timestamp: new Date().toLocaleTimeString()
+                        });
                     }
                 }
                 
@@ -699,13 +702,12 @@ class ChatUI {
                 // Solo actualizar si hay cambios reales o es forzado
                 if (forceUpdate || currentChatIds !== lastChatIds) {
                     // Debug para chats ocultos
-                    if (currentTab === 'hidden') {
-                        console.log('🔄 Actualizando chats ocultos:', {
-                            cantidad: chats.length,
-                            forzado: forceUpdate,
-                            cambio: currentChatIds !== lastChatIds,
-                            firma_anterior: lastChatIds.substring(0, 50) + '...',
-                            firma_nueva: currentChatIds.substring(0, 50) + '...'
+                    if (currentTab === 'hidden' && chats.length === 0 && lastChatIds.length > 0) {
+                        console.log('⚠️ CHATS DESAPARECIERON:', {
+                            antes: lastChatIds,
+                            ahora: currentChatIds,
+                            chats_en_cache: cachedHiddenChats.length,
+                            timestamp: new Date().toLocaleTimeString()
                         });
                     }
                     
