@@ -413,7 +413,8 @@ class ChatManager {
                         console.error('Error al leer chats ocultos:', e);
                     }
                     
-                    if ((isParticipant || (isTradeChat && hasUserMessages)) && !isHidden) {
+                    // Quitar filtro de chats ocultos - ahora usamos borrado real
+                    if (isParticipant || (isTradeChat && hasUserMessages)) {
                         // Si el usuario no está registrado como participante pero ha enviado mensajes,
                         // añadirlo automáticamente
                         if (!isParticipant && hasUserMessages) {
