@@ -855,6 +855,12 @@ class ChatUI {
     openChatFromList(chatId, otherUserName, tradeId) {
         console.log('🔍 openChatFromList llamado:', { chatId, otherUserName, tradeId });
         
+        // Normalizar el chatId por si viene con doble prefijo
+        if (chatId && chatId.startsWith('trade_trade_')) {
+            console.log('⚠️ Normalizando chatId en openChatFromList');
+            chatId = chatId.replace('trade_trade_', 'trade_');
+        }
+        
         try {
             // Cerrar modal de lista
             const modal = document.getElementById('chat-list-modal');
@@ -878,6 +884,14 @@ class ChatUI {
     // Abrir chat
     async openChat(chatId, otherUserName = 'Usuario', tradeTitle = '') {
         console.log('📂 openChat llamado con:', { chatId, otherUserName, tradeTitle });
+        
+        // Normalizar el chatId por si viene con doble prefijo
+        if (chatId.startsWith('trade_trade_')) {
+            console.log('⚠️ ChatId con doble prefijo detectado, normalizando...');
+            chatId = chatId.replace('trade_trade_', 'trade_');
+        }
+        
+        console.log('📌 ChatId normalizado:', chatId);
         
         // Verificar si el chat ya está activo
         const isNewChat = !document.getElementById(`chat-window-${chatId}`);
