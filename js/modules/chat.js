@@ -390,8 +390,15 @@ class ChatManager {
                         );
                     }
                     
-                    // Verificar si el chat está oculto para el usuario
-                    const isHidden = chatData?.metadata?.participants?.[currentUser.uid]?.hidden === true;
+                    // Verificar si el chat está oculto para el usuario (en localStorage)
+                    let isHidden = false;
+                    try {
+                        const hiddenChatsKey = `hiddenChats_${currentUser.uid}`;
+                        const hiddenChats = JSON.parse(localStorage.getItem(hiddenChatsKey) || '[]');
+                        isHidden = hiddenChats.includes(chatId);
+                    } catch (e) {
+                        console.error('Error al leer chats ocultos:', e);
+                    }
                     
                     if ((isParticipant || (isTradeChat && hasUserMessages)) && !isHidden) {
                         // Si el usuario no está registrado como participante pero ha enviado mensajes,
@@ -575,6 +582,15 @@ class ChatManager {
         }
 
         try {
+            // Obtener lista de IDs de chats ocultos desde localStorage
+            const hiddenChatsKey = `hiddenChats_${currentUser.uid}`;
+            const hiddenChatIds = JSON.parse(localStorage.getItem(hiddenChatsKey) || '[]');
+            
+            if (hiddenChatIds.length === 0) {
+                console.log('🙈 No hay chats ocultos');
+                return [];
+            }
+            
             const chatsRef = ref(this.realtimeDb, 'chats');
             const snapshot = await get(chatsRef);
             
@@ -585,21 +601,31 @@ class ChatManager {
                     const chatData = childSnapshot.val();
                     const chatId = childSnapshot.key;
                     
-                    // Verificar si el usuario es participante y el chat está oculto
-                    const participant = chatData?.metadata?.participants?.[currentUser.uid];
-                    const isHidden = participant?.hidden === true;
-                    
-                    if (participant && isHidden) {
-                        // Obtener el otro participante
-                        const participants = Object.values(chatData.metadata.participants || {});
-                        const otherParticipant = participants.find(p => p.uid !== currentUser.uid);
+                    // Verificar si este chat está en la lista de ocultos
+                    if (hiddenChatIds.includes(chatId)) {
+                        const participant = chatData?.metadata?.participants?.[currentUser.uid];
+                        const isParticipant = !!participant;
                         
-                        hiddenChats.push({
-                            id: chatId,
-                            ...chatData.metadata,
-                            otherUser: otherParticipant || { displayName: 'Chat de Intercambio' },
-                            unreadCount: 0 // Los chats ocultos no cuentan mensajes no leídos
-                        });
+                        // Verificar si el usuario ha enviado mensajes
+                        let hasUserMessages = false;
+                        if (chatData?.messages) {
+                            hasUserMessages = Object.values(chatData.messages).some(
+                                msg => msg.senderId === currentUser.uid
+                            );
+                        }
+                        
+                        if (isParticipant || hasUserMessages) {
+                            // Obtener el otro participante
+                            const participants = Object.values(chatData.metadata.participants || {});
+                            const otherParticipant = participants.find(p => p.uid !== currentUser.uid);
+                            
+                            hiddenChats.push({
+                                id: chatId,
+                                ...chatData.metadata,
+                                otherUser: otherParticipant || { displayName: 'Chat de Intercambio' },
+                                unreadCount: 0 // Los chats ocultos no cuentan mensajes no leídos
+                            });
+                        }
                     }
                 });
                 
@@ -624,11 +650,17 @@ class ChatManager {
         }
         
         try {
-            // Quitar la marca de oculto
-            const participantRef = ref(this.realtimeDb, `chats/${chatId}/metadata/participants/${currentUser.uid}/hidden`);
-            await remove(participantRef);
+            // Quitar de la lista de chats ocultos en localStorage
+            const hiddenChatsKey = `hiddenChats_${currentUser.uid}`;
+            let hiddenChats = JSON.parse(localStorage.getItem(hiddenChatsKey) || '[]');
             
-            console.log('✅ Chat restaurado');
+            // Filtrar el chat que queremos restaurar
+            hiddenChats = hiddenChats.filter(id => id !== chatId);
+            
+            // Guardar la lista actualizada
+            localStorage.setItem(hiddenChatsKey, JSON.stringify(hiddenChats));
+            
+            console.log('✅ Chat restaurado de localStorage');
             return true;
         } catch (error) {
             console.error('❌ Error al restaurar chat:', error);
