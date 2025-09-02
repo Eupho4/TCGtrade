@@ -2205,9 +2205,11 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=29';
             }
 
             try {
-                // Simplificar: usar el ID del intercambio directamente
-                // El chat es compartido por TODOS los usuarios usando el mismo tradeId
-                const chatId = `trade_${tradeId}`;
+                // Normalizar el chatId - si ya tiene el prefijo trade_, no duplicarlo
+                let chatId = tradeId;
+                if (!tradeId.startsWith('trade_')) {
+                    chatId = `trade_${tradeId}`;
+                }
                 
                 // Obtener información del intercambio
                 const trade = findTradeById(tradeId);
@@ -2227,8 +2229,9 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=29';
                 console.log('👤 Usuario actual:', currentUser.uid);
                 
                 // Inicializar o unirse al chat del intercambio
-                // El chatId ya incluye el prefijo 'trade_'
-                await window.chatManager.initializeTradeChat(chatId, tradeId, tradeTitle || displayName, otherUserId);
+                // Extraer el ID real del intercambio (sin el prefijo trade_)
+                const realTradeId = tradeId.replace(/^trade_/, '');
+                await window.chatManager.initializeTradeChat(chatId, realTradeId, tradeTitle || displayName, otherUserId);
                 
                 // Abrir ventana de chat
                 await window.chatUI.openChat(chatId);
