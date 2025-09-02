@@ -846,13 +846,15 @@ class ChatUI {
                             ${participantText ? `<p class="text-xs text-gray-500 dark:text-gray-400 mt-1">${participantText}</p>` : ''}
                         </div>
                     </div>
-                    <div class="text-right relative">
-                        <button class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors delete-chat-btn"
-                                data-chat-id="${chat.id}"
-                                onclick="event.stopPropagation(); window.chatUI.deleteChat('${escapedChatId}')">
-                            ×
-                        </button>
-                        <p class="text-xs text-gray-500 dark:text-gray-400">${lastMessageTime}</p>
+                    <div class="text-right">
+                        <div class="flex items-center justify-end gap-2 mb-1">
+                            <p class="text-xs text-gray-500 dark:text-gray-400">${lastMessageTime}</p>
+                            <button class="w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors delete-chat-btn"
+                                    data-chat-id="${chat.id}"
+                                    onclick="event.stopPropagation(); window.chatUI.deleteChat('${escapedChatId}')">
+                                ×
+                            </button>
+                        </div>
                         ${chat.unreadCount > 0 ? 
                             `<span class="inline-block mt-1 px-2 py-1 bg-orange-500 text-white text-xs rounded-full">
                                 ${chat.unreadCount}
@@ -873,13 +875,61 @@ class ChatUI {
             chatId = chatId.replace('trade_trade_', 'trade_');
         }
         
-        // Confirmar eliminación
-        const confirmDelete = confirm('¿Estás seguro de que quieres eliminar esta conversación?\n\nEsto eliminará todos los mensajes y no se puede deshacer.');
+        // Crear modal de confirmación personalizado
+        const modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4';
         
-        if (!confirmDelete) {
-            return;
-        }
+        modal.innerHTML = `
+            <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6 transform transition-all">
+                <div class="text-center">
+                    <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 mb-4">
+                        <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                    <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                        ¿Eliminar conversación?
+                    </h3>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                        Esta acción eliminará permanentemente todos los mensajes de esta conversación. 
+                        <strong class="text-red-600 dark:text-red-400">Esta acción no se puede deshacer.</strong>
+                    </p>
+                    <div class="flex gap-3 justify-center">
+                        <button id="cancel-delete" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                            Cancelar
+                        </button>
+                        <button id="confirm-delete" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                            Eliminar Chat
+                        </button>
+                    </div>
+                </div>
+            </div>
+        `;
         
+        document.body.appendChild(modal);
+        
+        return new Promise(async (resolve) => {
+            const handleCancel = () => {
+                modal.remove();
+                resolve();
+            };
+            
+            const handleConfirm = async () => {
+                modal.remove();
+                await this.performDeleteChat(chatId);
+                resolve();
+            };
+            
+            document.getElementById('cancel-delete').addEventListener('click', handleCancel);
+            document.getElementById('confirm-delete').addEventListener('click', handleConfirm);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) handleCancel();
+            });
+        });
+    }
+    
+    // Realizar la eliminación del chat
+    async performDeleteChat(chatId) {
         try {
             // Cerrar ventana de chat si está abierta
             const chatWindow = document.getElementById(`chat-window-${chatId}`);
@@ -909,12 +959,36 @@ class ChatUI {
             this.updateMinimizedBar();
             this.updateChatBadge();
             
+            // Mostrar notificación de éxito
+            this.showNotification('Chat eliminado correctamente', 'success');
             console.log('✅ Chat eliminado exitosamente');
             
         } catch (error) {
             console.error('❌ Error al eliminar chat:', error);
-            alert('Error al eliminar el chat. Por favor, intenta de nuevo.');
+            this.showNotification('Error al eliminar el chat. Por favor, intenta de nuevo.', 'error');
         }
+    }
+    
+    // Mostrar notificación temporal
+    showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500';
+        
+        notification.className = `fixed top-4 right-4 z-[101] ${bgColor} text-white px-6 py-3 rounded-lg shadow-lg transform transition-all duration-300 translate-x-full`;
+        notification.textContent = message;
+        
+        document.body.appendChild(notification);
+        
+        // Animar entrada
+        setTimeout(() => {
+            notification.classList.remove('translate-x-full');
+        }, 10);
+        
+        // Remover después de 3 segundos
+        setTimeout(() => {
+            notification.classList.add('translate-x-full');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
     }
     
     // Remover chat de los guardados
