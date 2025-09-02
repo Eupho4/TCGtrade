@@ -1947,6 +1947,45 @@ window.clearHiddenChats = function() {
     }
 };
 
+// Función para migrar y normalizar chats ocultos
+window.migrateHiddenChats = function() {
+    const auth = window.chatManager?.auth;
+    if (!auth?.currentUser) {
+        console.error('❌ Usuario no autenticado');
+        return;
+    }
+    
+    const userId = auth.currentUser.uid;
+    const hiddenChatsKey = `hiddenChats_${userId}`;
+    
+    try {
+        let hiddenChats = JSON.parse(localStorage.getItem(hiddenChatsKey) || '[]');
+        console.log('📋 Chats ocultos antes de migración:', hiddenChats);
+        
+        // Normalizar todos los IDs
+        const normalizedChats = hiddenChats.map(id => {
+            if (id.startsWith('trade_trade_')) {
+                const newId = id.replace('trade_trade_', 'trade_');
+                console.log(`🔄 Migrando: ${id} → ${newId}`);
+                return newId;
+            }
+            return id;
+        });
+        
+        // Eliminar duplicados
+        const uniqueChats = [...new Set(normalizedChats)];
+        
+        // Guardar la lista normalizada
+        localStorage.setItem(hiddenChatsKey, JSON.stringify(uniqueChats));
+        console.log('✅ Chats ocultos después de migración:', uniqueChats);
+        
+        // Actualizar UI
+        window.dispatchEvent(new Event('chatDeleted'));
+    } catch (e) {
+        console.error('❌ Error al migrar:', e);
+    }
+};
+
 // Función manual para ocultar un chat
 window.manualHideChat = function(chatId) {
     const auth = window.chatManager?.auth;
