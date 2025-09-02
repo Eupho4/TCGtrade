@@ -390,7 +390,10 @@ class ChatManager {
                         );
                     }
                     
-                    if (isParticipant || (isTradeChat && hasUserMessages)) {
+                    // Verificar si el chat está oculto para el usuario
+                    const isHidden = chatData?.metadata?.participants?.[currentUser.uid]?.hidden === true;
+                    
+                    if ((isParticipant || (isTradeChat && hasUserMessages)) && !isHidden) {
                         // Si el usuario no está registrado como participante pero ha enviado mensajes,
                         // añadirlo automáticamente
                         if (!isParticipant && hasUserMessages) {
