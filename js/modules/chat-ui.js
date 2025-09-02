@@ -649,24 +649,49 @@ class ChatUI {
         modal.id = 'chat-list-modal';
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4';
         
+        // Estado de la pestaña actual
+        let currentTab = 'active';
+        
         // Función para actualizar la lista
         const updateChatList = async () => {
             const container = document.getElementById('chat-list-container');
             if (!container) return;
             
             try {
-                const chats = await this.chatManager.getUserChats();
+                let chats = [];
+                let emptyMessage = '';
                 
-                if (chats.length === 0) {
-                    container.innerHTML = '<p class="text-center text-gray-500 dark:text-gray-400 py-8">No tienes conversaciones activas</p>';
+                if (currentTab === 'active') {
+                    chats = await this.chatManager.getUserChats();
+                    emptyMessage = 'No tienes conversaciones activas';
                 } else {
-                    container.innerHTML = chats.map(chat => this.createChatListItem(chat)).join('');
+                    chats = await this.chatManager.getHiddenChats();
+                    emptyMessage = 'No tienes conversaciones ocultas';
                 }
                 
-                // Actualizar contador en el título
+                if (chats.length === 0) {
+                    container.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 py-8">${emptyMessage}</p>`;
+                } else {
+                    container.innerHTML = chats.map(chat => 
+                        currentTab === 'active' 
+                            ? this.createChatListItem(chat)
+                            : this.createHiddenChatListItem(chat)
+                    ).join('');
+                }
+                
+                // Actualizar contadores
+                const activeChats = await this.chatManager.getUserChats();
+                const hiddenChats = await this.chatManager.getHiddenChats();
+                
+                const activeCount = document.getElementById('active-count');
+                const hiddenCount = document.getElementById('hidden-count');
                 const countBadge = document.getElementById('chat-list-count');
+                
+                if (activeCount) activeCount.textContent = `(${activeChats.length})`;
+                if (hiddenCount) hiddenCount.textContent = `(${hiddenChats.length})`;
                 if (countBadge) {
-                    countBadge.textContent = chats.length > 0 ? `(${chats.length})` : '';
+                    const total = activeChats.length + hiddenChats.length;
+                    countBadge.textContent = total > 0 ? `(${total})` : '';
                 }
             } catch (error) {
                 console.error('Error al cargar chats:', error);
@@ -707,10 +732,20 @@ class ChatUI {
                         Mis Conversaciones 
                         <span id="chat-list-count" class="ml-2 text-sm opacity-90"></span>
                     </h2>
-                    <p class="text-sm mt-2 opacity-90">Todos tus chats de intercambios activos</p>
+                    <p class="text-sm mt-2 opacity-90">Gestiona todos tus chats de intercambios</p>
                 </div>
                 
-                <div id="chat-list-container" class="overflow-y-auto max-h-[60vh] p-4">
+                <!-- Pestañas -->
+                <div class="flex border-b border-gray-200 dark:border-gray-700">
+                    <button id="active-chats-tab" class="flex-1 px-4 py-3 text-sm font-medium text-white bg-orange-500 border-b-2 border-orange-600 focus:outline-none">
+                        Activos <span id="active-count" class="ml-1"></span>
+                    </button>
+                    <button id="hidden-chats-tab" class="flex-1 px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none">
+                        Ocultos <span id="hidden-count" class="ml-1"></span>
+                    </button>
+                </div>
+                
+                <div id="chat-list-container" class="overflow-y-auto max-h-[50vh] p-4">
                     <div class="text-center py-4">
                         <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div>
                         <p class="text-gray-500 dark:text-gray-400 mt-2">Cargando chats...</p>
@@ -729,6 +764,24 @@ class ChatUI {
         `;
         
         document.body.appendChild(modal);
+        
+        // Event listeners para las pestañas
+        const activeTab = document.getElementById('active-chats-tab');
+        const hiddenTab = document.getElementById('hidden-chats-tab');
+        
+        activeTab.addEventListener('click', () => {
+            currentTab = 'active';
+            activeTab.className = 'flex-1 px-4 py-3 text-sm font-medium text-white bg-orange-500 border-b-2 border-orange-600 focus:outline-none';
+            hiddenTab.className = 'flex-1 px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none';
+            updateChatList();
+        });
+        
+        hiddenTab.addEventListener('click', () => {
+            currentTab = 'hidden';
+            hiddenTab.className = 'flex-1 px-4 py-3 text-sm font-medium text-white bg-orange-500 border-b-2 border-orange-600 focus:outline-none';
+            activeTab.className = 'flex-1 px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none';
+            updateChatList();
+        });
         
         // Event listener delegado para clicks en items de chat
         modal.addEventListener('click', (e) => {
@@ -1096,6 +1149,76 @@ class ChatUI {
             }
         } catch (error) {
             console.error('Error al actualizar chats guardados:', error);
+        }
+    }
+    
+    // Crear elemento de lista de chat oculto
+    createHiddenChatListItem(chat) {
+        const otherUser = chat.otherUser || {};
+        const displayName = otherUser.displayName || otherUser.email || 'Usuario';
+        const lastMessage = chat.lastMessage || 'Sin mensajes';
+        const lastMessageTime = chat.lastMessageTime ? new Date(chat.lastMessageTime).toLocaleString() : '';
+        
+        // Obtener título del intercambio
+        const tradeTitle = chat.displayName || chat.tradeName || `Intercambio #${chat.id.split('_')[1] || ''}`;
+        
+        // Escapar valores para el onclick
+        const escapedChatId = chat.id.replace(/'/g, "\\'");
+        const escapedDisplayName = displayName.replace(/'/g, "\\'");
+        const escapedTradeTitle = tradeTitle.replace(/'/g, "\\'");
+        
+        return `
+            <div class="bg-yellow-50 dark:bg-yellow-900/20 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 p-4 rounded-lg cursor-pointer transition-all relative"
+                 data-chat-id="${chat.id}"
+                 data-display-name="${displayName}"
+                 data-trade-title="${tradeTitle}">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 mr-3">
+                        <div class="w-12 h-12 bg-yellow-200 dark:bg-yellow-800 rounded-full flex items-center justify-center">
+                            <span class="text-lg font-semibold text-yellow-700 dark:text-yellow-300">
+                                ${displayName.charAt(0).toUpperCase()}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="flex-grow">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <h4 class="font-semibold text-gray-900 dark:text-white">${tradeTitle}</h4>
+                                <p class="text-sm text-gray-600 dark:text-gray-400">${displayName}</p>
+                            </div>
+                            <span class="text-xs text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900 px-2 py-1 rounded">
+                                Oculto
+                            </span>
+                        </div>
+                        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 truncate">
+                            ${this.truncateText(lastMessage, 40)}
+                        </p>
+                    </div>
+                    <div class="text-right ml-4">
+                        <button class="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold transition-colors restore-chat-btn"
+                                data-chat-id="${chat.id}"
+                                onclick="event.stopPropagation(); window.chatUI.restoreHiddenChat('${escapedChatId}')">
+                            ↩
+                        </button>
+                        ${lastMessageTime ? `<p class="text-xs text-gray-500 dark:text-gray-400 mt-2">${lastMessageTime}</p>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+    
+    // Restaurar chat oculto
+    async restoreHiddenChat(chatId) {
+        try {
+            await this.chatManager.unhideChat(chatId);
+            this.showNotification('Chat restaurado correctamente', 'success');
+            
+            // Actualizar la lista
+            const event = new Event('chatDeleted');
+            window.dispatchEvent(event);
+        } catch (error) {
+            console.error('Error al restaurar chat:', error);
+            this.showNotification('Error al restaurar el chat', 'error');
         }
     }
     
@@ -1650,14 +1773,9 @@ window.hideChat = async function(chatId) {
             chatId = chatId.replace('trade_trade_', 'trade_');
         }
         
-        console.log('🗑️ Eliminando referencias del usuario:', currentUser.uid);
+        console.log('🗑️ Ocultando chat para el usuario:', currentUser.uid);
         
-        // 1. Eliminar de userChats del usuario actual
-        const userChatRef = ref(db, `userChats/${currentUser.uid}/${chatId}`);
-        await remove(userChatRef);
-        console.log('✅ Eliminado de userChats');
-        
-        // 2. Marcar como oculto en el participante
+        // Marcar como oculto en el participante
         const participantRef = ref(db, `chats/${chatId}/metadata/participants/${currentUser.uid}`);
         await update(participantRef, { hidden: true });
         console.log('✅ Marcado como oculto');
