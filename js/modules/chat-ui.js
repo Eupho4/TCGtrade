@@ -873,11 +873,11 @@ class ChatUI {
                     <div class="text-right">
                         <div class="flex items-center justify-end gap-2 mb-1">
                             <p class="text-xs text-gray-500 dark:text-gray-400">${lastMessageTime}</p>
-                            <button class="w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors delete-chat-btn"
-                                    data-chat-id="${chat.id}"
-                                    onclick="event.stopPropagation(); window.chatUI.deleteChat('${escapedChatId}')">
-                                ×
-                            </button>
+                                                    <button class="w-5 h-5 bg-red-500 hover:bg-red-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors delete-chat-btn"
+                                data-chat-id="${chat.id}"
+                                onclick="event.stopPropagation(); window.forceDeleteChat('${escapedChatId}')">
+                            ×
+                        </button>
                         </div>
                         ${chat.unreadCount > 0 ? 
                             `<span class="inline-block mt-1 px-2 py-1 bg-orange-500 text-white text-xs rounded-full">
@@ -1423,6 +1423,63 @@ window.checkChatExists = async function(chatId) {
 window.forceDeleteChat = async function(chatId) {
     console.log('🚀 Eliminación directa de chat:', chatId);
     
+    // Crear modal de confirmación
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 z-[100] flex items-center justify-center p-4';
+    
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6 transform transition-all">
+            <div class="text-center">
+                <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900 mb-4">
+                    <svg class="h-6 w-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                    ¿Eliminar conversación?
+                </h3>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mb-6">
+                    Esta acción eliminará permanentemente todos los mensajes de esta conversación. 
+                    <strong class="text-red-600 dark:text-red-400">Esta acción no se puede deshacer.</strong>
+                </p>
+                <div class="flex gap-3 justify-center">
+                    <button id="cancel-delete" class="px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">
+                        Cancelar
+                    </button>
+                    <button id="confirm-delete" class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                        Eliminar Chat
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+    
+    // Esperar confirmación
+    const confirmed = await new Promise((resolve) => {
+        const handleCancel = () => {
+            modal.remove();
+            resolve(false);
+        };
+        
+        const handleConfirm = () => {
+            modal.remove();
+            resolve(true);
+        };
+        
+        document.getElementById('cancel-delete').addEventListener('click', handleCancel);
+        document.getElementById('confirm-delete').addEventListener('click', handleConfirm);
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) handleCancel();
+        });
+    });
+    
+    if (!confirmed) {
+        console.log('❌ Eliminación cancelada por el usuario');
+        return;
+    }
+    
     try {
         const { getDatabase, ref, get, remove } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js');
         const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
@@ -1485,10 +1542,22 @@ window.forceDeleteChat = async function(chatId) {
             console.log('✅ Chat eliminado exitosamente');
         }
         
+        // Cerrar ventana de chat si está abierta
+        const chatWindow = document.getElementById(`chat-window-${chatId}`);
+        if (chatWindow) {
+            chatWindow.remove();
+        }
+        
         // Actualizar UI si está disponible
         if (window.chatUI) {
             window.chatUI.updateMinimizedBar();
             window.chatUI.updateChatBadge();
+            window.chatUI.activeChats.delete(chatId);
+            window.chatUI.minimizedChats.delete(chatId);
+            window.chatUI.removeFromSavedChats(chatId);
+            
+            // Mostrar notificación de éxito
+            window.chatUI.showNotification('Chat eliminado correctamente', 'success');
         }
         
         // Disparar evento
@@ -1496,6 +1565,9 @@ window.forceDeleteChat = async function(chatId) {
         
     } catch (error) {
         console.error('❌ Error en eliminación directa:', error);
+        if (window.chatUI) {
+            window.chatUI.showNotification('Error al eliminar el chat', 'error');
+        }
     }
 };
 
