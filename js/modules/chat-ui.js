@@ -125,8 +125,11 @@ class ChatUI {
 
     // Crear ventana de chat flotante
     createChatWindow(chatId, otherUserName = 'Usuario', tradeTitle = '') {
+        console.log('🏗️ createChatWindow llamado:', { chatId, otherUserName, tradeTitle });
+        
         // Si ya existe una ventana para este chat, solo enfocarla
         if (document.getElementById(`chat-window-${chatId}`)) {
+            console.log('⚠️ Ventana ya existe, enfocando...');
             this.focusChatWindow(chatId);
             return;
         }
@@ -219,6 +222,7 @@ class ChatUI {
         `;
 
         document.body.appendChild(chatWindow);
+        console.log('✅ Ventana de chat añadida al DOM');
         
         // Configurar eventos
         this.setupChatEvents(chatId);
@@ -851,20 +855,33 @@ class ChatUI {
     openChatFromList(chatId, otherUserName, tradeId) {
         console.log('🔍 openChatFromList llamado:', { chatId, otherUserName, tradeId });
         
-        // Cerrar modal de lista
-        const modal = document.getElementById('chat-list-modal');
-        if (modal) {
-            modal.remove();
+        try {
+            // Cerrar modal de lista
+            const modal = document.getElementById('chat-list-modal');
+            if (modal) {
+                console.log('📋 Cerrando modal de lista');
+                modal.remove();
+            }
+            
+            // Pequeño delay para asegurar que el modal se cierre
+            setTimeout(() => {
+                console.log('🚀 Abriendo chat:', chatId);
+                // Abrir ventana de chat
+                this.openChat(chatId, otherUserName, tradeId);
+            }, 100);
+            
+        } catch (error) {
+            console.error('❌ Error en openChatFromList:', error);
         }
-        
-        // Abrir ventana de chat
-        this.openChat(chatId, otherUserName, tradeId);
     }
 
     // Abrir chat
     async openChat(chatId, otherUserName = 'Usuario', tradeTitle = '') {
+        console.log('📂 openChat llamado con:', { chatId, otherUserName, tradeTitle });
+        
         // Verificar si el chat ya está activo
         const isNewChat = !document.getElementById(`chat-window-${chatId}`);
+        console.log('🆕 Es chat nuevo?', isNewChat);
         
         // Crear ventana si no existe
         if (isNewChat) {
@@ -1081,5 +1098,22 @@ if (!document.getElementById('chat-styles')) {
     styleElement.innerHTML = chatStyles;
     document.head.appendChild(styleElement.firstElementChild);
 }
+
+// Función de debug global
+window.testOpenChat = function(chatId = 'trade_test123') {
+    console.log('🧪 Probando apertura de chat con ID:', chatId);
+    
+    if (!window.chatUI) {
+        console.error('❌ chatUI no está disponible');
+        return;
+    }
+    
+    try {
+        window.chatUI.openChat(chatId, 'Usuario Prueba', 'Intercambio Prueba');
+        console.log('✅ Llamada a openChat exitosa');
+    } catch (error) {
+        console.error('❌ Error al abrir chat:', error);
+    }
+};
 
 export default ChatUI;
