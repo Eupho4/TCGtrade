@@ -1792,6 +1792,10 @@ window.hideChat = async function(chatId) {
         if (!hiddenChats.includes(chatId)) {
             hiddenChats.push(chatId);
             localStorage.setItem(hiddenChatsKey, JSON.stringify(hiddenChats));
+            console.log('✅ Chat añadido a la lista de ocultos:', chatId);
+            console.log('📋 Lista actualizada de chats ocultos:', hiddenChats);
+        } else {
+            console.log('⚠️ El chat ya estaba oculto:', chatId);
         }
         
         console.log('✅ Chat marcado como oculto en localStorage');
@@ -1892,6 +1896,105 @@ window.diagnoseChat = async function(chatId) {
         
     } catch (error) {
         console.error('❌ Error en diagnóstico:', error);
+    }
+};
+
+// Función de diagnóstico para chats ocultos
+window.debugHiddenChats = function() {
+    const auth = window.chatManager?.auth;
+    if (!auth?.currentUser) {
+        console.error('❌ Usuario no autenticado');
+        return;
+    }
+    
+    const userId = auth.currentUser.uid;
+    const hiddenChatsKey = `hiddenChats_${userId}`;
+    const hiddenChats = localStorage.getItem(hiddenChatsKey);
+    
+    console.log('🔍 Debug de Chats Ocultos:');
+    console.log('👤 Usuario:', userId);
+    console.log('🔑 Key localStorage:', hiddenChatsKey);
+    console.log('📦 Valor en localStorage:', hiddenChats);
+    console.log('📋 Chats ocultos parseados:', hiddenChats ? JSON.parse(hiddenChats) : []);
+    
+    // Verificar todos los items en localStorage
+    console.log('\n📂 Todos los items en localStorage:');
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key.includes('hiddenChats')) {
+            console.log(`  ${key}:`, localStorage.getItem(key));
+        }
+    }
+};
+
+// Función para limpiar chats ocultos
+window.clearHiddenChats = function() {
+    const auth = window.chatManager?.auth;
+    if (!auth?.currentUser) {
+        console.error('❌ Usuario no autenticado');
+        return;
+    }
+    
+    const userId = auth.currentUser.uid;
+    const hiddenChatsKey = `hiddenChats_${userId}`;
+    
+    localStorage.removeItem(hiddenChatsKey);
+    console.log('✅ Chats ocultos limpiados');
+    
+    // Actualizar la UI
+    if (window.chatUI) {
+        window.dispatchEvent(new Event('chatDeleted'));
+    }
+};
+
+// Función manual para ocultar un chat
+window.manualHideChat = function(chatId) {
+    const auth = window.chatManager?.auth;
+    if (!auth?.currentUser) {
+        console.error('❌ Usuario no autenticado');
+        return;
+    }
+    
+    // Normalizar chatId
+    if (chatId.startsWith('trade_trade_')) {
+        chatId = chatId.replace('trade_trade_', 'trade_');
+        console.log('📝 ChatId normalizado a:', chatId);
+    }
+    
+    const userId = auth.currentUser.uid;
+    const hiddenChatsKey = `hiddenChats_${userId}`;
+    
+    // Obtener lista actual
+    let hiddenChats = [];
+    try {
+        hiddenChats = JSON.parse(localStorage.getItem(hiddenChatsKey) || '[]');
+    } catch (e) {
+        console.error('Error al leer:', e);
+    }
+    
+    // Añadir si no existe
+    if (!hiddenChats.includes(chatId)) {
+        hiddenChats.push(chatId);
+        localStorage.setItem(hiddenChatsKey, JSON.stringify(hiddenChats));
+        console.log('✅ Chat ocultado manualmente:', chatId);
+        console.log('📋 Lista de ocultos:', hiddenChats);
+        
+        // Actualizar UI
+        window.dispatchEvent(new Event('chatDeleted'));
+        
+        // Cerrar ventana si está abierta
+        const chatWindow = document.getElementById(`chat-window-${chatId}`);
+        if (chatWindow) chatWindow.remove();
+        
+        // Actualizar UI de chat
+        if (window.chatUI) {
+            window.chatUI.activeChats.delete(chatId);
+            window.chatUI.minimizedChats.delete(chatId);
+            window.chatUI.updateMinimizedBar();
+            window.chatUI.updateChatBadge();
+        }
+    } else {
+        console.log('⚠️ El chat ya estaba oculto');
     }
 };
 

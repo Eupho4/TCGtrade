@@ -396,6 +396,11 @@ class ChatManager {
                         const hiddenChatsKey = `hiddenChats_${currentUser.uid}`;
                         const hiddenChats = JSON.parse(localStorage.getItem(hiddenChatsKey) || '[]');
                         isHidden = hiddenChats.includes(chatId);
+                        
+                        // Debug log para cada chat
+                        if (hiddenChats.length > 0) {
+                            console.log(`🔍 Chat ${chatId} - Oculto: ${isHidden}, Lista ocultos:`, hiddenChats);
+                        }
                     } catch (e) {
                         console.error('Error al leer chats ocultos:', e);
                     }
