@@ -374,7 +374,15 @@ class ChatManager {
             if (snapshot.exists()) {
                 snapshot.forEach((childSnapshot) => {
                     const chatData = childSnapshot.val();
-                    const chatId = childSnapshot.key;
+                    let chatId = childSnapshot.key;
+                    
+                    // Normalizar el chatId para evitar duplicados
+                    const originalId = chatId;
+                    if (chatId.startsWith('trade_trade_')) {
+                        chatId = chatId.replace('trade_trade_', 'trade_');
+                        // Saltar este chat duplicado - ya lo procesaremos con el ID correcto
+                        return;
+                    }
                     
                     // Incluir el chat si:
                     // 1. El usuario es participante registrado
@@ -397,10 +405,10 @@ class ChatManager {
                         const hiddenChats = JSON.parse(localStorage.getItem(hiddenChatsKey) || '[]');
                         isHidden = hiddenChats.includes(chatId);
                         
-                        // Debug log para cada chat
-                        if (hiddenChats.length > 0) {
-                            console.log(`🔍 Chat ${chatId} - Oculto: ${isHidden}, Lista ocultos:`, hiddenChats);
-                        }
+                        // Debug log desactivado para evitar spam
+                        // if (hiddenChats.length > 0) {
+                        //     console.log(`🔍 Chat ${chatId} - Oculto: ${isHidden}, Lista ocultos:`, hiddenChats);
+                        // }
                     } catch (e) {
                         console.error('Error al leer chats ocultos:', e);
                     }
@@ -604,7 +612,14 @@ class ChatManager {
             if (snapshot.exists()) {
                 snapshot.forEach((childSnapshot) => {
                     const chatData = childSnapshot.val();
-                    const chatId = childSnapshot.key;
+                    let chatId = childSnapshot.key;
+                    
+                    // Normalizar el chatId para evitar duplicados
+                    if (chatId.startsWith('trade_trade_')) {
+                        chatId = chatId.replace('trade_trade_', 'trade_');
+                        // Saltar este chat duplicado
+                        return;
+                    }
                     
                     // Verificar si este chat está en la lista de ocultos
                     if (hiddenChatIds.includes(chatId)) {
