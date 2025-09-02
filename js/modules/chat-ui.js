@@ -654,20 +654,34 @@ class ChatUI {
         let lastActiveChatIds = '';
         let lastHiddenChatIds = '';
         
+        // Cache para evitar llamadas redundantes
+        let cachedActiveChats = null;
+        let cachedHiddenChats = null;
+        let cacheTimestamp = 0;
+        const CACHE_DURATION = 1000; // 1 segundo
+        
         // Función para actualizar la lista
         const updateChatList = async (forceUpdate = false) => {
             const container = document.getElementById('chat-list-container');
             if (!container) return;
             
             try {
+                // Obtener chats con cache
+                const now = Date.now();
+                if (forceUpdate || now - cacheTimestamp > CACHE_DURATION) {
+                    cachedActiveChats = await this.chatManager.getUserChats();
+                    cachedHiddenChats = await this.chatManager.getHiddenChats();
+                    cacheTimestamp = now;
+                }
+                
                 let chats = [];
                 let emptyMessage = '';
                 
                 if (currentTab === 'active') {
-                    chats = await this.chatManager.getUserChats();
+                    chats = cachedActiveChats;
                     emptyMessage = 'No tienes conversaciones activas';
                 } else {
-                    chats = await this.chatManager.getHiddenChats();
+                    chats = cachedHiddenChats;
                     emptyMessage = 'No tienes conversaciones ocultas';
                 }
                 
@@ -697,9 +711,9 @@ class ChatUI {
                     }
                 }
                 
-                // Actualizar contadores siempre (son ligeros)
-                const activeChats = await this.chatManager.getUserChats();
-                const hiddenChats = await this.chatManager.getHiddenChats();
+                // Actualizar contadores usando el cache
+                const activeChats = cachedActiveChats;
+                const hiddenChats = cachedHiddenChats;
                 
                 const activeCount = document.getElementById('active-count');
                 const hiddenCount = document.getElementById('hidden-count');

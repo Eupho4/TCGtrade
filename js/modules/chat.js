@@ -599,10 +599,11 @@ class ChatManager {
             const hiddenChatsKey = `hiddenChats_${currentUser.uid}`;
             const hiddenChatIds = JSON.parse(localStorage.getItem(hiddenChatsKey) || '[]');
             
-            console.log('🔍 Buscando chats ocultos:', hiddenChatIds);
+            // Solo loguear en casos importantes
+            // console.log('🔍 Buscando chats ocultos:', hiddenChatIds);
             
             if (hiddenChatIds.length === 0) {
-                console.log('🙈 No hay chats ocultos');
+                // console.log('🙈 No hay chats ocultos');
                 return [];
             }
             
@@ -655,7 +656,8 @@ class ChatManager {
                 hiddenChats.sort((a, b) => (b.lastMessageTime || 0) - (a.lastMessageTime || 0));
             }
             
-            console.log(`🙈 ${hiddenChats.length} chats ocultos encontrados:`, hiddenChats.map(c => c.id));
+            // Solo loguear si hay cambios significativos
+            // console.log(`🙈 ${hiddenChats.length} chats ocultos encontrados:`, hiddenChats.map(c => c.id));
             return hiddenChats;
             
         } catch (error) {
