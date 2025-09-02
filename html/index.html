@@ -2032,10 +2032,16 @@
                         <div class="flex justify-between items-center">
                             <span class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400">Por: ${trade.user}</span>
                             <div class="flex space-x-2">
-                                <!-- Botón de chat siempre visible para todos -->
-                                <button class="btn-secondary px-3 py-1 rounded text-xs" data-trade-id="${trade.id}" data-user-id="${escapedUserId}" data-trade-title="${escapedTitle}" onclick="window.openTradeChat && window.openTradeChat('${trade.id}', '${escapedUserId}', '${escapedTitle}')">
-                                    💭 Chat
-                                </button>
+                                <!-- Botón de chat solo visible si no es tu propio intercambio -->
+                                ${trade.userId !== currentUser?.uid ? `
+                                    <button class="btn-secondary px-3 py-1 rounded text-xs" data-trade-id="${trade.id}" data-user-id="${escapedUserId}" data-trade-title="${escapedTitle}" onclick="window.openTradeChat && window.openTradeChat('${trade.id}', '${escapedUserId}', '${escapedTitle}')">
+                                        💭 Chat
+                                    </button>
+                                ` : `
+                                    <span class="text-xs text-gray-400 dark:text-gray-500 italic">
+                                        (Tu intercambio)
+                                    </span>
+                                `}
                                 
                                 ${trade.userId === currentUser?.uid ? `
                                     <button class="btn-secondary px-3 py-1 rounded text-xs" onclick="editTrade('${trade.id}')">
@@ -2166,6 +2172,12 @@
             if (!currentUser) {
                 showNotification('Debes iniciar sesión para usar el chat', 'warning');
                 showAuthModal('login');
+                return;
+            }
+
+            // Verificar que no estés intentando chatear contigo mismo
+            if (otherUserId === currentUser.uid) {
+                showNotification('No puedes abrir un chat contigo mismo', 'warning');
                 return;
             }
 
