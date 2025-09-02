@@ -656,11 +656,7 @@ class ChatManager {
                 hiddenChats.sort((a, b) => (b.lastMessageTime || 0) - (a.lastMessageTime || 0));
             }
             
-            // Debug temporal activado
-            console.log(`🙈 getHiddenChats devuelve: ${hiddenChats.length} chats`, {
-                ids: hiddenChats.map(c => c.id),
-                localStorage: JSON.parse(localStorage.getItem(`hiddenChats_${currentUser.uid}`) || '[]')
-            });
+            // Devolver chats ocultos
             return hiddenChats;
             
         } catch (error) {
