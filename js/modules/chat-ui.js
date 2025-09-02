@@ -720,6 +720,22 @@ class ChatUI {
         
         document.body.appendChild(modal);
         
+        // Event listener delegado para clicks en items de chat
+        modal.addEventListener('click', (e) => {
+            const chatItem = e.target.closest('[data-chat-id]');
+            if (chatItem && !e.target.closest('button')) {
+                const chatId = chatItem.getAttribute('data-chat-id');
+                const displayName = chatItem.getAttribute('data-display-name');
+                const tradeTitle = chatItem.getAttribute('data-trade-title');
+                
+                console.log('📱 Chat clickeado (delegado):', { chatId, displayName, tradeTitle });
+                
+                if (chatId) {
+                    this.openChatFromList(chatId, displayName, tradeTitle);
+                }
+            }
+        });
+        
         // Añadir event listeners a los botones
         const refreshBtn = document.getElementById('refresh-chat-list-btn');
         if (refreshBtn) {
@@ -792,9 +808,17 @@ class ChatUI {
         const participantCount = chat.participants ? Object.keys(chat.participants).length : 0;
         const participantText = participantCount > 0 ? `${participantCount} participante${participantCount > 1 ? 's' : ''}` : '';
         
+        // Escapar valores para evitar problemas con comillas
+        const escapedChatId = chat.id.replace(/'/g, "\\'");
+        const escapedDisplayName = displayName.replace(/'/g, "\\'");
+        const escapedTradeTitle = tradeTitle.replace(/'/g, "\\'");
+        
         return `
             <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-3 cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
-                 onclick="window.chatUI.openChatFromList('${chat.id}', '${displayName}', '${tradeTitle}')">
+                 data-chat-id="${chat.id}"
+                 data-display-name="${displayName}"
+                 data-trade-title="${tradeTitle}"
+                 onclick="window.chatUI.openChatFromList('${escapedChatId}', '${escapedDisplayName}', '${escapedTradeTitle}')">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-3">
                         <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-full flex items-center justify-center">
@@ -825,9 +849,13 @@ class ChatUI {
 
     // Abrir chat desde la lista
     openChatFromList(chatId, otherUserName, tradeId) {
+        console.log('🔍 openChatFromList llamado:', { chatId, otherUserName, tradeId });
+        
         // Cerrar modal de lista
-        const modal = document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50');
-        if (modal) modal.remove();
+        const modal = document.getElementById('chat-list-modal');
+        if (modal) {
+            modal.remove();
+        }
         
         // Abrir ventana de chat
         this.openChat(chatId, otherUserName, tradeId);
