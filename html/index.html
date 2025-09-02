@@ -7211,6 +7211,25 @@
                         if (chatUI && typeof chatUI.updateChatBadge === 'function') {
                             await chatUI.updateChatBadge();
                         }
+                        
+                        // Verificar si hay chats guardados y mostrar barra si es necesario
+                        try {
+                            const userId = currentUser.uid;
+                            const savedState = localStorage.getItem(`chatsState_${userId}`);
+                            if (savedState) {
+                                const chatsState = JSON.parse(savedState);
+                                if (chatsState.activeChats && chatsState.activeChats.length > 0) {
+                                    console.log('💬 Hay chats guardados, verificando barra minimizada...');
+                                    // Si no hay barra visible, crearla
+                                    if (!document.getElementById('minimized-chats-bar')) {
+                                        chatUI.createMinimizedBar();
+                                        chatUI.updateMinimizedBar();
+                                    }
+                                }
+                            }
+                        } catch (e) {
+                            console.log('No se pudo verificar estado de chats:', e);
+                        }
                     }, 1500); // Esperar 1.5 segundos para asegurar que todo esté inicializado
                     
                     // Actualizar badge de chats cada 10 segundos
