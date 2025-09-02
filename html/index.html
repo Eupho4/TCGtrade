@@ -7769,7 +7769,13 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             
             if (!container) return;
             
-            container.innerHTML = '<div class="text-center py-4">Cargando cartas...</div>';
+            container.innerHTML = `
+                <div class="text-center py-8">
+                    <div class="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mb-4"></div>
+                    <p class="text-lg text-gray-600 dark:text-gray-300">Cargando cartas del set...</p>
+                    <p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Esto puede tardar unos segundos</p>
+                </div>
+            `;
             selectAllBtn.disabled = true;
             deselectAllBtn.disabled = true;
             
@@ -7817,6 +7823,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                                         <div class="card-hover-container">
                                             <img src="${card.images.small}" alt="${card.name}" 
                                                  class="card-hover-image w-12 h-16 object-contain cursor-pointer"
+                                                 loading="lazy"
                                                  onclick="window.open('${card.images.large}', '_blank')">
                                         </div>
                                     </td>
