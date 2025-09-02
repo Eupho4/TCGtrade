@@ -397,6 +397,8 @@ class ChatManager {
                 });
             }
             
+            console.log('📋 UserChats encontrados:', Object.keys(userChatIds));
+            
             // Luego obtener los detalles de esos chats
             const chatsRef = ref(this.realtimeDb, 'chats');
             const snapshot = await get(chatsRef);
@@ -445,10 +447,22 @@ class ChatManager {
                         console.error('Error al leer chats ocultos:', e);
                     }
                     
-                    // Solo incluir chats que estén en userChats O donde el usuario sea participante
+                    // Solo incluir chats que estén en userChats
                     const isInUserChats = userChatIds[chatId] || userChatIds[originalId];
                     
-                    if (isInUserChats || isParticipant || (isTradeChat && hasUserMessages)) {
+                    // Si no hay userChats (usuario antiguo), usar lógica anterior
+                    const hasNoUserChats = Object.keys(userChatIds).length === 0;
+                    
+                    if (isInUserChats || (hasNoUserChats && (isParticipant || (isTradeChat && hasUserMessages)))) {
+                        // Si el chat no está en userChats pero debería estarlo, agregarlo
+                        if (!isInUserChats && hasNoUserChats && (isParticipant || (isTradeChat && hasUserMessages))) {
+                            console.log('📝 Agregando chat faltante a userChats:', chatId);
+                            const userChatRef = ref(this.realtimeDb, `userChats/${currentUser.uid}/${chatId}`);
+                            set(userChatRef, {
+                                timestamp: serverTimestamp(),
+                                addedAutomatically: true
+                            }).catch(console.error);
+                        }
                         // Si el usuario no está registrado como participante pero ha enviado mensajes,
                         // añadirlo automáticamente
                         if (!isParticipant && hasUserMessages) {
