@@ -665,6 +665,12 @@ class ChatUI {
             const container = document.getElementById('chat-list-container');
             if (!container) return;
             
+            // Debug: rastrear de dónde viene la llamada
+            if (forceUpdate && currentTab === 'hidden') {
+                console.log('📍 updateChatList llamado con forceUpdate=true desde:');
+                console.trace();
+            }
+            
             try {
                 // Obtener chats con cache
                 const now = Date.now();
@@ -912,6 +918,15 @@ class ChatUI {
             updateChatList(true);
         };
         window.addEventListener('chatDeleted', handleDeleteChat);
+        
+        // Debug: verificar si se disparan eventos constantemente
+        const originalDispatchEvent = window.dispatchEvent;
+        window.dispatchEvent = function(event) {
+            if (event.type === 'chatCreated' || event.type === 'chatDeleted') {
+                console.log('⚡ Evento disparado:', event.type);
+            }
+            return originalDispatchEvent.call(this, event);
+        };
         
         // Función para limpiar todo al cerrar
         const cleanup = () => {
