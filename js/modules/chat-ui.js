@@ -617,8 +617,22 @@ class ChatUI {
 
     // Enfocar ventana de chat
     focusChatWindow(chatId) {
+        console.log('🎯 focusChatWindow llamado para:', chatId);
         const chatWindow = document.getElementById(`chat-window-${chatId}`);
         if (chatWindow) {
+            // Asegurar que esté visible
+            chatWindow.style.display = 'flex';
+            
+            // Quitar de minimizados si está ahí
+            if (this.minimizedChats.has(chatId)) {
+                console.log('📤 Quitando de minimizados:', chatId);
+                this.minimizedChats.delete(chatId);
+                this.updateMinimizedBar();
+            }
+            
+            // Asegurar que esté en activos
+            this.activeChats.add(chatId);
+            
             // Traer al frente
             document.querySelectorAll('.chat-window').forEach(w => {
                 w.style.zIndex = '50';
@@ -628,6 +642,12 @@ class ChatUI {
             // Enfocar input
             const input = document.getElementById(`message-input-${chatId}`);
             if (input) input.focus();
+            
+            // Guardar estado
+            this.saveChatsState();
+            console.log('✅ Chat enfocado correctamente');
+        } else {
+            console.log('⚠️ No se encontró la ventana de chat:', chatId);
         }
     }
 
