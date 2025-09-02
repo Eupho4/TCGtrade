@@ -630,8 +630,16 @@ class ChatUI {
                 this.updateMinimizedBar();
             }
             
-            // Asegurar que esté en activos
-            this.activeChats.add(chatId);
+            // Asegurar que esté en activos si no está ya
+            if (!this.activeChats.has(chatId)) {
+                // Recuperar datos del chat para agregarlo a activos
+                const chatData = {
+                    window: chatWindow,
+                    otherUserName: chatWindow.querySelector('h3')?.textContent || 'Usuario',
+                    tradeTitle: chatWindow.querySelector('.text-xs.opacity-90')?.textContent || 'Chat de intercambio'
+                };
+                this.activeChats.set(chatId, chatData);
+            }
             
             // Traer al frente
             document.querySelectorAll('.chat-window').forEach(w => {
@@ -645,6 +653,17 @@ class ChatUI {
             
             // Guardar estado
             this.saveChatsState();
+            
+            // Actualizar la lista de chats si está abierta
+            const chatListModal = document.getElementById('chat-list-modal');
+            if (chatListModal) {
+                console.log('📋 Disparando evento para actualizar lista de chats...');
+                window.dispatchEvent(new Event('chatRestored'));
+            }
+            
+            // Actualizar el badge de navegación
+            this.updateChatBadge();
+            
             console.log('✅ Chat enfocado correctamente');
         } else {
             console.log('⚠️ No se encontró la ventana de chat:', chatId);
@@ -814,6 +833,13 @@ class ChatUI {
         };
         window.addEventListener('chatDeleted', handleDeleteChat);
         
+        // Actualizar cuando se restaure un chat
+        const handleRestoreChat = () => {
+            console.log('♻️ Chat restaurado, actualizando lista...');
+            updateChatList(true);
+        };
+        window.addEventListener('chatRestored', handleRestoreChat);
+        
         // Debug: verificar si se disparan eventos constantemente
         const originalDispatchEvent = window.dispatchEvent;
         window.dispatchEvent = function(event) {
@@ -827,6 +853,7 @@ class ChatUI {
         const cleanup = () => {
             window.removeEventListener('chatCreated', handleNewChat);
             window.removeEventListener('chatDeleted', handleDeleteChat);
+            window.removeEventListener('chatRestored', handleRestoreChat);
             if (this.chatListInterval) {
                 clearInterval(this.chatListInterval);
                 this.chatListInterval = null;
