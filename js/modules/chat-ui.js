@@ -559,8 +559,10 @@ class ChatUI {
                 this.updateMinimizedBar();
                 this.saveChatsState();
                 
-                // Desconectar listeners
-                this.chatManager.disconnectChat(chatId);
+                // Desconectar listeners si existe el chatId
+                if (chatId && this.chatManager) {
+                    this.chatManager.disconnectChat(chatId);
+                }
             }, 300);
         }
     }
@@ -662,22 +664,10 @@ class ChatUI {
                 </div>
                 
                 <div class="border-t border-gray-200 dark:border-gray-700 p-4 flex gap-2">
-                    <button onclick="(async () => {
-                        const btn = event.target;
-                        btn.disabled = true;
-                        btn.textContent = '⏳ Actualizando...';
-                        const container = document.getElementById('chat-list-container');
-                        if (container) {
-                            container.innerHTML = '<div class=\"text-center py-4\"><div class=\"inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500\"></div></div>';
-                        }
-                        await new Promise(resolve => setTimeout(resolve, 500));
-                        location.reload();
-                    })()" 
-                            class="flex-1 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold transition-all">
+                    <button id="refresh-chat-list-btn" class="flex-1 px-4 py-2 bg-orange-500 hover:bg-orange-600 text-white rounded-lg font-semibold transition-all">
                         🔄 Actualizar Todo
                     </button>
-                    <button onclick="document.getElementById('chat-list-modal').remove()" 
-                            class="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold transition-all">
+                    <button id="close-chat-list-btn" class="flex-1 px-4 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded-lg font-semibold transition-all">
                         Cerrar
                     </button>
                 </div>
@@ -685,6 +675,28 @@ class ChatUI {
         `;
         
         document.body.appendChild(modal);
+        
+        // Añadir event listeners a los botones
+        const refreshBtn = document.getElementById('refresh-chat-list-btn');
+        if (refreshBtn) {
+            refreshBtn.addEventListener('click', async () => {
+                refreshBtn.disabled = true;
+                refreshBtn.textContent = '⏳ Actualizando...';
+                const container = document.getElementById('chat-list-container');
+                if (container) {
+                    container.innerHTML = '<div class="text-center py-4"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div></div>';
+                }
+                await new Promise(resolve => setTimeout(resolve, 500));
+                location.reload();
+            });
+        }
+        
+        const closeBtn = document.getElementById('close-chat-list-btn');
+        if (closeBtn) {
+            closeBtn.addEventListener('click', () => {
+                modal.remove();
+            });
+        }
         
         // Cargar chats inicialmente
         updateChatList();

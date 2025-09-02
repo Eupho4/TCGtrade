@@ -466,10 +466,19 @@ class ChatManager {
 
     // Desconectar listener de un chat
     disconnectChat(chatId) {
+        if (!chatId) {
+            console.warn('disconnectChat llamado sin chatId');
+            return;
+        }
+        
         const listener = this.chatListeners.get(chatId);
         if (listener) {
-            off(listener);
-            this.chatListeners.delete(chatId);
+            try {
+                off(listener);
+                this.chatListeners.delete(chatId);
+            } catch (error) {
+                console.warn('Error al desconectar listener:', error);
+            }
         }
 
         // Marcar como offline
