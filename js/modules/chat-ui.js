@@ -873,6 +873,9 @@ class ChatUI {
             hiddenTab.className = 'flex-1 px-4 py-3 text-sm font-medium text-white bg-orange-500 border-b-2 border-orange-600 focus:outline-none';
             activeTab.className = 'flex-1 px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none';
             updateChatList(true);
+            
+            // CONGELAR actualizaciones automáticas para chats ocultos
+            console.log('🔒 Chats ocultos - Actualizaciones automáticas desactivadas');
         });
         
         // Event listener delegado para clicks en items de chat
@@ -916,10 +919,14 @@ class ChatUI {
         // Cargar chats inicialmente
         updateChatList(true);
         
-        // Actualizar cada 5 segundos mientras el modal esté abierto
+        // Actualizar cada 5 segundos SOLO la pestaña activa
         this.chatListInterval = setInterval(() => {
             if (document.getElementById('chat-list-modal')) {
-                updateChatList(); // Sin forzar, solo si hay cambios
+                // SOLO actualizar si estamos en la pestaña de chats activos
+                if (currentTab === 'active') {
+                    updateChatList();
+                }
+                // Los chats ocultos NO se actualizan automáticamente
             } else {
                 clearInterval(this.chatListInterval);
             }
