@@ -651,9 +651,10 @@ class ChatUI {
         
         // Estado de la pestaña actual
         let currentTab = 'active';
+        let lastChatIds = '';
         
         // Función para actualizar la lista
-        const updateChatList = async () => {
+        const updateChatList = async (forceUpdate = false) => {
             const container = document.getElementById('chat-list-container');
             if (!container) return;
             
@@ -669,17 +670,25 @@ class ChatUI {
                     emptyMessage = 'No tienes conversaciones ocultas';
                 }
                 
-                if (chats.length === 0) {
-                    container.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 py-8">${emptyMessage}</p>`;
-                } else {
-                    container.innerHTML = chats.map(chat => 
-                        currentTab === 'active' 
-                            ? this.createChatListItem(chat)
-                            : this.createHiddenChatListItem(chat)
-                    ).join('');
+                // Crear una firma única de los chats actuales para detectar cambios
+                const currentChatIds = chats.map(c => `${c.id}-${c.unreadCount || 0}-${c.lastMessageTime || 0}`).join(',');
+                
+                // Solo actualizar si hay cambios reales o es forzado
+                if (forceUpdate || currentChatIds !== lastChatIds) {
+                    lastChatIds = currentChatIds;
+                    
+                    if (chats.length === 0) {
+                        container.innerHTML = `<p class="text-center text-gray-500 dark:text-gray-400 py-8">${emptyMessage}</p>`;
+                    } else {
+                        container.innerHTML = chats.map(chat => 
+                            currentTab === 'active' 
+                                ? this.createChatListItem(chat)
+                                : this.createHiddenChatListItem(chat)
+                        ).join('');
+                    }
                 }
                 
-                // Actualizar contadores
+                // Actualizar contadores siempre (son ligeros)
                 const activeChats = await this.chatManager.getUserChats();
                 const hiddenChats = await this.chatManager.getHiddenChats();
                 
@@ -771,16 +780,18 @@ class ChatUI {
         
         activeTab.addEventListener('click', () => {
             currentTab = 'active';
+            lastChatIds = ''; // Reset para forzar actualización
             activeTab.className = 'flex-1 px-4 py-3 text-sm font-medium text-white bg-orange-500 border-b-2 border-orange-600 focus:outline-none';
             hiddenTab.className = 'flex-1 px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none';
-            updateChatList();
+            updateChatList(true);
         });
         
         hiddenTab.addEventListener('click', () => {
             currentTab = 'hidden';
+            lastChatIds = ''; // Reset para forzar actualización
             hiddenTab.className = 'flex-1 px-4 py-3 text-sm font-medium text-white bg-orange-500 border-b-2 border-orange-600 focus:outline-none';
             activeTab.className = 'flex-1 px-4 py-3 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 focus:outline-none';
-            updateChatList();
+            updateChatList(true);
         });
         
         // Event listener delegado para clicks en items de chat
@@ -822,28 +833,28 @@ class ChatUI {
         }
         
         // Cargar chats inicialmente
-        updateChatList();
+        updateChatList(true);
         
-        // Actualizar cada 2 segundos mientras el modal esté abierto (más frecuente)
+        // Actualizar cada 3 segundos mientras el modal esté abierto (menos frecuente para evitar parpadeo)
         this.chatListInterval = setInterval(() => {
             if (document.getElementById('chat-list-modal')) {
-                updateChatList();
+                updateChatList(); // Sin forzar, solo si hay cambios
             } else {
                 clearInterval(this.chatListInterval);
             }
-        }, 2000);
+        }, 3000);
         
         // También actualizar cuando se detecte un nuevo chat
         const handleNewChat = () => {
             console.log('📱 Nuevo chat detectado, actualizando lista...');
-            updateChatList();
+            updateChatList(true);
         };
         window.addEventListener('chatCreated', handleNewChat);
         
         // Actualizar cuando se elimine un chat
         const handleDeleteChat = () => {
             console.log('🗑️ Chat eliminado, actualizando lista...');
-            updateChatList();
+            updateChatList(true);
         };
         window.addEventListener('chatDeleted', handleDeleteChat);
         
