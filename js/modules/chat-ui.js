@@ -655,8 +655,8 @@ class ChatUI {
         let lastHiddenChatIds = '';
         
         // Cache para evitar llamadas redundantes
-        let cachedActiveChats = null;
-        let cachedHiddenChats = null;
+        let cachedActiveChats = [];
+        let cachedHiddenChats = [];
         let cacheTimestamp = 0;
         const CACHE_DURATION = 2500; // 2.5 segundos (menor que el intervalo de 3s)
         
@@ -668,7 +668,23 @@ class ChatUI {
             try {
                 // Obtener chats con cache
                 const now = Date.now();
-                if (forceUpdate || now - cacheTimestamp > CACHE_DURATION || !cachedActiveChats || !cachedHiddenChats) {
+                const cacheExpired = now - cacheTimestamp > CACHE_DURATION;
+                const needsInit = cachedActiveChats.length === 0 && cachedHiddenChats.length === 0;
+                
+                // Debug para entender por qué se actualiza
+                if (currentTab === 'hidden' && (forceUpdate || cacheExpired || needsInit)) {
+                    console.log('🔍 Razón de actualización:', {
+                        forceUpdate,
+                        cacheExpired,
+                        tiempoDesdeCache: now - cacheTimestamp,
+                        CACHE_DURATION,
+                        needsInit,
+                        cachedActiveChats: !!cachedActiveChats,
+                        cachedHiddenChats: !!cachedHiddenChats
+                    });
+                }
+                
+                if (forceUpdate || cacheExpired || needsInit) {
                     cachedActiveChats = await this.chatManager.getUserChats();
                     cachedHiddenChats = await this.chatManager.getHiddenChats();
                     cacheTimestamp = now;
