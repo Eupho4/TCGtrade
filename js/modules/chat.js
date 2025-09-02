@@ -70,6 +70,13 @@ class ChatManager {
                 
                 await update(chatMetaRef, updates);
                 console.log('📝 Chat existente actualizado, participante añadido:', currentUser.uid);
+                
+                // Agregar a userChats
+                const userChatRef = ref(this.realtimeDb, `userChats/${currentUser.uid}/${chatId}`);
+                await set(userChatRef, {
+                    timestamp: serverTimestamp(),
+                    tradeId: tradeId
+                });
             } else {
                 // Si no existe, crear nuevo
                 // IMPORTANTE: Registrar ambos usuarios como participantes para que ambos puedan ver el chat
@@ -93,6 +100,13 @@ class ChatManager {
                 
                 await set(chatMetaRef, metadata);
                 console.log('✨ Nuevo chat de intercambio creado:', chatId);
+                
+                // Agregar a userChats
+                const userChatRef = ref(this.realtimeDb, `userChats/${currentUser.uid}/${chatId}`);
+                await set(userChatRef, {
+                    timestamp: serverTimestamp(),
+                    tradeId: tradeId
+                });
             }
         } catch (error) {
             console.error('Error al inicializar chat:', error);
@@ -162,6 +176,12 @@ class ChatManager {
                 };
                 await update(chatMetaRef, updates);
                 console.log('👤 Usuario añadido como participante al enviar mensaje');
+                
+                // Agregar a userChats si no existe
+                const userChatRef = ref(this.realtimeDb, `userChats/${currentUser.uid}/${chatId}`);
+                await set(userChatRef, {
+                    timestamp: serverTimestamp()
+                });
             }
         }
 
@@ -366,6 +386,18 @@ class ChatManager {
         }
 
         try {
+            // Primero obtener la lista de chats del usuario desde userChats
+            const userChatsRef = ref(this.realtimeDb, `userChats/${currentUser.uid}`);
+            const userChatsSnapshot = await get(userChatsRef);
+            const userChatIds = {};
+            
+            if (userChatsSnapshot.exists()) {
+                userChatsSnapshot.forEach((child) => {
+                    userChatIds[child.key] = true;
+                });
+            }
+            
+            // Luego obtener los detalles de esos chats
             const chatsRef = ref(this.realtimeDb, 'chats');
             const snapshot = await get(chatsRef);
             
@@ -413,8 +445,10 @@ class ChatManager {
                         console.error('Error al leer chats ocultos:', e);
                     }
                     
-                    // Quitar filtro de chats ocultos - ahora usamos borrado real
-                    if (isParticipant || (isTradeChat && hasUserMessages)) {
+                    // Solo incluir chats que estén en userChats O donde el usuario sea participante
+                    const isInUserChats = userChatIds[chatId] || userChatIds[originalId];
+                    
+                    if (isInUserChats || isParticipant || (isTradeChat && hasUserMessages)) {
                         // Si el usuario no está registrado como participante pero ha enviado mensajes,
                         // añadirlo automáticamente
                         if (!isParticipant && hasUserMessages) {
