@@ -957,6 +957,24 @@ class ChatUI {
         try {
             console.log('🚀 Iniciando eliminación del chat:', chatId);
             
+            // Importar módulos necesarios directamente para evitar caché
+            const { getDatabase, ref, get, remove } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js');
+            const { getAuth } = await import('https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js');
+            
+            const db = getDatabase();
+            const auth = getAuth();
+            const currentUser = auth.currentUser;
+            
+            if (!currentUser) {
+                throw new Error('Usuario no autenticado');
+            }
+            
+            // Normalizar chatId
+            if (chatId.startsWith('trade_trade_')) {
+                chatId = chatId.replace('trade_trade_', 'trade_');
+                console.log('📝 ChatId normalizado:', chatId);
+            }
+            
             // Cerrar ventana de chat si está abierta
             const chatWindow = document.getElementById(`chat-window-${chatId}`);
             if (chatWindow) {
@@ -970,22 +988,59 @@ class ChatUI {
             console.log('💾 Eliminando de localStorage');
             this.removeFromSavedChats(chatId);
             
-            // Eliminar de Firebase
-            if (this.chatManager) {
-                console.log('🔥 Eliminando de Firebase...');
-                await this.chatManager.deleteChat(chatId);
-                console.log('✅ Eliminado de Firebase exitosamente');
+            // Obtener datos del chat antes de eliminar
+            const chatRef = ref(db, `chats/${chatId}`);
+            console.log('👥 Obteniendo datos del chat...');
+            const snapshot = await get(chatRef);
+            
+            if (snapshot.exists()) {
+                const chatData = snapshot.val();
+                console.log('📊 Datos del chat encontrados');
+                
+                // Eliminar referencias de userChats
+                if (chatData?.metadata?.participants) {
+                    const participants = Object.keys(chatData.metadata.participants);
+                    console.log('👥 Participantes:', participants);
+                    
+                    for (const userId of participants) {
+                        try {
+                            const userChatRef = ref(db, `userChats/${userId}/${chatId}`);
+                            console.log(`🗑️ Eliminando referencia para ${userId}`);
+                            await remove(userChatRef);
+                        } catch (err) {
+                            console.warn(`⚠️ Error eliminando referencia de ${userId}:`, err);
+                        }
+                    }
+                }
+                
+                // Eliminar el chat principal
+                console.log('🔥 Eliminando chat principal...');
+                await remove(chatRef);
+                
+                // Verificar eliminación
+                console.log('🔍 Verificando eliminación...');
+                const checkSnapshot = await get(chatRef);
+                
+                if (checkSnapshot.exists()) {
+                    console.error('❌ El chat SIGUE existiendo');
+                    throw new Error('No se pudo eliminar el chat');
+                } else {
+                    console.log('✅ Confirmado: Chat eliminado de Firebase');
+                }
             } else {
-                console.error('❌ ChatManager no disponible');
-                throw new Error('ChatManager no está inicializado');
+                console.log('⚠️ El chat ya no existe en Firebase');
             }
             
-            // Actualizar la lista con un pequeño retraso para asegurar que Firebase procese la eliminación
+            // Desconectar listeners si los hay
+            if (this.chatManager) {
+                this.chatManager.disconnectChat(chatId);
+            }
+            
+            // Actualizar la lista con un pequeño retraso
             setTimeout(() => {
                 const updateChatList = document.querySelector('#chat-list-container');
                 if (updateChatList) {
                     console.log('📋 Actualizando lista de chats');
-                    // Forzar actualización de la lista
                     const event = new Event('chatDeleted');
                     window.dispatchEvent(event);
                 }
