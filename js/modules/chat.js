@@ -28,6 +28,16 @@ class ChatManager {
         this.unreadCounts = new Map();
         this.currentChatId = null;
         this.typingTimeouts = new Map();
+        this.globalChatListener = null;
+        
+        // Iniciar monitoreo global cuando el usuario se autentique
+        this.auth.onAuthStateChanged((user) => {
+            if (user) {
+                this.startGlobalChatMonitoring();
+            } else {
+                this.stopGlobalChatMonitoring();
+            }
+        });
     }
 
     // Generar ID único para el chat entre dos usuarios
@@ -791,6 +801,60 @@ class ChatManager {
                 resolve(messages);
             }, { onlyOnce: true });
         });
+    }
+    
+    // Monitorear todos los chats donde el usuario es participante
+    async startGlobalChatMonitoring() {
+        const currentUser = this.auth.currentUser;
+        if (!currentUser) return;
+        
+        console.log('🌍 Iniciando monitoreo global de chats');
+        
+        // Escuchar cambios en todos los chats
+        const chatsRef = ref(this.realtimeDb, 'chats');
+        this.globalChatListener = onValue(chatsRef, async (snapshot) => {
+            if (snapshot.exists()) {
+                const chats = snapshot.val();
+                
+                for (const [chatId, chatData] of Object.entries(chats)) {
+                    // Verificar si el usuario es participante
+                    if (chatData.metadata?.participants?.[currentUser.uid]) {
+                        // Verificar si hay mensajes nuevos que no sean del usuario actual
+                        if (chatData.metadata?.lastMessageSender && 
+                            chatData.metadata.lastMessageSender !== currentUser.uid) {
+                            
+                            // Verificar si el chat está en userChats
+                            const userChatRef = ref(this.realtimeDb, `userChats/${currentUser.uid}/${chatId}`);
+                            const userChatSnapshot = await get(userChatRef);
+                            
+                            if (!userChatSnapshot.exists()) {
+                                // Agregar el chat a userChats
+                                await set(userChatRef, {
+                                    timestamp: serverTimestamp(),
+                                    addedFrom: 'incoming_message'
+                                });
+                                
+                                console.log('📥 Chat agregado automáticamente:', chatId);
+                                
+                                // Disparar evento para actualizar UI
+                                window.dispatchEvent(new CustomEvent('chatRestored', {
+                                    detail: { chatId, reason: 'incoming_message' }
+                                }));
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    }
+    
+    // Detener monitoreo global
+    stopGlobalChatMonitoring() {
+        if (this.globalChatListener) {
+            off(ref(this.realtimeDb, 'chats'), 'value', this.globalChatListener);
+            this.globalChatListener = null;
+            console.log('🛑 Monitoreo global de chats detenido');
+        }
     }
 }
 
