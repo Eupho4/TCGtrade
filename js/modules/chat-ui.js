@@ -1181,15 +1181,8 @@ class ChatUI {
                         </div>
                     </div>
                     <div class="flex-grow">
-                        <div class="flex items-center justify-between">
-                            <div>
-                                <h4 class="font-semibold text-gray-900 dark:text-white">${tradeTitle}</h4>
-                                <p class="text-sm text-gray-600 dark:text-gray-400">${displayName}</p>
-                            </div>
-                            <span class="text-xs text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900 px-2 py-1 rounded">
-                                Oculto
-                            </span>
-                        </div>
+                        <h4 class="font-semibold text-gray-900 dark:text-white">${tradeTitle}</h4>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">${displayName}</p>
                         <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 truncate">
                             ${this.truncateText(lastMessage, 40)}
                         </p>
@@ -1203,6 +1196,9 @@ class ChatUI {
                                 ↩
                             </button>
                         </div>
+                        <span class="inline-block mt-1 text-xs text-yellow-600 dark:text-yellow-400 bg-yellow-100 dark:bg-yellow-900 px-2 py-1 rounded">
+                            Oculto
+                        </span>
                     </div>
                 </div>
             </div>
