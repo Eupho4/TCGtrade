@@ -956,14 +956,16 @@ class ChatUI {
                 throw new Error('ChatManager no está inicializado');
             }
             
-            // Actualizar la lista
-            const updateChatList = document.querySelector('#chat-list-container');
-            if (updateChatList) {
-                console.log('📋 Actualizando lista de chats');
-                // Forzar actualización de la lista
-                const event = new Event('chatDeleted');
-                window.dispatchEvent(event);
-            }
+            // Actualizar la lista con un pequeño retraso para asegurar que Firebase procese la eliminación
+            setTimeout(() => {
+                const updateChatList = document.querySelector('#chat-list-container');
+                if (updateChatList) {
+                    console.log('📋 Actualizando lista de chats');
+                    // Forzar actualización de la lista
+                    const event = new Event('chatDeleted');
+                    window.dispatchEvent(event);
+                }
+            }, 500);
             
             // Actualizar UI
             this.updateMinimizedBar();
