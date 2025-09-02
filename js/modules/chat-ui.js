@@ -1194,13 +1194,15 @@ class ChatUI {
                             ${this.truncateText(lastMessage, 40)}
                         </p>
                     </div>
-                    <div class="text-right ml-4">
-                        <button class="w-8 h-8 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center text-sm font-bold transition-colors restore-chat-btn"
-                                data-chat-id="${chat.id}"
-                                onclick="event.stopPropagation(); window.chatUI.restoreHiddenChat('${escapedChatId}')">
-                            ↩
-                        </button>
-                        ${lastMessageTime ? `<p class="text-xs text-gray-500 dark:text-gray-400 mt-2">${lastMessageTime}</p>` : ''}
+                    <div class="text-right">
+                        <div class="flex items-center justify-end gap-2 mb-1">
+                            ${lastMessageTime ? `<p class="text-xs text-gray-500 dark:text-gray-400">${lastMessageTime}</p>` : ''}
+                            <button class="w-5 h-5 bg-green-500 hover:bg-green-600 text-white rounded-full flex items-center justify-center text-xs font-bold transition-colors restore-chat-btn"
+                                    data-chat-id="${chat.id}"
+                                    onclick="event.stopPropagation(); window.chatUI.restoreHiddenChat('${escapedChatId}')">
+                                ↩
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
