@@ -2034,7 +2034,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=29';
                             <div class="flex space-x-2">
                                 <!-- Botón de chat solo visible si no es tu propio intercambio -->
                                 ${trade.userId !== currentUser?.uid ? `
-                                    <button class="btn-secondary px-3 py-1 rounded text-xs" data-trade-id="${trade.id}" data-user-id="${escapedUserId}" data-trade-title="${escapedTitle}" onclick="window.openTradeChat && window.openTradeChat('${trade.id}', '${escapedUserId}', '${escapedTitle}')">
+                                    <button class="btn-secondary px-3 py-1 rounded text-xs" data-trade-id="${trade.id}" data-user-id="${escapedUserId}" data-trade-title="${escapedTitle}" onclick="console.log('Chat clicked', window.openTradeChat); if(window.openTradeChat) { window.openTradeChat('${trade.id}', '${escapedUserId}', '${escapedTitle}'); } else { console.error('openTradeChat no está definido'); }">
                                         💭 Chat
                                     </button>
                                 ` : `
@@ -2181,10 +2181,27 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=29';
                 return;
             }
 
-            if (!chatManager || !chatUI) {
-                console.error('Chat no inicializado:', { chatManager, chatUI });
-                showNotification('El sistema de chat no está disponible. Por favor, recarga la página.', 'error');
-                return;
+            // Si el chat no está inicializado, intentar inicializarlo
+            if (!window.chatManager || !window.chatUI) {
+                console.log('⏳ Chat no inicializado, intentando inicializar...');
+                
+                // Verificar si las clases están disponibles
+                if (typeof ChatManager === 'undefined' || typeof ChatUI === 'undefined') {
+                    console.error('❌ Clases de chat no disponibles');
+                    showNotification('Error: El sistema de chat no se cargó correctamente', 'error');
+                    return;
+                }
+                
+                // Intentar inicializar
+                try {
+                    window.chatManager = new ChatManager(auth, db);
+                    window.chatUI = new ChatUI(window.chatManager);
+                    console.log('✅ Chat inicializado exitosamente');
+                } catch (error) {
+                    console.error('❌ Error al inicializar chat:', error);
+                    showNotification('Error al inicializar el chat. Por favor, recarga la página.', 'error');
+                    return;
+                }
             }
 
             try {
@@ -2210,14 +2227,14 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=29';
                 console.log('👤 Usuario actual:', currentUser.uid);
                 
                 // Inicializar o unirse al chat del intercambio
-                // TODOS los usuarios pueden participar en el chat
-                await chatManager.initializeTradeChat(tradeId, 'all_users', displayName);
+                // El chatId ya incluye el prefijo 'trade_'
+                await window.chatManager.initializeTradeChat(chatId, tradeId, tradeTitle || displayName, otherUserId);
                 
                 // Abrir ventana de chat
-                await chatUI.openChat(chatId, displayName, tradeTitle || displayName);
+                await window.chatUI.openChat(chatId);
                 
                 // Automáticamente escuchar mensajes para este chat
-                if (!chatManager.chatListeners.has(chatId)) {
+                if (!window.chatManager.chatListeners.has(chatId)) {
                     console.log('🔊 Iniciando escucha de mensajes para:', chatId);
                 }
                 
