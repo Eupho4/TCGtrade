@@ -1775,10 +1775,26 @@ window.hideChat = async function(chatId) {
         
         console.log('🗑️ Ocultando chat para el usuario:', currentUser.uid);
         
-        // Marcar como oculto en el participante
-        const participantRef = ref(db, `chats/${chatId}/metadata/participants/${currentUser.uid}`);
-        await update(participantRef, { hidden: true });
-        console.log('✅ Marcado como oculto');
+        // Guardar en localStorage los chats ocultos
+        const hiddenChatsKey = `hiddenChats_${currentUser.uid}`;
+        let hiddenChats = [];
+        
+        try {
+            const stored = localStorage.getItem(hiddenChatsKey);
+            if (stored) {
+                hiddenChats = JSON.parse(stored);
+            }
+        } catch (e) {
+            console.error('Error al leer chats ocultos:', e);
+        }
+        
+        // Añadir este chat si no está ya
+        if (!hiddenChats.includes(chatId)) {
+            hiddenChats.push(chatId);
+            localStorage.setItem(hiddenChatsKey, JSON.stringify(hiddenChats));
+        }
+        
+        console.log('✅ Chat marcado como oculto en localStorage');
         
         // 3. Cerrar ventana si está abierta
         const chatWindow = document.getElementById(`chat-window-${chatId}`);
