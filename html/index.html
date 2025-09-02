@@ -7199,6 +7199,11 @@
                                 chatBadge.classList.add('hidden');
                             }
                         }
+                        
+                        // Actualizar también el bocadillo de chats
+                        if (chatUI && typeof chatUI.updateMinimizedBar === 'function') {
+                            chatUI.updateMinimizedBar();
+                        }
                     });
                     
                     // Cargar chats persistidos después de un pequeño delay

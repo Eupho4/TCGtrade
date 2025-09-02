@@ -360,6 +360,9 @@ class ChatUI {
 
         // Scroll al final
         container.scrollTop = container.scrollHeight;
+        
+        // Actualizar el bocadillo de chats minimizados
+        this.updateMinimizedBar();
     }
     
     // Reproducir sonido de notificación
@@ -489,7 +492,8 @@ class ChatUI {
         bar.innerHTML = `
             <div class="flex items-center space-x-2">
                 <span class="text-lg">💬</span>
-                <span>Chats (<span id="minimized-count">0</span>)</span>
+                <span>Chats</span>
+                <span id="unread-chats-badge" class="hidden bg-red-500 text-white text-xs rounded-full px-2 py-0.5 ml-1">0</span>
             </div>
         `;
         
@@ -499,18 +503,42 @@ class ChatUI {
     }
     
     // Actualizar contador de chats minimizados
-    updateMinimizedBar() {
+    async updateMinimizedBar() {
         const bar = document.getElementById('minimized-chats-bar');
-        const count = document.getElementById('minimized-count');
+        const badge = document.getElementById('unread-chats-badge');
         
-        if (bar && count) {
-            // Mostrar el total de chats (activos + minimizados)
-            const totalChats = this.activeChats.size + this.minimizedChats.size;
-            count.textContent = totalChats;
-            
+        if (bar) {
             // Mostrar la barra si hay CUALQUIER chat (minimizado o no)
+            const totalChats = this.activeChats.size + this.minimizedChats.size;
+            
             if (totalChats > 0) {
                 bar.classList.remove('hidden');
+                
+                // Contar chats con mensajes sin leer
+                if (badge && this.chatManager) {
+                    try {
+                        // Obtener contadores de mensajes no leídos
+                        let chatsWithUnread = 0;
+                        
+                        // Verificar cada chat
+                        for (const [chatId, count] of this.chatManager.unreadCounts) {
+                            if (count > 0) {
+                                chatsWithUnread++;
+                            }
+                        }
+                        
+                        // Actualizar badge
+                        if (chatsWithUnread > 0) {
+                            badge.textContent = chatsWithUnread;
+                            badge.classList.remove('hidden');
+                        } else {
+                            badge.classList.add('hidden');
+                        }
+                    } catch (error) {
+                        console.error('Error al actualizar contador de no leídos:', error);
+                        badge.classList.add('hidden');
+                    }
+                }
             } else {
                 bar.classList.add('hidden');
             }
