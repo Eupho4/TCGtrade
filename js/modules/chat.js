@@ -426,7 +426,7 @@ class ChatManager {
                 chats.sort((a, b) => (b.lastMessageTime || 0) - (a.lastMessageTime || 0));
             }
             
-            console.log(`📋 ${chats.length} chats encontrados para el usuario`);
+            // console.log(`📋 ${chats.length} chats encontrados para el usuario`);
             return chats;
             
         } catch (error) {

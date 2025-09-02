@@ -633,6 +633,12 @@ class ChatUI {
 
     // Mostrar lista de chats
     async showChatList() {
+        // Limpiar cualquier interval anterior
+        if (this.chatListInterval) {
+            clearInterval(this.chatListInterval);
+            this.chatListInterval = null;
+        }
+        
         // Eliminar modal anterior si existe
         const existingModal = document.getElementById('chat-list-modal');
         if (existingModal) {
@@ -788,14 +794,32 @@ class ChatUI {
         };
         window.addEventListener('chatDeleted', handleDeleteChat);
         
+        // Función para limpiar todo al cerrar
+        const cleanup = () => {
+            window.removeEventListener('chatCreated', handleNewChat);
+            window.removeEventListener('chatDeleted', handleDeleteChat);
+            if (this.chatListInterval) {
+                clearInterval(this.chatListInterval);
+                this.chatListInterval = null;
+            }
+            modal.remove();
+        };
+        
         // Limpiar listeners cuando se cierre el modal
         modal.addEventListener('click', (e) => {
             if (e.target === modal || (e.target.textContent && e.target.textContent.includes('Cerrar'))) {
-                window.removeEventListener('chatCreated', handleNewChat);
-                window.removeEventListener('chatDeleted', handleDeleteChat);
-                clearInterval(this.chatListInterval);
+                cleanup();
             }
         });
+        
+        // Asegurar limpieza si se cierra de otra forma
+        const observer = new MutationObserver((mutations) => {
+            if (!document.contains(modal)) {
+                cleanup();
+                observer.disconnect();
+            }
+        });
+        observer.observe(document.body, { childList: true });
     }
 
     // Crear elemento de lista de chat
