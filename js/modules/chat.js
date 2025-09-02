@@ -14,7 +14,8 @@ import {
     set,
     get,
     onDisconnect,
-    update
+    update,
+    remove
 } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
 
 class ChatManager {
@@ -499,6 +500,11 @@ class ChatManager {
                 chatId: chatId
             });
             
+            const currentUser = this.auth.currentUser;
+            if (!currentUser) {
+                throw new Error('Usuario no autenticado');
+            }
+            
             // Desconectar listeners primero
             console.log('🔌 Desconectando listeners...');
             this.disconnectChat(chatId);
@@ -506,8 +512,41 @@ class ChatManager {
             // Eliminar el chat de Firebase
             console.log('🔥 Construyendo referencia para eliminar...');
             const chatRef = ref(this.realtimeDb, `chats/${chatId}`);
-            console.log('🔥 Ejecutando eliminación...');
-            await set(chatRef, null);
+            
+            // Primero intentar obtener los participantes del chat
+            console.log('👥 Obteniendo participantes del chat...');
+            const chatSnapshot = await get(chatRef);
+            const chatData = chatSnapshot.val();
+            
+            if (chatData && chatData.metadata && chatData.metadata.participants) {
+                // Eliminar referencia en userChats para todos los participantes
+                const participants = Object.keys(chatData.metadata.participants);
+                console.log('👥 Participantes encontrados:', participants);
+                
+                for (const userId of participants) {
+                    try {
+                        const userChatRef = ref(this.realtimeDb, `userChats/${userId}/${chatId}`);
+                        console.log(`🗑️ Eliminando referencia para usuario ${userId}`);
+                        await remove(userChatRef);
+                    } catch (err) {
+                        console.warn(`⚠️ No se pudo eliminar referencia para ${userId}:`, err);
+                    }
+                }
+            }
+            
+            // Ahora eliminar el chat completo
+            console.log('🔥 Ejecutando eliminación con remove()...');
+            await remove(chatRef);
+            
+            // Verificar que se eliminó realmente
+            console.log('🔍 Verificando eliminación...');
+            const checkSnapshot = await get(chatRef);
+            if (checkSnapshot.exists()) {
+                console.error('❌ El chat aún existe después de intentar eliminarlo');
+                throw new Error('No se pudo eliminar el chat de Firebase');
+            } else {
+                console.log('✅ Confirmado: El chat ya no existe en Firebase');
+            }
             
             // Limpiar contadores locales
             this.unreadCounts.delete(chatId);
