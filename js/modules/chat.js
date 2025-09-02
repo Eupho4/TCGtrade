@@ -397,7 +397,7 @@ class ChatManager {
                 });
             }
             
-            console.log('📋 UserChats encontrados:', Object.keys(userChatIds));
+            // console.log('📋 UserChats encontrados:', Object.keys(userChatIds));
             
             // Luego obtener los detalles de esos chats
             const chatsRef = ref(this.realtimeDb, 'chats');
@@ -450,19 +450,8 @@ class ChatManager {
                     // Solo incluir chats que estén en userChats
                     const isInUserChats = userChatIds[chatId] || userChatIds[originalId];
                     
-                    // Si no hay userChats (usuario antiguo), usar lógica anterior
-                    const hasNoUserChats = Object.keys(userChatIds).length === 0;
-                    
-                    if (isInUserChats || (hasNoUserChats && (isParticipant || (isTradeChat && hasUserMessages)))) {
-                        // Si el chat no está en userChats pero debería estarlo, agregarlo
-                        if (!isInUserChats && hasNoUserChats && (isParticipant || (isTradeChat && hasUserMessages))) {
-                            console.log('📝 Agregando chat faltante a userChats:', chatId);
-                            const userChatRef = ref(this.realtimeDb, `userChats/${currentUser.uid}/${chatId}`);
-                            set(userChatRef, {
-                                timestamp: serverTimestamp(),
-                                addedAutomatically: true
-                            }).catch(console.error);
-                        }
+                    // CAMBIO: Solo mostrar chats que estén explícitamente en userChats
+                    if (isInUserChats) {
                         // Si el usuario no está registrado como participante pero ha enviado mensajes,
                         // añadirlo automáticamente
                         if (!isParticipant && hasUserMessages) {
