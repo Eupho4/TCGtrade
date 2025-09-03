@@ -39,6 +39,12 @@ const translations = {
         'search.quickSuccess': 'Búsqueda rápida: {count} cartas encontradas.',
         'search.quickError': 'Búsqueda rápida falló. Prueba la búsqueda normal.',
         'search.searchMore': 'Buscar Más',
+        'search.mode.pokemontcg': 'Pokemon TCG',
+        'search.mode.tcgdex': 'TCGdex',
+        'search.mode.combined': 'Búsqueda Combinada',
+        'search.source.pokemontcg': 'Fuente: Pokemon TCG API',
+        'search.source.tcgdex': 'Fuente: TCGdex',
+        'search.totalResults': 'Total: {count} cartas',
 
         // My Cards
         'myCards.title': 'Mi Colección de Cartas',
@@ -173,6 +179,12 @@ const translations = {
         'search.quickSuccess': 'Quick search: {count} cards found.',
         'search.quickError': 'Quick search failed. Try the normal search.',
         'search.searchMore': 'Search More',
+        'search.mode.pokemontcg': 'Pokemon TCG',
+        'search.mode.tcgdex': 'TCGdex',
+        'search.mode.combined': 'Combined Search',
+        'search.source.pokemontcg': 'Source: Pokemon TCG API',
+        'search.source.tcgdex': 'Source: TCGdex',
+        'search.totalResults': 'Total: {count} cards',
 
         'myCards.title': 'My Card Collection',
         'myCards.seriesFilter': 'Filter by Series:',

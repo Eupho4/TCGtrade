@@ -392,6 +392,345 @@ async function pokemonProxy(req, res) {
 // Rutas API
 app.get('/api/pokemontcg/*', pokemonProxy);
 
+// TCGdex API endpoints
+app.get('/api/tcgdex/cards', async (req, res) => {
+  try {
+    const { q, name, set, type, rarity, page = 1, pageSize = 20 } = req.query;
+    
+    // Rate limiting
+    const clientIP = req.ip || req.connection.remoteAddress;
+    if (!checkRateLimit(clientIP)) {
+      return res.status(429).json({ 
+        error: 'Rate limit exceeded',
+        message: 'Demasiadas solicitudes. Por favor espera un momento.' 
+      });
+    }
+    
+    // Check cache
+    const cacheKey = `tcgdex_cards_${JSON.stringify(req.query)}`;
+    const cached = cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      res.setHeader('X-Cache', 'HIT');
+      return res.json(cached.data);
+    }
+    
+    // Import TCGdex SDK
+    const TCGdex = (await import('@tcgdex/sdk')).default;
+    const tcgdex = new TCGdex('es');
+    
+    let results = [];
+    
+    if (q || name) {
+      // Search by name
+      const searchQuery = q || name;
+      const cards = await tcgdex.fetchCards();
+      results = cards.filter(card => 
+        card.localName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        card.name?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+    } else if (set) {
+      // Get cards by set
+      const setData = await tcgdex.fetchSet(set);
+      results = setData.cards || [];
+    } else if (type) {
+      // Filter by type
+      const cards = await tcgdex.fetchCards();
+      results = cards.filter(card => card.types?.includes(type));
+    } else {
+      // Get all cards (paginated)
+      const allCards = await tcgdex.fetchCards();
+      const startIndex = (page - 1) * pageSize;
+      results = allCards.slice(startIndex, startIndex + pageSize);
+    }
+    
+    // Normalize response
+    const response = {
+      data: results.map(card => ({
+        id: card.id,
+        name: card.localName || card.name,
+        nameEN: card.name,
+        set: {
+          id: card.set?.id,
+          name: card.set?.localName || card.set?.name
+        },
+        number: card.localId,
+        images: {
+          small: card.image + '/low.webp',
+          large: card.image + '/high.webp'
+        },
+        rarity: card.rarity,
+        types: card.types || [],
+        hp: card.hp,
+        source: 'tcgdex'
+      })),
+      page: parseInt(page),
+      pageSize: parseInt(pageSize),
+      count: results.length,
+      totalCount: results.length
+    };
+    
+    // Cache response
+    cache.set(cacheKey, {
+      data: response,
+      timestamp: Date.now()
+    });
+    
+    res.setHeader('X-Cache', 'MISS');
+    res.json(response);
+    
+  } catch (error) {
+    console.error('Error en TCGdex cards endpoint:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Error al obtener datos de TCGdex'
+    });
+  }
+});
+
+app.get('/api/tcgdex/sets', async (req, res) => {
+  try {
+    const clientIP = req.ip || req.connection.remoteAddress;
+    if (!checkRateLimit(clientIP)) {
+      return res.status(429).json({ 
+        error: 'Rate limit exceeded',
+        message: 'Demasiadas solicitudes. Por favor espera un momento.' 
+      });
+    }
+    
+    // Check cache
+    const cacheKey = 'tcgdex_sets';
+    const cached = cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      res.setHeader('X-Cache', 'HIT');
+      return res.json(cached.data);
+    }
+    
+    // Import TCGdex SDK
+    const TCGdex = (await import('@tcgdex/sdk')).default;
+    const tcgdex = new TCGdex('es');
+    
+    const sets = await tcgdex.fetchSets();
+    
+    const response = {
+      data: sets.map(set => ({
+        id: set.id,
+        name: set.localName || set.name,
+        nameEN: set.name,
+        series: set.serie?.localName || set.serie?.name,
+        printedTotal: set.cardCount?.total || 0,
+        total: set.cardCount?.total || 0,
+        releaseDate: set.releaseDate,
+        images: {
+          symbol: set.symbol,
+          logo: set.logo
+        },
+        source: 'tcgdex'
+      })),
+      count: sets.length
+    };
+    
+    // Cache response
+    cache.set(cacheKey, {
+      data: response,
+      timestamp: Date.now()
+    });
+    
+    res.setHeader('X-Cache', 'MISS');
+    res.json(response);
+    
+  } catch (error) {
+    console.error('Error en TCGdex sets endpoint:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Error al obtener sets de TCGdex'
+    });
+  }
+});
+
+app.get('/api/tcgdex/card/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const clientIP = req.ip || req.connection.remoteAddress;
+    
+    if (!checkRateLimit(clientIP)) {
+      return res.status(429).json({ 
+        error: 'Rate limit exceeded',
+        message: 'Demasiadas solicitudes. Por favor espera un momento.' 
+      });
+    }
+    
+    // Check cache
+    const cacheKey = `tcgdex_card_${id}`;
+    const cached = cache.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
+      res.setHeader('X-Cache', 'HIT');
+      return res.json(cached.data);
+    }
+    
+    // Import TCGdex SDK
+    const TCGdex = (await import('@tcgdex/sdk')).default;
+    const tcgdex = new TCGdex('es');
+    
+    const card = await tcgdex.fetchCard(id);
+    
+    if (!card) {
+      return res.status(404).json({
+        error: 'Card not found',
+        message: 'Carta no encontrada'
+      });
+    }
+    
+    const response = {
+      data: {
+        id: card.id,
+        name: card.localName || card.name,
+        nameEN: card.name,
+        set: {
+          id: card.set?.id,
+          name: card.set?.localName || card.set?.name,
+          series: card.set?.serie?.localName || card.set?.serie?.name
+        },
+        number: card.localId,
+        images: {
+          small: card.image + '/low.webp',
+          large: card.image + '/high.webp'
+        },
+        rarity: card.rarity,
+        types: card.types || [],
+        hp: card.hp,
+        attacks: card.attacks || [],
+        weaknesses: card.weaknesses || [],
+        resistances: card.resistances || [],
+        retreatCost: card.retreat,
+        artist: card.illustrator,
+        dexId: card.dexId || [],
+        stage: card.stage,
+        evolvesFrom: card.evolveFrom,
+        description: card.description,
+        source: 'tcgdex'
+      }
+    };
+    
+    // Cache response
+    cache.set(cacheKey, {
+      data: response,
+      timestamp: Date.now()
+    });
+    
+    res.setHeader('X-Cache', 'MISS');
+    res.json(response);
+    
+  } catch (error) {
+    console.error('Error en TCGdex card endpoint:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Error al obtener carta de TCGdex'
+    });
+  }
+});
+
+// Endpoint de búsqueda combinada (Pokemon TCG + TCGdex)
+app.get('/api/search/combined', async (req, res) => {
+  try {
+    const { q, name } = req.query;
+    const searchQuery = q || name;
+    
+    if (!searchQuery) {
+      return res.status(400).json({
+        error: 'Missing query',
+        message: 'Debes proporcionar un término de búsqueda'
+      });
+    }
+    
+    const clientIP = req.ip || req.connection.remoteAddress;
+    if (!checkRateLimit(clientIP)) {
+      return res.status(429).json({ 
+        error: 'Rate limit exceeded',
+        message: 'Demasiadas solicitudes. Por favor espera un momento.' 
+      });
+    }
+    
+    // Buscar en paralelo en ambas APIs
+    const [pokemonTCGResponse, tcgdexResponse] = await Promise.allSettled([
+      // Pokemon TCG API
+      (async () => {
+        const fetch = (await import('node-fetch')).default;
+        return fetch(`http://localhost:${PORT}/api/pokemontcg/cards?q=name:${searchQuery}*&pageSize=20`);
+      })(),
+      // TCGdex API
+      (async () => {
+        const fetch = (await import('node-fetch')).default;
+        return fetch(`http://localhost:${PORT}/api/tcgdex/cards?q=${searchQuery}`);
+      })()
+    ]);
+    
+    const results = {
+      pokemonTCG: {
+        data: [],
+        error: null
+      },
+      tcgdex: {
+        data: [],
+        error: null
+      }
+    };
+    
+    // Procesar resultados de Pokemon TCG
+    if (pokemonTCGResponse.status === 'fulfilled' && pokemonTCGResponse.value.ok) {
+      const data = await pokemonTCGResponse.value.json();
+      results.pokemonTCG.data = data.data || [];
+    } else {
+      results.pokemonTCG.error = 'Error al buscar en Pokemon TCG API';
+    }
+    
+    // Procesar resultados de TCGdex
+    if (tcgdexResponse.status === 'fulfilled' && tcgdexResponse.value.ok) {
+      const data = await tcgdexResponse.value.json();
+      results.tcgdex.data = data.data || [];
+    } else {
+      results.tcgdex.error = 'Error al buscar en TCGdex';
+    }
+    
+    // Combinar y deduplicar resultados
+    const combinedResults = [
+      ...results.pokemonTCG.data.map(card => ({ ...card, source: 'pokemonTCG' })),
+      ...results.tcgdex.data.map(card => ({ ...card, source: 'tcgdex' }))
+    ];
+    
+    // Deduplicar por nombre y set
+    const uniqueResults = combinedResults.reduce((acc, card) => {
+      const key = `${card.name}-${card.set?.id}`;
+      if (!acc.map.has(key)) {
+        acc.map.set(key, card);
+        acc.list.push(card);
+      }
+      return acc;
+    }, { map: new Map(), list: [] }).list;
+    
+    res.json({
+      data: uniqueResults,
+      count: uniqueResults.length,
+      sources: {
+        pokemonTCG: {
+          count: results.pokemonTCG.data.length,
+          error: results.pokemonTCG.error
+        },
+        tcgdex: {
+          count: results.tcgdex.data.length,
+          error: results.tcgdex.error
+        }
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error en búsqueda combinada:', error);
+    res.status(500).json({
+      error: 'Internal server error',
+      message: 'Error al realizar búsqueda combinada'
+    });
+  }
+});
+
 // Endpoint de búsqueda en eBay (Finding API)
 app.get('/api/ebay/search', async (req, res) => {
   try {
