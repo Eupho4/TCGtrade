@@ -500,7 +500,7 @@ app.get('/api/tcgdex/cards', async (req, res) => {
     }
     
     // Importar traducciones
-    const { formatSetName } = await import('./js/tcgdex-translations.js');
+    const { formatSetName } = require('./js/tcgdex-translations.js');
     
     // Normalize response
     const response = {
@@ -552,10 +552,31 @@ app.get('/api/tcgdex/cards', async (req, res) => {
   }
 });
 
+// ENDPOINT TEMPORAL PARA DEPURACIÓN
+app.get('/api/tcgdex/sets-japanese-only', async (req, res) => {
+  try {
+    const { default: TCGdex } = await import('@tcgdex/sdk');
+    const tcgdex = new TCGdex('ja');
+    const sets = await tcgdex.fetchSets();
+    
+    res.json({
+      success: true,
+      source: 'JAPANESE_DIRECT',
+      count: sets.length,
+      data: sets.slice(0, 20).map(s => ({
+        id: s.id,
+        name: s.name,
+        total: s.cardCount?.total || 0
+      }))
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
 app.get('/api/tcgdex/sets', async (req, res) => {
   try {
-    // FORZAR respuesta en japonés para depuración
-    console.log('🎌 ENDPOINT TCGDEX SETS LLAMADO - VERSION JAPONESA');
+    console.log('🎌 ENDPOINT TCGDEX SETS - VERSIÓN SIMPLIFICADA');
     
     const clientIP = req.ip || req.connection.remoteAddress;
     if (!checkRateLimit(clientIP)) {
@@ -565,111 +586,54 @@ app.get('/api/tcgdex/sets', async (req, res) => {
       });
     }
     
-    // NO usar caché por ahora para depuración
-    /*
-    const cacheKey = 'tcgdex_sets';
-    const cached = cache.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
-      res.setHeader('X-Cache', 'HIT');
-      return res.json(cached.data);
-    }
-    */
+    // Importar TCGdex y traducciones
+    const { default: TCGdex } = await import('@tcgdex/sdk');
+    const { formatSetName } = require('./js/tcgdex-translations.js');
     
-    console.log('🔍 Iniciando obtención de sets TCGdex...');
+    // Obtener sets japoneses (base principal)
+    const tcgdex = new TCGdex('ja');
+    const sets = await tcgdex.fetchSets();
     
-    // Import TCGdex SDK - obtener sets en idiomas asiáticos
-    const TCGdex = (await import('@tcgdex/sdk')).default;
-    console.log('✅ TCGdex SDK importado correctamente');
-    const asianLanguages = ['ja', 'ko', 'zh-cn', 'zh-tw'];
-    const allSets = new Map();
+    // Filtrar sets válidos
+    const validSets = sets.filter(set => 
+      !set.id?.includes('pocket') && 
+      !set.name?.toLowerCase().includes('pocket') &&
+      set.cardCount?.total > 0
+    );
     
-    // Obtener sets de cada idioma asiático - pero preferir japonés para la info base
-    const japaneseSetInfo = new Map();
-    
-    // Primero obtener sets japoneses (serán la base)
-    const tcgdexJa = new TCGdex('ja');
-    const japaneseSets = await tcgdexJa.fetchSets();
-    console.log('🇯🇵 Sets japoneses obtenidos:', japaneseSets.length);
-    console.log('🇯🇵 Ejemplo de set japonés:', japaneseSets[0]);
-    const validJapaneseSets = japaneseSets.filter(set => {
-      // Solo excluir Pocket, incluir TODO lo demás
-      return !set.id?.includes('pocket') && 
-        !set.name?.toLowerCase().includes('pocket') &&
-        set.cardCount?.total > 0; // Solo sets con cartas
-    });
-    
-    // Ordenar por fecha de lanzamiento (más recientes primero)
-    validJapaneseSets.sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0));
-    
-    validJapaneseSets.forEach(set => {
-      japaneseSetInfo.set(set.id, set);
-      allSets.set(set.id, {...set, availableLanguages: ['ja'], baseLanguage: 'ja'});
-    });
-    
-    // Luego verificar qué otros idiomas tienen los mismos sets
-    for (const lang of asianLanguages.filter(l => l !== 'ja')) {
-      const tcgdex = new TCGdex(lang);
-      const sets = await tcgdex.fetchSets();
-      
-      sets.forEach(set => {
-        if (!set.id?.includes('pocket') && japaneseSetInfo.has(set.id)) {
-          const existing = allSets.get(set.id);
-          if (existing && !existing.availableLanguages.includes(lang)) {
-            existing.availableLanguages.push(lang);
-          }
-        }
-      });
-    }
-    
-    // Ordenar sets por fecha de lanzamiento (más recientes primero)
-    const sets = Array.from(allSets.values())
-      .sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0));
-      // Sin límite - mostrar TODOS los sets
-    
-    // Importar traducciones
-    const { formatSetName } = await import('./js/tcgdex-translations.js');
-    
-    console.log('📦 Total sets para respuesta:', sets.length);
-    console.log('📦 Ejemplo de set para mapear:', sets[0]);
+    // Ordenar por fecha (más recientes primero)
+    validSets.sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0));
     
     const response = {
-      data: sets.map(set => ({
+      data: validSets.map(set => ({
         id: set.id,
-        name: set.localName || set.name,
-        nameEN: set.name,
-        displayName: formatSetName(set.localName || set.name, set.id),
-        series: set.serie?.localName || set.serie?.name,
+        name: set.name,
+        nameEN: set.name, // Por ahora mismo valor
+        displayName: formatSetName(set.name, set.id),
+        series: set.serie?.name,
         seriesEN: set.serie?.name,
-        seriesDisplayName: set.serie?.localName && set.serie?.name && set.serie?.localName !== set.serie?.name
-          ? `${set.serie?.localName} (${set.serie?.name})`
-          : set.serie?.localName || set.serie?.name,
+        seriesDisplayName: set.serie?.name,
         printedTotal: set.cardCount?.total || 0,
         total: set.cardCount?.total || 0,
         releaseDate: set.releaseDate,
-        availableLanguages: set.availableLanguages || [],
+        availableLanguages: ['ja'], // Por ahora solo japonés
         images: {
           symbol: set.symbol,
           logo: set.logo
         },
         source: 'tcgdex'
       })),
-      count: sets.length
+      count: validSets.length
     };
     
-    // Cache response
-    cache.set(cacheKey, {
-      data: response,
-      timestamp: Date.now()
-    });
-    
-    res.setHeader('X-Cache', 'MISS');
     res.json(response);
     
   } catch (error) {
     console.error('Error en TCGdex sets endpoint:', error);
     res.status(500).json({
       error: 'Internal server error',
-      message: 'Error al obtener sets de TCGdex'
+      message: 'Error al obtener sets de TCGdex',
+      details: error.message
     });
   }
 });
