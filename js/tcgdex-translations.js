@@ -1,5 +1,5 @@
 // Traducciones manuales de sets de TCGdex
-export const setTranslations = {
+const setTranslations = {
   // Sets japoneses clásicos
   'PMCG1': 'Base Set',
   'PMCG2': 'Jungle',
@@ -99,16 +99,23 @@ export const setTranslations = {
 };
 
 // Función para obtener traducción de un set
-export function getSetTranslation(setId) {
+function getSetTranslation(setId) {
   const id = setId?.toLowerCase();
   return setTranslations[id] || null;
 }
 
 // Función para formatear nombre de set con traducción
-export function formatSetName(setName, setId) {
+function formatSetName(setName, setId) {
   const translation = getSetTranslation(setId);
   if (translation && setName !== translation) {
     return `${setName} (${translation})`;
   }
   return setName;
 }
+
+// Exportar para uso en Node.js
+module.exports = {
+  setTranslations,
+  getSetTranslation,
+  formatSetName
+};
