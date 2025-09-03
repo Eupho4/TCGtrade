@@ -1195,9 +1195,14 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                     const data = await response.json();
                     
                     if (data.data && data.data.length > 0) {
+                        // Función para escapar caracteres especiales en onclick
+                        const escapeForOnclick = (str) => {
+                            return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+                        };
+                        
                         resultsContainer.innerHTML = data.data.map(card => `
                             <div class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center gap-2 border-b border-gray-200 dark:border-gray-600 last:border-0"
-                                 onclick="selectCardForTrade('${type}', ${cardIndex}, '${card.id}', '${card.name.replace(/'/g, "\\'")}', '${card.images.small}', '${(card.set?.name || '').replace(/'/g, "\\'")}', '${card.number || ''}')">
+                                 onclick="selectCardForTrade('${type}', ${cardIndex}, '${escapeForOnclick(card.id)}', '${escapeForOnclick(card.name)}', '${escapeForOnclick(card.images.small)}', '${escapeForOnclick(card.set?.name || '')}', '${escapeForOnclick(card.number || '')}')">
                                 <img src="${card.images.small}" alt="${card.name}" class="w-10 h-14 object-contain">
                                 <div class="flex-1">
                                     <div class="font-medium text-sm text-gray-900 dark:text-white">${card.name}</div>
@@ -1499,10 +1504,15 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                     <div class="p-3 overflow-y-auto flex-1" id="myCardsListContainer">
                         <div class="space-y-1" id="myCardsList">
                             ${sortedCards.map((card, index) => {
-                                const safeCardName = (card.name || '').replace(/'/g, "\\'");
-                                const safeImageUrl = (card.imageUrl || '').replace(/'/g, "\\'");
-                                const safeSet = (card.set || '').replace(/'/g, "\\'");
-                                const safeNumber = (card.number || '').replace(/'/g, "\\'");
+                                // Función para escapar caracteres especiales
+                                const escapeForOnclick = (str) => {
+                                    return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+                                };
+                                
+                                const safeCardName = escapeForOnclick(card.name);
+                                const safeImageUrl = escapeForOnclick(card.imageUrl);
+                                const safeSet = escapeForOnclick(card.set);
+                                const safeNumber = escapeForOnclick(card.number);
                                 
                                 return `
                                 <div class="my-card-row flex items-center gap-2 p-2 bg-white dark:bg-gray-700 rounded hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors border border-gray-200 dark:border-gray-600"
@@ -2060,8 +2070,13 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             let tradesHTML = '';
             trades.forEach(trade => {
                 // Escapar valores para usar en onclick
-                const escapedTitle = (trade.title || '').replace(/'/g, "\\'").replace(/"/g, "&quot;");
-                const escapedUserId = (trade.userId || '').replace(/'/g, "\\'");
+                // Función para escapar caracteres especiales
+                const escapeForOnclick = (str) => {
+                    return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+                };
+                
+                const escapedTitle = escapeForOnclick(trade.title);
+                const escapedUserId = escapeForOnclick(trade.userId);
                 
                 tradesHTML += `
                     <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 hover:border-orange-300 dark:hover:border-orange-400 transition-colors">
@@ -2659,9 +2674,14 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                     const data = await response.json();
                     
                     if (data.data && data.data.length > 0) {
+                        // Función para escapar caracteres especiales en onclick
+                        const escapeForOnclick = (str) => {
+                            return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+                        };
+                        
                         resultsContainer.innerHTML = data.data.map(card => `
                             <div class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center gap-2 border-b border-gray-200 dark:border-gray-600 last:border-0"
-                                 onclick="selectProposalCard('${uniqueId}', '${card.id}', '${card.name.replace(/'/g, "\\'")}', '${card.images.small}', '${(card.set?.name || '').replace(/'/g, "\\'")}', '${card.number || ''}')">
+                                 onclick="selectProposalCard('${uniqueId}', '${escapeForOnclick(card.id)}', '${escapeForOnclick(card.name)}', '${escapeForOnclick(card.images.small)}', '${escapeForOnclick(card.set?.name || '')}', '${escapeForOnclick(card.number || '')}')">
                                 <img src="${card.images.small}" alt="${card.name}" class="w-10 h-14 object-contain">
                                 <div class="flex-1">
                                     <div class="font-medium text-sm text-gray-900 dark:text-white">${card.name}</div>
@@ -5792,12 +5812,17 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                         const row = document.createElement('div');
                         row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 h-16 overflow-visible';
 
-                        const safeCardId = (card.id || '').replace(/'/g, "\\'");
-                        const safeCardName = (card.name || '').replace(/'/g, "\\'");
-                        const safeSetName = (card.set?.name || 'N/A').replace(/'/g, "\\'");
-                        const safeSeries = (card.set?.series || 'N/A').replace(/'/g, "\\'");
-                        const safeNumber = (card.number || 'N/A').replace(/'/g, "\\'");
-                        const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
+                        // Función para escapar caracteres especiales en onclick
+                        const escapeForOnclick = (str) => {
+                            return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+                        };
+                        
+                        const safeCardId = escapeForOnclick(card.id);
+                        const safeCardName = escapeForOnclick(card.name);
+                        const safeSetName = escapeForOnclick(card.set?.name || 'N/A');
+                        const safeSeries = escapeForOnclick(card.set?.series || 'N/A');
+                        const safeNumber = escapeForOnclick(card.number || 'N/A');
+                        const safeImageUrl = escapeForOnclick(card.images?.small);
 
                         const imgWrapper = document.createElement('div');
                         imgWrapper.className = 'w-10 h-10 flex items-center justify-center bg-transparent rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2 z-10';
@@ -5916,12 +5941,17 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                                     const cardElement = document.createElement('div');
                                     cardElement.className = 'card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105';
                                     
-                                    const safeCardId = (card.id || '').replace(/'/g, "\\'");
-                                    const safeCardName = (card.name || '').replace(/'/g, "\\'");
-                                    const safeSetName = (card.set?.name || 'N/A').replace(/'/g, "\\'");
-                                    const safeSeries = (card.set?.series || 'N/A').replace(/'/g, "\\'");
-                                    const safeNumber = (card.number || 'N/A').replace(/'/g, "\\'");
-                                    const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
+                                    // Función para escapar caracteres especiales
+                                    const escapeForOnclick = (str) => {
+                                        return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+                                    };
+                                    
+                                    const safeCardId = escapeForOnclick(card.id);
+                                    const safeCardName = escapeForOnclick(card.name);
+                                    const safeSetName = escapeForOnclick(card.set?.name || 'N/A');
+                                    const safeSeries = escapeForOnclick(card.set?.series || 'N/A');
+                                    const safeNumber = escapeForOnclick(card.number || 'N/A');
+                                    const safeImageUrl = escapeForOnclick(card.images?.small);
                                     
                                     cardElement.innerHTML = `
                                         <img src="${card.images?.small || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen'}"
@@ -8439,12 +8469,17 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                             cardElement.className = 'card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105 card-animate';
                             cardElement.style.animationDelay = `${index * 0.05}s`;
                             
-                            const safeCardId = (card.id || '').replace(/'/g, "\\'");
-                            const safeCardName = (card.name || '').replace(/'/g, "\\'");
-                            const safeSetName = (card.set?.name || 'N/A').replace(/'/g, "\\'");
-                            const safeSeries = (card.set?.series || 'N/A').replace(/'/g, "\\'");
-                            const safeNumber = (card.number || 'N/A').replace(/'/g, "\\'");
-                            const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
+                            // Función para escapar caracteres especiales
+                            const escapeForOnclick = (str) => {
+                                return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+                            };
+                            
+                            const safeCardId = escapeForOnclick(card.id);
+                            const safeCardName = escapeForOnclick(card.name);
+                            const safeSetName = escapeForOnclick(card.set?.name || 'N/A');
+                            const safeSeries = escapeForOnclick(card.set?.series || 'N/A');
+                            const safeNumber = escapeForOnclick(card.number || 'N/A');
+                            const safeImageUrl = escapeForOnclick(card.images?.small);
                             
                             cardElement.innerHTML = `
                                 <img src="${card.images?.small || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen'}"
@@ -8539,12 +8574,17 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                             cardElement.className = 'card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105 card-animate';
                             cardElement.style.animationDelay = `${index * 0.05}s`;
                             
-                            const safeCardId = (card.id || '').replace(/'/g, "\\'");
-                            const safeCardName = (card.name || '').replace(/'/g, "\\'");
-                            const safeSetName = (card.set?.name || 'N/A').replace(/'/g, "\\'");
-                            const safeSeries = (card.set?.series || 'N/A').replace(/'/g, "\\'");
-                            const safeNumber = (card.number || 'N/A').replace(/'/g, "\\'");
-                            const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
+                            // Función para escapar caracteres especiales
+                            const escapeForOnclick = (str) => {
+                                return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+                            };
+                            
+                            const safeCardId = escapeForOnclick(card.id);
+                            const safeCardName = escapeForOnclick(card.name);
+                            const safeSetName = escapeForOnclick(card.set?.name || 'N/A');
+                            const safeSeries = escapeForOnclick(card.set?.series || 'N/A');
+                            const safeNumber = escapeForOnclick(card.number || 'N/A');
+                            const safeImageUrl = escapeForOnclick(card.images?.small);
                             
                             cardElement.innerHTML = `
                                 <img src="${card.images?.small || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen'}"
@@ -8813,12 +8853,17 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 const cards = data.data || [];
                 cardsContainer.innerHTML = '';
                 cards.forEach((card) => {
-                    const safeCardId = (card.id || '').replace(/'/g, "\\'");
-                    const safeCardName = (card.name || '').replace(/'/g, "\\'");
-                    const safeSetName = (card.set?.name || 'N/A').replace(/'/g, "\\'");
-                    const safeSeries = (card.set?.series || 'N/A').replace(/'/g, "\\'");
-                    const safeNumber = (card.number || 'N/A').replace(/'/g, "\\'");
-                    const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
+                    // Función para escapar caracteres especiales
+                    const escapeForOnclick = (str) => {
+                        return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+                    };
+                    
+                    const safeCardId = escapeForOnclick(card.id);
+                    const safeCardName = escapeForOnclick(card.name);
+                    const safeSetName = escapeForOnclick(card.set?.name || 'N/A');
+                    const safeSeries = escapeForOnclick(card.set?.series || 'N/A');
+                    const safeNumber = escapeForOnclick(card.number || 'N/A');
+                    const safeImageUrl = escapeForOnclick(card.images?.small);
 
                     const row = document.createElement('div');
                     row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 h-16 overflow-visible';
