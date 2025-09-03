@@ -108,6 +108,24 @@ const setTranslationsZH = {
   'cs2.5': 'Triplet Beat',
   'cs3.5': 'Triplet Beat',
   
+  // Sets chinos/taiwaneses adicionales
+  'sdp': 'Pikachu Deck',
+  'sk': 'Premium Trainer Box VSTAR',
+  'sdl': 'Charizard Deck',
+  'scd': 'Power Deck',
+  'sh': 'Pokemon Card Game Family Box',
+  'sn': 'Starter Deck 100 Special Edition',
+  'sp5': 'Power Deck',
+  'sld': 'VSTAR Starter Set Darkrai',
+  'sll': 'VSTAR Starter Set Lucario',
+  'si': 'Starter Deck 100',
+  'sc1d': 'Sword & Shield Premium Box',
+  'scb': 'Challenge Deck',
+  'scc': 'Evolution Deck',
+  'sca': 'Partner Deck',
+  'spz': 'VSTAR & VMAX Premium Deck Zeraora',
+  'sdm': 'Mewtwo Deck',
+  
   // Hong Kong/Taiwan Exclusive
   'AS1a': 'Beginning Set',
   'AS1b': 'Adventure Set',

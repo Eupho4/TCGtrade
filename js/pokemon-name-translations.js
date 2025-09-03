@@ -862,6 +862,38 @@ const pokemonNameTranslations = {
   'ケンタロス(パルデア・ブレイズ)': 'Tauros (Paldean Blaze)',
   'ケンタロス(パルデア・ウォーター)': 'Tauros (Paldean Aqua)',
   
+  // Energías básicas
+  '基本草エネルギー': 'Basic Grass Energy',
+  '基本炎エネルギー': 'Basic Fire Energy',
+  '基本水エネルギー': 'Basic Water Energy',
+  '基本雷エネルギー': 'Basic Lightning Energy',
+  '基本超エネルギー': 'Basic Psychic Energy',
+  '基本闘エネルギー': 'Basic Fighting Energy',
+  '基本悪エネルギー': 'Basic Darkness Energy',
+  '基本鋼エネルギー': 'Basic Metal Energy',
+  '基本妖エネルギー': 'Basic Fairy Energy',
+  '基本龍エネルギー': 'Basic Dragon Energy',
+  
+  // Nombres alternativos/errores de escritura
+  'メタポッド': 'Metapod',
+  'ニドランm': 'Nidoran♂',
+  'タンゲラ': 'Tangela',
+  'アイビサウルス': 'Ivysaur',
+  'カクナ': 'Kakuna',
+  '金星': 'Venus',
+  'チャーマンダー': 'Charmander',
+  'チャームレオン': 'Charmeleon',
+  'うなり声': 'Growl',
+  'アルカニン': 'Arcanine',
+  'マグマー': 'Magmar',
+  'カリザード': 'Charizard',
+  'ニネタール': 'Ninetales',
+  'シール': 'Seel',
+  'デューゴン': 'Dewgong',
+  '爆風': 'Gust of Wind',
+  'マグナイト': 'Magnemite',
+  '雑草': 'Weed',
+  
   // Cartas de Entrenador y Objetos
   'エネルギーシール': 'Energy Seal',
   'スナッチアーム': 'Snatch Arm',
@@ -965,8 +997,33 @@ function getPokemonNameTranslation(japaneseName) {
   return pokemonNameTranslations[japaneseName] || null;
 }
 
+// Diccionario para corregir nombres en inglés mal escritos
+const englishCorrections = {
+  'beedrill': 'Beedrill',
+  'squirtle': 'Squirtle',
+  'poliwag': 'Poliwag',
+  'staryu': 'Staryu',
+  'wartortle': 'Wartortle',
+  'PoliWhirl': 'Poliwhirl',
+  'Poliwrath': 'Poliwrath',
+  'Koffing': 'Koffing',
+  'Vulpix': 'Vulpix',
+  'Magikarp': 'Magikarp',
+  'Voltorb': 'Voltorb'
+};
+
 // Función para formatear nombre de Pokémon con traducción
 function formatPokemonName(pokemonName) {
+  // Primero verificar si es un nombre en inglés mal escrito
+  if (englishCorrections[pokemonName]) {
+    return englishCorrections[pokemonName];
+  }
+  
+  // Si el nombre ya está en inglés y bien escrito, devolverlo tal cual
+  if (/^[A-Za-z\s\-'♀♂]+$/.test(pokemonName) && !pokemonNameTranslations[pokemonName]) {
+    return pokemonName;
+  }
+  
   const translation = getPokemonNameTranslation(pokemonName);
   if (translation && pokemonName !== translation) {
     return `${pokemonName} (${translation})`;

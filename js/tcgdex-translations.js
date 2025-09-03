@@ -319,6 +319,10 @@ const setTranslations = {
   'svc': 'Challenger Decks',
   'svd': 'League Battle Decks',
   
+  // Sets faltantes encontrados
+  'sn10a': 'GG End',
+  'sn11': 'Miracle Twin',
+  
   // Series names
   'sv': 'Scarlet & Violet',
   'swsh': 'Sword & Shield',
