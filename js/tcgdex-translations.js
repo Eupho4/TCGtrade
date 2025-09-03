@@ -1,5 +1,13 @@
 // Traducciones manuales de sets de TCGdex
 export const setTranslations = {
+  // Sets japoneses clásicos
+  'PMCG1': 'Base Set',
+  'PMCG2': 'Jungle',
+  'PMCG3': 'Fossil',
+  'PMCG4': 'Team Rocket',
+  'PMCG5': 'Gym Heroes',
+  'PMCG6': 'Gym Challenge',
+  
   // Scarlet & Violet
   'sv2a': 'Pokemon Card 151',
   'sv1a': 'Triplet Beat',
