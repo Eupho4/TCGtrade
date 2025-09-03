@@ -474,12 +474,25 @@ app.get('/api/tcgdex/cards', async (req, res) => {
       }
       
       if (setData && !setData.id?.includes('pocket')) {
-        results = (setData.cards || []).map(card => ({
-          ...card, 
-          language: foundLanguage,
-          // Asegurar que las URLs de imagen sean completas y correctas
-          image: card.image?.startsWith('http') ? card.image : `https://assets.tcgdex.net/${foundLanguage}/${set}/${card.localId || card.id.split('-')[1]}`
-        }));
+        results = (setData.cards || []).map(card => {
+          // Construir URL de imagen correctamente
+          let imageUrl = card.image;
+          if (!imageUrl) {
+            // Para cartas sin imagen, construir la URL manualmente
+            const cardNumber = card.localId || card.id.split('-')[1] || '001';
+            // Formato: https://assets.tcgdex.net/{lang}/{set}/{number}
+            imageUrl = `https://assets.tcgdex.net/${foundLanguage}/${set}/${cardNumber}`;
+          } else if (!imageUrl.startsWith('http')) {
+            // Si la imagen es relativa, agregar el dominio
+            imageUrl = `https://assets.tcgdex.net${imageUrl}`;
+          }
+          
+          return {
+            ...card, 
+            language: foundLanguage,
+            image: imageUrl
+          };
+        });
       }
     } else {
       // No devolver todas las cartas sin filtro
@@ -506,12 +519,8 @@ app.get('/api/tcgdex/cards', async (req, res) => {
         },
         number: card.localId,
         images: {
-          small: card.image?.startsWith('http') 
-            ? card.image + '/low.webp' 
-            : `https://assets.tcgdex.net/${card.language || 'ja'}/${card.set?.id || set}/${card.localId}/low.webp`,
-          large: card.image?.startsWith('http') 
-            ? card.image + '/high.webp' 
-            : `https://assets.tcgdex.net/${card.language || 'ja'}/${card.set?.id || set}/${card.localId}/high.webp`
+          small: card.image ? card.image + '/low.webp' : '/images/card-placeholder.svg',
+          large: card.image ? card.image + '/high.webp' : '/images/card-placeholder.svg'
         },
         rarity: card.rarity,
         types: card.types || [],
@@ -573,15 +582,10 @@ app.get('/api/tcgdex/sets', async (req, res) => {
     const tcgdexJa = new TCGdex('ja');
     const japaneseSets = await tcgdexJa.fetchSets();
     const validJapaneseSets = japaneseSets.filter(set => {
-      // Solo incluir sets modernos con prefijos conocidos
-      const modernPrefixes = ['sv', 's', 'sm', 'xy', 'bw', 'cp', 'sp'];
-      const hasModernPrefix = modernPrefixes.some(prefix => set.id?.toLowerCase().startsWith(prefix));
-      
-      return hasModernPrefix &&
-        !set.id?.includes('pocket') && 
+      // Solo excluir Pocket, incluir TODO lo demás
+      return !set.id?.includes('pocket') && 
         !set.name?.toLowerCase().includes('pocket') &&
-        set.cardCount?.total > 0 && // Solo sets con cartas
-        !set.id?.includes('promo'); // Excluir promos por ahora
+        set.cardCount?.total > 0; // Solo sets con cartas
     });
     
     // Ordenar por fecha de lanzamiento (más recientes primero)
@@ -607,10 +611,10 @@ app.get('/api/tcgdex/sets', async (req, res) => {
       });
     }
     
-    // Limitar a los sets más recientes y relevantes
+    // Ordenar sets por fecha de lanzamiento (más recientes primero)
     const sets = Array.from(allSets.values())
-      .sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0))
-      .slice(0, 100); // Mostrar hasta 100 sets más recientes
+      .sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0));
+      // Sin límite - mostrar TODOS los sets
     
     // Importar traducciones
     const { formatSetName } = await import('./js/tcgdex-translations.js');
