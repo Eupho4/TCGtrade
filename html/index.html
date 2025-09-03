@@ -8221,9 +8221,23 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                         option.value = set.id;
                         option.dataset.source = 'tcgdex';
                         
-                        // Mostrar banderas de idiomas disponibles
-                        const languages = set.availableLanguages || [];
-                        const langDisplay = languages.map(l => {
+                        // Crear indicadores de idioma mejorados
+                        const langIndicators = set.languageIndicators || [];
+                        let langBadges = '';
+                        
+                        if (langIndicators.length === 1) {
+                            // Un solo idioma
+                            const langClass = langIndicators[0] === 'JP' ? 'lang-indicator-jp' : 
+                                            langIndicators[0] === 'KO' ? 'lang-indicator-ko' : 
+                                            'lang-indicator-ch';
+                            langBadges = `<span class="lang-indicator ${langClass}">${langIndicators[0]}</span>`;
+                        } else if (langIndicators.length > 1) {
+                            // Múltiples idiomas
+                            langBadges = `<span class="lang-indicator lang-indicator-multi">${langIndicators.join('/')}</span>`;
+                        }
+                        
+                        // Añadir banderas también
+                        const flags = set.availableLanguages?.map(l => {
                             switch(l) {
                                 case 'ja': return '🇯🇵';
                                 case 'ko': return '🇰🇷';
@@ -8231,9 +8245,13 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                                 case 'zh-tw': return '🇨🇳';
                                 default: return '';
                             }
-                        }).filter(Boolean).join(' ') || '🇯🇵';
+                        }).filter(Boolean).join('') || '';
                         
-                        option.textContent = `${set.displayName || set.name} ${langDisplay} (${set.total || set.printedTotal || 0} cartas)`;
+                        // Usar innerHTML para incluir el HTML del badge
+                        const displayText = `${set.displayName || set.name} ${flags} (${set.total || set.printedTotal || 0} cartas)`;
+                        option.textContent = displayText;
+                        // Guardar indicadores como data attribute para uso posterior
+                        option.dataset.langIndicators = langIndicators.join(',');
                         option.dataset.languages = JSON.stringify(languages);
                         optgroup2.appendChild(option);
                     });
@@ -9000,6 +9018,68 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
         /* Efecto glow para el botón de búsqueda */
         .search-container button:hover {
             box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+        }
+        
+        /* Language indicator styles */
+        .lang-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 2px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-left: 4px;
+        }
+        
+        .lang-indicator-jp {
+            background-color: #dc2626;
+            color: white;
+        }
+        
+        .lang-indicator-ko {
+            background-color: #2563eb;
+            color: white;
+        }
+        
+        .lang-indicator-ch {
+            background-color: #ca8a04;
+            color: white;
+        }
+        
+        .lang-indicator-multi {
+            background: linear-gradient(90deg, #dc2626 0%, #2563eb 50%, #ca8a04 100%);
+            color: white;
+        }
+        
+        /* Set selector improvements */
+        #bulkSetSelector optgroup {
+            font-weight: bold;
+            color: #1f2937;
+            background-color: #f3f4f6;
+            padding: 8px;
+        }
+        
+        #bulkSetSelector option {
+            padding: 8px 12px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        #bulkSetSelector option:hover {
+            background-color: #f9fafb;
+        }
+        
+        .dark #bulkSetSelector optgroup {
+            color: #f3f4f6;
+            background-color: #374151;
+        }
+        
+        .dark #bulkSetSelector option {
+            border-bottom-color: #4b5563;
+        }
+        
+        .dark #bulkSetSelector option:hover {
+            background-color: #4b5563;
         }
         
         /* Fondo animado con elementos flotantes */

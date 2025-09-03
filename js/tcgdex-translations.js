@@ -298,6 +298,93 @@ const setTranslations = {
   
   // SWSH adicionales
   's10': 'Space Juggler',
+  's10a': 'Dark Phantasma',
+  's10b': 'Pokemon GO',
+  's10p': 'Mysterious Box',
+  's11': 'Lost Abyss',
+  's11a': 'Incandescent Arcana',
+  's12': 'Paradigm Trigger',
+  's12a': 'VSTAR Universe',
+  
+  // Sets adicionales SWSH que faltaban
+  'swsh1': 'Sword & Shield',
+  'swsh2': 'Rebel Clash',
+  'swsh3': 'Darkness Ablaze',
+  'swsh4': 'Vivid Voltage',
+  'swsh5': 'Battle Styles',
+  'swsh6': 'Chilling Reign',
+  'swsh7': 'Evolving Skies',
+  'swsh8': 'Fusion Strike',
+  'swsh9': 'Brilliant Stars',
+  'swsh10': 'Astral Radiance',
+  'swsh11': 'Lost Origin',
+  'swsh12': 'Silver Tempest',
+  'swsh12pt5': 'Crown Zenith',
+  
+  // BW adicionales que faltaban
+  'bw1': 'Black & White',
+  'bw2': 'Emerging Powers',
+  'bw3': 'Noble Victories',
+  'bw4': 'Next Destinies',
+  'bw5': 'Dark Explorers',
+  'bw6': 'Dragons Exalted',
+  'bw7': 'Boundaries Crossed',
+  'bw8': 'Plasma Storm',
+  'bw9': 'Plasma Freeze',
+  
+  // DP adicionales
+  'dp1': 'Diamond & Pearl',
+  'dp2': 'Mysterious Treasures',
+  'dp3': 'Secret Wonders',
+  'dp4': 'Great Encounters',
+  'dp5': 'Majestic Dawn',
+  'dp6': 'Legends Awakened',
+  'dp7': 'Stormfront',
+  
+  // Sets antiguos adicionales
+  'basep': 'Wizards Black Star Promos',
+  'pop1': 'POP Series 1',
+  'pop2': 'POP Series 2',
+  'pop3': 'POP Series 3',
+  'pop4': 'POP Series 4',
+  'pop5': 'POP Series 5',
+  'pop6': 'POP Series 6',
+  'pop7': 'POP Series 7',
+  'pop8': 'POP Series 8',
+  'pop9': 'POP Series 9',
+  
+  // McDonald's Collections
+  'mcd11': 'McDonald\'s Collection 2011',
+  'mcd12': 'McDonald\'s Collection 2012',
+  'mcd14': 'McDonald\'s Collection 2014',
+  'mcd15': 'McDonald\'s Collection 2015',
+  'mcd16': 'McDonald\'s Collection 2016',
+  'mcd17': 'McDonald\'s Collection 2017',
+  'mcd18': 'McDonald\'s Collection 2018',
+  'mcd19': 'McDonald\'s Collection 2019',
+  'mcd21': 'McDonald\'s 25th Anniversary',
+  'mcd22': 'McDonald\'s Match Battle 2022',
+  
+  // Detective Pikachu
+  'det1': 'Detective Pikachu',
+  
+  // Dragon Vault
+  'dv1': 'Dragon Vault',
+  
+  // Futsal Collection
+  'fut20': 'Futsal Collection 2020',
+  
+  // Radiant Collection
+  'rc1': 'Radiant Collection',
+  
+  // Southern Islands
+  'si1': 'Southern Islands',
+  
+  // Mini sets y especiales
+  'sma': 'Shining Legends',
+  'xyp': 'XY Black Star Promos',
+  'smp': 'Sun & Moon Black Star Promos',
+  'swshp': 'Sword & Shield Black Star Promos',
   's10b': 'Time Gazer',
   's10p': 'Space Juggler',
   's10d': 'Time Gazer',

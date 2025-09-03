@@ -1,6 +1,41 @@
 // Traducciones de nombres de Pokémon para búsquedas en idiomas asiáticos
-export const pokemonTranslations = {
-  // Formato: nombreEnIngles: { ja: japonés, ko: coreano, zh: chino }
+// Importar todas las traducciones existentes
+import { pokemonNameTranslations } from './pokemon-name-translations.js';
+import { pokemonNameTranslationsKO } from './pokemon-name-translations-ko.js';
+import { pokemonNameTranslationsZH } from './pokemon-name-translations-zh.js';
+
+// Crear un diccionario consolidado de traducciones
+export const pokemonTranslations = {};
+
+// Construir el diccionario a partir de los archivos existentes
+for (const [ja, en] of Object.entries(pokemonNameTranslations)) {
+  const key = en.toLowerCase();
+  if (!pokemonTranslations[key]) {
+    pokemonTranslations[key] = {};
+  }
+  pokemonTranslations[key].ja = ja;
+}
+
+// Agregar traducciones coreanas
+for (const [ko, en] of Object.entries(pokemonNameTranslationsKO)) {
+  const key = en.toLowerCase();
+  if (!pokemonTranslations[key]) {
+    pokemonTranslations[key] = {};
+  }
+  pokemonTranslations[key].ko = ko;
+}
+
+// Agregar traducciones chinas
+for (const [zh, en] of Object.entries(pokemonNameTranslationsZH)) {
+  const key = en.toLowerCase();
+  if (!pokemonTranslations[key]) {
+    pokemonTranslations[key] = {};
+  }
+  pokemonTranslations[key].zh = zh;
+}
+
+// Agregar manualmente algunos que podrían faltar
+Object.assign(pokemonTranslations, {
   'pikachu': {
     ja: 'ピカチュウ',
     ko: '피카츄',
@@ -101,13 +136,14 @@ export const pokemonTranslations = {
     ko: '괴력몬',
     zh: '怪力'
   }
-};
+});
 
 // Función para obtener todas las variantes de un nombre
 export function getPokemonNameVariants(name) {
   const lowerName = name.toLowerCase().trim();
   const variants = [name];
   
+  // Buscar en el diccionario consolidado
   if (pokemonTranslations[lowerName]) {
     const translations = pokemonTranslations[lowerName];
     if (translations.ja) variants.push(translations.ja);
@@ -115,7 +151,20 @@ export function getPokemonNameVariants(name) {
     if (translations.zh) variants.push(translations.zh);
   }
   
-  return variants;
+  // También buscar si el nombre ya está en un idioma asiático
+  // y obtener las otras variantes
+  for (const [enName, translations] of Object.entries(pokemonTranslations)) {
+    if (translations.ja === name || translations.ko === name || translations.zh === name) {
+      variants.push(enName);
+      if (translations.ja && translations.ja !== name) variants.push(translations.ja);
+      if (translations.ko && translations.ko !== name) variants.push(translations.ko);
+      if (translations.zh && translations.zh !== name) variants.push(translations.zh);
+      break;
+    }
+  }
+  
+  // Eliminar duplicados
+  return [...new Set(variants)];
 }
 
 // Función para detectar si un texto contiene caracteres asiáticos
@@ -123,4 +172,16 @@ export function containsAsianCharacters(text) {
   // Rangos Unicode para japonés, coreano y chino
   const asianRegex = /[\u3040-\u309F\u30A0-\u30FF\u4E00-\u9FAF\uAC00-\uD7AF]/;
   return asianRegex.test(text);
+}
+
+// Función para obtener el nombre en inglés de un nombre asiático
+export function getEnglishName(asianName) {
+  for (const [enName, translations] of Object.entries(pokemonTranslations)) {
+    if (translations.ja === asianName || 
+        translations.ko === asianName || 
+        translations.zh === asianName) {
+      return enName;
+    }
+  }
+  return null;
 }

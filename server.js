@@ -398,7 +398,7 @@ app.get('/api/pokemontcg/*', pokemonProxy);
 // TCGdex API endpoints
 app.get('/api/tcgdex/cards', async (req, res) => {
   try {
-    const { q, name, set, type, rarity, page = 1, pageSize = 20 } = req.query;
+    const { q, name, set, type, rarity, page = 1, pageSize = 1000 } = req.query; // Aumentar pageSize por defecto para traer más cartas
     
     // Rate limiting
     const clientIP = req.ip || req.connection.remoteAddress;
@@ -664,6 +664,14 @@ app.get('/api/tcgdex/sets', async (req, res) => {
             return formatSetNameZH(set.names['zh-cn'] || set.names['zh-tw'], set.id);
           }
           return set.name;
+        })(),
+        languageIndicators: (() => {
+          // Crear indicadores visuales de idioma
+          const indicators = [];
+          if (set.availableLanguages.includes('ja')) indicators.push('JP');
+          if (set.availableLanguages.includes('ko')) indicators.push('KO');
+          if (set.availableLanguages.includes('zh-cn') || set.availableLanguages.includes('zh-tw')) indicators.push('CH');
+          return indicators;
         })(),
         series: set.serie?.name,
         seriesEN: set.serie?.name,
