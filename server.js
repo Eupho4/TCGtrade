@@ -501,6 +501,23 @@ app.get('/api/tcgdex/cards', async (req, res) => {
     // Importar traducciones
     const { formatSetName } = require('./js/tcgdex-translations.js');
     const { formatPokemonName } = require('./js/pokemon-name-translations.js');
+    const { formatPokemonNameKO } = require('./js/pokemon-name-translations-ko.js');
+    const { formatPokemonNameZH } = require('./js/pokemon-name-translations-zh.js');
+    
+    // Función para formatear según el idioma
+    function formatNameByLanguage(name, language) {
+      switch(language) {
+        case 'ja':
+          return formatPokemonName(name);
+        case 'ko':
+          return formatPokemonNameKO(name);
+        case 'zh-cn':
+        case 'zh-tw':
+          return formatPokemonNameZH(name);
+        default:
+          return name;
+      }
+    }
     
     // Normalize response
     const response = {
@@ -508,7 +525,7 @@ app.get('/api/tcgdex/cards', async (req, res) => {
         id: card.id,
         name: card.localName || card.name,
         nameEN: card.name,
-        displayName: formatPokemonName(card.localName || card.name),
+        displayName: formatNameByLanguage(card.localName || card.name, card.language || foundLanguage),
         set: {
           id: card.set?.id,
           name: card.set?.localName || card.set?.name,
@@ -696,15 +713,42 @@ app.get('/api/tcgdex/card/:id', async (req, res) => {
       });
     }
     
-    // Importar traducciones
+        // Importar traducciones
     const { formatPokemonName } = require('./js/pokemon-name-translations.js');
+    const { formatPokemonNameKO } = require('./js/pokemon-name-translations-ko.js');
+    const { formatPokemonNameZH } = require('./js/pokemon-name-translations-zh.js');
+    
+    // Detectar idioma de la carta
+    let cardLanguage = 'ja'; // Por defecto japonés
+    if (card.set?.id) {
+      // Intentar detectar el idioma según el set o el contenido
+      if (card.localName) {
+        if (/[가-힣]/.test(card.localName)) cardLanguage = 'ko';
+        else if (/[一-龥]/.test(card.localName)) cardLanguage = 'zh-cn';
+      }
+    }
+    
+    // Función para formatear según el idioma
+    function formatNameByLanguage(name, language) {
+      switch(language) {
+        case 'ja':
+          return formatPokemonName(name);
+        case 'ko':
+          return formatPokemonNameKO(name);
+        case 'zh-cn':
+        case 'zh-tw':
+          return formatPokemonNameZH(name);
+        default:
+          return name;
+      }
+    }
     
     const response = {
-            data: {
+      data: {
         id: card.id,
         name: card.localName || card.name,
         nameEN: card.name,
-        displayName: formatPokemonName(card.localName || card.name),
+        displayName: formatNameByLanguage(card.localName || card.name, cardLanguage),
         set: {
           id: card.set?.id,
           name: card.set?.localName || card.set?.name,
