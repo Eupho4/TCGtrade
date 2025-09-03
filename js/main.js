@@ -863,7 +863,8 @@ async function loadProfileStats() {
         });
 
         // Calcular estadísticas
-        const totalCards = cards.length;
+        // Total de cartas sumando las cantidades
+        const totalCards = cards.reduce((total, card) => total + (card.quantity || 1), 0);
         const uniqueCards = new Set(cards.map(card => card.id)).size;
         const uniqueSets = new Set(cards.map(card => (typeof card.set === 'string' ? card.set : card.set?.name)).filter(Boolean)).size;
         
@@ -3783,6 +3784,7 @@ function renderCardsInCollection(cards) {
                     <div class="flex-1">
                         <div class="flex items-center gap-2">
                             <span class="font-semibold text-gray-900 dark:text-white">${card.name}</span>
+                            ${card.quantity > 1 ? `<span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold">x${card.quantity}</span>` : ''}
                             <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">En colección</span>
                         </div>
                         <div class="text-xs text-gray-600">
@@ -5090,21 +5092,37 @@ async function addCardToCollection(cardId, cardName, imageUrl, setName, series, 
     if (!currentUser) return;
 
     try {
-        const cardData = {
-            id: cardId,
-            name: cardName,
-            imageUrl: imageUrl,
-            set: setName,
-            series: series,
-            number: number,
-            condition: condition,
-            language: language,
-            setId: cardId.split('-')[0], // Extraer setId del cardId
-            addedAt: new Date()
-        };
-
-        await db.collection('users').doc(currentUser.uid).collection('my_cards').doc(cardId).set(cardData);
-        showNotification(`¡Carta "${cardName}" añadida a tu colección!`, 'success', 4000);
+        // Primero verificar si la carta ya existe
+        const cardRef = db.collection('users').doc(currentUser.uid).collection('my_cards').doc(cardId);
+        const cardDoc = await cardRef.get();
+        
+        if (cardDoc.exists) {
+            // Si existe, incrementar la cantidad
+            const currentData = cardDoc.data();
+            const currentQuantity = currentData.quantity || 1;
+            await cardRef.update({
+                quantity: currentQuantity + 1,
+                lastUpdated: new Date()
+            });
+            showNotification(`¡Carta "${cardName}" añadida! Ahora tienes ${currentQuantity + 1} copias.`, 'success', 4000);
+        } else {
+            // Si no existe, crear nueva entrada con cantidad 1
+            const cardData = {
+                id: cardId,
+                name: cardName,
+                imageUrl: imageUrl,
+                set: setName,
+                series: series,
+                number: number,
+                condition: condition,
+                language: language,
+                setId: cardId.split('-')[0], // Extraer setId del cardId
+                quantity: 1,
+                addedAt: new Date()
+            };
+            await cardRef.set(cardData);
+            showNotification(`¡Carta "${cardName}" añadida a tu colección!`, 'success', 4000);
+        }
     } catch (error) {
         console.error('Error al añadir carta:', error);
         showNotification('Error al añadir la carta. Inténtalo de nuevo.', 'error', 5000);
@@ -5426,7 +5444,8 @@ function renderMyCards(cards) {
             <div class="flex items-center justify-between">
                 <div class="flex-1">
                     <div class="flex items-center gap-2">
-                                                            <span class="font-semibold text-gray-900 dark:text-white">${name}</span>
+                        <span class="font-semibold text-gray-900 dark:text-white">${name}</span>
+                        ${card.quantity > 1 ? `<span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded font-bold">x${card.quantity}</span>` : ''}
                         <span class="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">En colección</span>
                     </div>
                     <div class="text-xs text-gray-600">
