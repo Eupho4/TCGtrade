@@ -477,14 +477,17 @@ app.get('/api/tcgdex/cards', async (req, res) => {
         results = (setData.cards || []).map(card => ({
           ...card, 
           language: foundLanguage,
-          // Asegurar que las URLs de imagen sean completas
-          image: card.image?.startsWith('http') ? card.image : `https://assets.tcgdex.net/ja/${set}/${card.localId}`
+          // Asegurar que las URLs de imagen sean completas y correctas
+          image: card.image?.startsWith('http') ? card.image : `https://assets.tcgdex.net/${foundLanguage}/${set}/${card.localId || card.id.split('-')[1]}`
         }));
       }
     } else {
       // No devolver todas las cartas sin filtro
       results = [];
     }
+    
+    // Importar traducciones
+    const { formatSetName } = await import('./js/tcgdex-translations.js');
     
     // Normalize response
     const response = {
@@ -499,9 +502,7 @@ app.get('/api/tcgdex/cards', async (req, res) => {
           id: card.set?.id,
           name: card.set?.localName || card.set?.name,
           nameEN: card.set?.name,
-          displayName: card.set?.localName && card.set?.name && card.set?.localName !== card.set?.name
-            ? `${card.set?.localName} (${card.set?.name})`
-            : card.set?.localName || card.set?.name
+          displayName: formatSetName(card.set?.localName || card.set?.name, card.set?.id)
         },
         number: card.localId,
         images: {
@@ -607,14 +608,15 @@ app.get('/api/tcgdex/sets', async (req, res) => {
       .sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0))
       .slice(0, 50); // Mostrar solo los 50 sets más recientes
     
+    // Importar traducciones
+    const { formatSetName } = await import('./js/tcgdex-translations.js');
+    
     const response = {
       data: sets.map(set => ({
         id: set.id,
         name: set.localName || set.name,
         nameEN: set.name,
-        displayName: set.localName && set.name && set.localName !== set.name
-          ? `${set.localName} (${set.name})`
-          : set.localName || set.name,
+        displayName: formatSetName(set.localName || set.name, set.id),
         series: set.serie?.localName || set.serie?.name,
         seriesEN: set.serie?.name,
         seriesDisplayName: set.serie?.localName && set.serie?.name && set.serie?.localName !== set.serie?.name
