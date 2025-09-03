@@ -1,6 +1,8 @@
 // Firebase will be loaded from the script tags in HTML
 // Using firebase compat version for backward compatibility
 
+// TCGdex integration se carga desde tcgdex-loader.js
+
 // CONFIGURACIÓN DE FIREBASE - REEMPLAZA CON TUS DATOS
 const firebaseConfig = {
     apiKey: "AIzaSyCkgz6_Zpu0VOW6GgJxOxd9QlVccsBXnog",
@@ -3200,9 +3202,9 @@ function hideAuthModal() {
     if (authModal) authModal.classList.remove('show');
 }
 
-// --- Función de Búsqueda de Cartas (MEJORADA) ---
-async function fetchCards(query) {
-    console.log('🔍 fetchCards called with query:', query);
+// --- Función de Búsqueda de Cartas (MEJORADA CON TCGDEX) ---
+async function fetchCards(query, searchMode = 'pokemontcg') {
+    console.log('🔍 fetchCards called with query:', query, 'mode:', searchMode);
     
     if (!cardsContainer) {
         console.error('❌ cardsContainer not found!');
@@ -3224,50 +3226,69 @@ async function fetchCards(query) {
     showSearchResults();
 
     try {
-        // Construir URL optimizada con paginación
-        const base = query.length <= 4 ? `name:${query.toLowerCase()}*` : `name:*${query.toLowerCase()}*`;
-        lastSearchBase = base;
-        searchPage = 1;
-        searchPageSize = 20;
-        const apiUrl = buildCardsApiUrl(base, searchPage, searchPageSize);
+        let data;
+        let cards = [];
+        
+        // Dependiendo del modo de búsqueda, usar diferentes APIs
+        if (searchMode === 'combined') {
+            // Búsqueda combinada usando TCGdex integration
+            console.log('🔍 Using combined search mode');
+            data = await window.tcgdexIntegration.searchCardsCombined(query);
+            cards = data.data || [];
+        } else if (searchMode === 'tcgdex') {
+            // Solo TCGdex
+            console.log('🔍 Using TCGdex only search mode');
+            data = await window.tcgdexIntegration.searchTCGdexCards(query);
+            cards = data.data || [];
+        } else {
+            // Modo por defecto: Pokemon TCG API
+            console.log('🔍 Using Pokemon TCG API search mode');
+            
+            // Construir URL optimizada con paginación
+            const base = query.length <= 4 ? `name:${query.toLowerCase()}*` : `name:*${query.toLowerCase()}*`;
+            lastSearchBase = base;
+            searchPage = 1;
+            searchPageSize = 20;
+            const apiUrl = buildCardsApiUrl(base, searchPage, searchPageSize);
 
-        console.log('🌐 Fetching from URL:', apiUrl);
+            console.log('🌐 Fetching from URL:', apiUrl);
 
-        // Hacer petición con timeout mejorado
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
-            console.log('⏰ Timeout alcanzado, abortando petición...');
-            controller.abort();
-        }, 60000); // Aumentado a 60s para dar más tiempo al API
+            // Hacer petición con timeout mejorado
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                console.log('⏰ Timeout alcanzado, abortando petición...');
+                controller.abort();
+            }, 60000); // Aumentado a 60s para dar más tiempo al API
 
-        let response;
-        try {
-            response = await fetch(apiUrl, {
-                signal: controller.signal,
-                headers: {
-                    'Content-Type': 'application/json'
+            let response;
+            try {
+                response = await fetch(apiUrl, {
+                    signal: controller.signal,
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                clearTimeout(timeoutId);
+            } catch (fetchError) {
+                clearTimeout(timeoutId);
+                if (fetchError.name === 'AbortError') {
+                    console.log('🔄 Petición cancelada por timeout');
+                    throw new Error('TIMEOUT');
                 }
-            });
-            clearTimeout(timeoutId);
-        } catch (fetchError) {
-            clearTimeout(timeoutId);
-            if (fetchError.name === 'AbortError') {
-                console.log('🔄 Petición cancelada por timeout');
-                throw new Error('TIMEOUT');
+                throw fetchError;
             }
-            throw fetchError;
+
+            console.log('📡 Response status:', response.status);
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('❌ API Error Response:', errorText);
+                throw new Error(`API Error ${response.status}: ${errorText}`);
+            }
+
+            data = await response.json();
+            cards = data.data || [];
         }
-
-        console.log('📡 Response status:', response.status);
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ API Error Response:', errorText);
-            throw new Error(`API Error ${response.status}: ${errorText}`);
-        }
-
-        const data = await response.json();
-        const cards = data.data || [];
 
         console.log('✅ API Response received:', {
             totalCount: data.totalCount,
@@ -4679,7 +4700,9 @@ document.addEventListener('DOMContentLoaded', () => {
             const query = event.target.value.trim();
             if (query.length >= 3 || query.length === 0) {
                 searchTimeout = setTimeout(() => {
-                    fetchCards(query);
+                    // Obtener el modo de búsqueda seleccionado
+                    const searchMode = document.querySelector('input[name="search-mode"]:checked')?.value || 'pokemontcg';
+                    fetchCards(query, searchMode);
                 }, 500);
             }
         });
@@ -4703,7 +4726,10 @@ document.addEventListener('DOMContentLoaded', () => {
             searchFiltersState.type = filterTypeSelect?.value || '';
             searchFiltersState.language = filterLanguageSelect?.value || '';
             const q = (searchInput?.value || '').trim();
-            if (q.length >= 3) fetchCards(q);
+            if (q.length >= 3) {
+                const searchMode = document.querySelector('input[name="search-mode"]:checked')?.value || 'pokemontcg';
+                fetchCards(q, searchMode);
+            }
         });
     }
     if (clearSearchFiltersBtn) {
@@ -4717,7 +4743,10 @@ document.addEventListener('DOMContentLoaded', () => {
             searchFiltersState.type = '';
             searchFiltersState.language = '';
             const q = (searchInput?.value || '').trim();
-            if (q.length >= 3) fetchCards(q);
+            if (q.length >= 3) {
+                const searchMode = document.querySelector('input[name="search-mode"]:checked')?.value || 'pokemontcg';
+                fetchCards(q, searchMode);
+            }
         });
     }
 
@@ -5013,6 +5042,9 @@ window.quickSearch = async () => {
     }
     
     console.log('🚀 Búsqueda rápida iniciada para:', query);
+    
+    // Obtener el modo de búsqueda seleccionado
+    const searchMode = document.querySelector('input[name="search-mode"]:checked')?.value || 'pokemontcg';
     
     if (cardsContainer) cardsContainer.innerHTML = '';
     if (noResultsMessage) noResultsMessage.classList.add('hidden');
