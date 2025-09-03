@@ -1676,6 +1676,9 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
         function getCardOffersCount(cardName) {
             let offersCount = 0;
             
+            // Debug: log para ver qué carta estamos buscando
+            console.log('🔍 Buscando ofertas para:', cardName);
+            
             // Buscar en todos los intercambios guardados en localStorage
             for (let i = 0; i < localStorage.length; i++) {
                 const key = localStorage.key(i);
@@ -1683,14 +1686,17 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 if (key && key.startsWith('userTrades_')) {
                     try {
                         const trades = JSON.parse(localStorage.getItem(key) || '[]');
+                        console.log(`📦 Revisando ${trades.length} intercambios en ${key}`);
                         
                         // Contar las veces que esta carta aparece en las cartas ofrecidas
                         trades.forEach(trade => {
                             if (trade.offeredCards && Array.isArray(trade.offeredCards)) {
                                 trade.offeredCards.forEach(offeredCard => {
                                     const offeredCardName = offeredCard.name || offeredCard;
+                                    console.log(`  - Comparando "${cardName}" con "${offeredCardName}"`);
                                     // Comparación exacta, no parcial
                                     if (offeredCardName && offeredCardName.toLowerCase() === cardName.toLowerCase()) {
+                                        console.log('  ✅ ¡Coincidencia encontrada!');
                                         offersCount++;
                                     }
                                 });
@@ -1702,6 +1708,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 }
             }
             
+            console.log(`📊 Total de ofertas encontradas para "${cardName}": ${offersCount}`);
             return offersCount;
         }
         
