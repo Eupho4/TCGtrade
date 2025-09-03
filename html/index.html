@@ -8544,6 +8544,58 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             --color-input-placeholder: #a0aec0;
             --color-select-text: #1a202c;
         }
+        
+        /* Nuevos estilos para gradiente animado */
+        @keyframes gradientAnimation {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+        
+        .animated-gradient {
+            background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+            background-size: 400% 400%;
+            animation: gradientAnimation 15s ease infinite;
+        }
+        
+        /* Efecto glassmorphism */
+        .glassmorphism {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        
+        .glassmorphism-dark {
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Mejorar el buscador en el header */
+        .header-bg .search-container {
+            background: rgba(255, 255, 255, 0.15);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+        }
+        
+        .header-bg .search-container:hover {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.5);
+        }
+        
+        /* Efecto glow para el botón de búsqueda */
+        .search-container button:hover {
+            box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
+        }
 
         body.dark-mode {
             --color-primary-bg: #1a1a1a;
@@ -8985,20 +9037,26 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
 </head>
 <body class="flex flex-col min-h-screen">
 
-    <header class="header-bg shadow-lg py-4 px-6 md:px-10">
+    <header class="header-bg shadow-lg py-4 px-6 md:px-10 backdrop-blur-md bg-opacity-95">
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
-            <a href="#" class="text-white text-3xl font-bold rounded-md px-3 py-1 flex items-center h-12" id="homeLink">
-                TCGtrade
+            <a href="#" class="text-white text-3xl font-bold rounded-md px-3 py-1 flex items-center h-12 hover:scale-105 transition-transform" id="homeLink">
+                <span class="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+                    TCGtrade
+                </span>
             </a>
 
             <div class="w-full md:w-1/2 lg:w-1/3 mt-4 md:mt-0 relative">
-                <div class="flex items-center h-12">
-                    <input type="text" id="searchInput" placeholder="Buscar cartas, sets, usuarios..."
-                           class="w-full p-3 rounded-l-lg border border-gray-300 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-800 dark:text-white dark:bg-gray-700 h-full">
-                    <button type="button" onclick="quickSearch()" class="bg-green-500 hover:bg-green-600 text-white px-3 py-3 rounded-r-lg font-semibold text-xs h-full transition-all" title="Búsqueda rápida (10 resultados)">
-                        🚀
-                    </button>
-                    <div id="loadingSpinner" class="loader absolute right-12 top-1/2 -translate-y-1/2"></div>
+                <div class="search-container glassmorphism dark:glassmorphism-dark p-1 rounded-2xl shadow-xl">
+                    <div class="flex items-center h-12">
+                        <input type="text" id="searchInput" placeholder="Buscar cartas, sets, usuarios..."
+                               class="w-full p-3 bg-transparent rounded-l-xl border-0 focus:outline-none focus:ring-2 focus:ring-orange-400 text-gray-800 dark:text-white placeholder-gray-600 dark:placeholder-gray-400 h-full">
+                        <button type="button" onclick="quickSearch()" class="bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white px-4 py-3 rounded-r-xl font-semibold text-sm h-full transition-all shadow-lg hover:shadow-xl transform hover:scale-105" title="Búsqueda rápida">
+                            <span class="flex items-center gap-1">
+                                🚀 <span class="hidden sm:inline">Buscar</span>
+                            </span>
+                        </button>
+                        <div id="loadingSpinner" class="loader absolute right-20 top-1/2 -translate-y-1/2"></div>
+                    </div>
                 </div>
             </div>
 
@@ -9029,9 +9087,12 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
 
     <main class="flex-grow container mx-auto p-6 md:p-10">
         <!-- Hero Section Renovada -->
-        <section id="heroSection" class="relative overflow-hidden">
+        <section id="heroSection" class="relative overflow-hidden rounded-3xl mb-12">
             <!-- Fondo animado con gradiente -->
-            <div class="absolute inset-0 bg-gradient-to-br from-purple-600 via-pink-500 to-orange-400 opacity-10 dark:opacity-20"></div>
+            <div class="absolute inset-0 animated-gradient opacity-20 dark:opacity-30 rounded-3xl"></div>
+            
+            <!-- Overlay sutil para mejorar legibilidad -->
+            <div class="absolute inset-0 bg-white/50 dark:bg-black/50 rounded-3xl"></div>
             
             <div class="relative z-10 py-20 px-4">
                 <div class="max-w-6xl mx-auto text-center">
