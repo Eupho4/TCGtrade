@@ -1718,6 +1718,63 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             return offersCount;
         }
         
+        // Función de debug para ver todos los intercambios
+        window.debugShowAllTrades = function() {
+            console.log('🔍 === MOSTRANDO TODOS LOS INTERCAMBIOS ===');
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                
+                if (key && key.startsWith('userTrades_')) {
+                    try {
+                        const trades = JSON.parse(localStorage.getItem(key) || '[]');
+                        console.log(`\n📦 Usuario: ${key}`);
+                        console.log(`Total de intercambios: ${trades.length}`);
+                        
+                        trades.forEach((trade, index) => {
+                            console.log(`\n--- Intercambio ${index + 1} ---`);
+                            console.log('ID:', trade.id);
+                            console.log('Título:', trade.title);
+                            console.log('Descripción:', trade.description);
+                            console.log('Creado:', trade.createdAt);
+                            
+                            console.log('\n📤 Cartas Ofrecidas:');
+                            if (trade.offeredCards && trade.offeredCards.length > 0) {
+                                trade.offeredCards.forEach((card, i) => {
+                                    if (typeof card === 'object') {
+                                        console.log(`  ${i + 1}. ${card.name} - Set: ${card.set || 'N/A'} - Condición: ${card.condition || 'N/A'} - Idioma: ${card.language || 'N/A'}`);
+                                    } else {
+                                        console.log(`  ${i + 1}. ${card}`);
+                                    }
+                                });
+                            } else {
+                                console.log('  (Sin cartas ofrecidas)');
+                            }
+                            
+                            console.log('\n📥 Cartas Buscadas:');
+                            if (trade.wantedCards && trade.wantedCards.length > 0) {
+                                trade.wantedCards.forEach((card, i) => {
+                                    if (typeof card === 'object') {
+                                        console.log(`  ${i + 1}. ${card.name} - Set: ${card.set || 'N/A'} - Condición: ${card.condition || 'N/A'} - Idioma: ${card.language || 'N/A'}`);
+                                    } else {
+                                        console.log(`  ${i + 1}. ${card}`);
+                                    }
+                                });
+                            } else {
+                                console.log('  (Sin cartas buscadas)');
+                            }
+                            
+                            console.log('\n------------------------');
+                        });
+                    } catch (error) {
+                        console.error('Error al procesar intercambios:', error);
+                    }
+                }
+            }
+            
+            console.log('\n🔍 === FIN DE LA LISTA ===');
+        };
+
         // Función para obtener todos los intercambios que ofrecen una carta específica
         function getCardOfferDetails(cardName, cardSet) {
             const offers = [];
