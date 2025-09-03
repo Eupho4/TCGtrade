@@ -6622,7 +6622,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             ];
             
             const sizes = ['small', 'medium', 'large', 'xlarge'];
-            const numElements = 15; // Número de elementos flotantes
+            const numElements = 25; // Número de elementos flotantes
             
             // Limpiar elementos existentes
             floatingBg.innerHTML = '';
@@ -8676,22 +8676,34 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             height: 100%;
             overflow: hidden;
             z-index: -1;
-            background: linear-gradient(to bottom, 
-                var(--color-primary-bg) 0%, 
-                rgba(59, 130, 246, 0.05) 50%, 
-                var(--color-primary-bg) 100%);
+            background: linear-gradient(135deg, 
+                rgba(249, 115, 22, 0.08) 0%, 
+                rgba(59, 130, 246, 0.08) 25%, 
+                rgba(147, 51, 234, 0.08) 50%, 
+                rgba(236, 72, 153, 0.08) 75%, 
+                rgba(249, 115, 22, 0.08) 100%);
+            background-size: 400% 400%;
+            animation: gradientShift 20s ease infinite;
+        }
+        
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
         }
         
         .floating-element {
             position: absolute;
-            opacity: 0.1;
-            filter: blur(1px);
+            opacity: 0.3;
+            filter: blur(0.5px);
             animation: float 20s infinite ease-in-out;
             pointer-events: none;
+            transition: opacity 0.3s ease;
         }
         
         .floating-element.dark-mode {
-            opacity: 0.05;
+            opacity: 0.15;
+            filter: brightness(1.2) blur(0.5px);
         }
         
         @keyframes float {
@@ -8732,23 +8744,23 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
         
         /* Diferentes tamaños para los elementos */
         .floating-element.small {
-            width: 60px;
-            height: 60px;
-        }
-        
-        .floating-element.medium {
             width: 80px;
             height: 80px;
         }
         
-        .floating-element.large {
+        .floating-element.medium {
             width: 100px;
             height: 100px;
         }
         
-        .floating-element.xlarge {
+        .floating-element.large {
             width: 120px;
             height: 120px;
+        }
+        
+        .floating-element.xlarge {
+            width: 150px;
+            height: 150px;
         }
 
         body.dark-mode {
