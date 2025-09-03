@@ -942,6 +942,9 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 document.body.classList.remove('dark-mode');
             }
             
+            // Actualizar elementos flotantes
+            updateFloatingElementsOpacity();
+            
             // Guardar también en localStorage para persistencia local
             localStorage.setItem('darkMode', isDark ? 'true' : 'false');
         }
@@ -6595,8 +6598,75 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             pokeball.style.transition = 'opacity 0.15s ease-in-out';
         }
 
+        // Función para generar elementos flotantes
+        function generateFloatingElements() {
+            const floatingBg = document.getElementById('floatingBackground');
+            if (!floatingBg) return;
+            
+            // URLs de imágenes de Pokémon populares y Pokéballs
+            const pokemonImages = [
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/25.png', // Pikachu
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/6.png', // Charizard
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/1.png', // Bulbasaur
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/4.png', // Charmander
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/7.png', // Squirtle
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/150.png', // Mewtwo
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/151.png', // Mew
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/94.png', // Gengar
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/143.png', // Snorlax
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/149.png', // Dragonite
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/poke-ball.png',
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/great-ball.png',
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/ultra-ball.png',
+                'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/items/master-ball.png'
+            ];
+            
+            const sizes = ['small', 'medium', 'large', 'xlarge'];
+            const numElements = 15; // Número de elementos flotantes
+            
+            // Limpiar elementos existentes
+            floatingBg.innerHTML = '';
+            
+            // Generar elementos
+            for (let i = 0; i < numElements; i++) {
+                const element = document.createElement('img');
+                element.className = `floating-element ${sizes[Math.floor(Math.random() * sizes.length)]}`;
+                element.src = pokemonImages[Math.floor(Math.random() * pokemonImages.length)];
+                element.alt = 'Pokemon';
+                
+                // Posición aleatoria
+                element.style.left = `${Math.random() * 100}%`;
+                element.style.top = `${Math.random() * 100}%`;
+                
+                // Retraso aleatorio en la animación
+                element.style.animationDelay = `${Math.random() * 20}s`;
+                
+                // Ajustar opacidad para modo oscuro
+                if (document.body.classList.contains('dark-mode')) {
+                    element.classList.add('dark-mode');
+                }
+                
+                floatingBg.appendChild(element);
+            }
+        }
+        
+        // Actualizar elementos flotantes cuando cambia el modo oscuro
+        function updateFloatingElementsOpacity() {
+            const elements = document.querySelectorAll('.floating-element');
+            elements.forEach(el => {
+                if (document.body.classList.contains('dark-mode')) {
+                    el.classList.add('dark-mode');
+                } else {
+                    el.classList.remove('dark-mode');
+                }
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🚀 DOM cargado, configurando eventos...');
+            
+            // Generar elementos flotantes
+            generateFloatingElements();
             
             // CARGAR MODO OSCURO DESDE LOCALSTORAGE AL INICIO
             const savedDarkMode = localStorage.getItem('darkMode');
@@ -8596,6 +8666,90 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
         .search-container button:hover {
             box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
         }
+        
+        /* Fondo animado con elementos flotantes */
+        .floating-background {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            z-index: -1;
+            background: linear-gradient(to bottom, 
+                var(--color-primary-bg) 0%, 
+                rgba(59, 130, 246, 0.05) 50%, 
+                var(--color-primary-bg) 100%);
+        }
+        
+        .floating-element {
+            position: absolute;
+            opacity: 0.1;
+            filter: blur(1px);
+            animation: float 20s infinite ease-in-out;
+            pointer-events: none;
+        }
+        
+        .floating-element.dark-mode {
+            opacity: 0.05;
+        }
+        
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg);
+            }
+            33% {
+                transform: translateY(-30px) rotate(120deg);
+            }
+            66% {
+                transform: translateY(30px) rotate(240deg);
+            }
+        }
+        
+        @keyframes floatReverse {
+            0%, 100% {
+                transform: translateY(0) rotate(0deg) translateX(0);
+            }
+            33% {
+                transform: translateY(30px) rotate(-120deg) translateX(-20px);
+            }
+            66% {
+                transform: translateY(-30px) rotate(-240deg) translateX(20px);
+            }
+        }
+        
+        .floating-element:nth-child(even) {
+            animation: floatReverse 25s infinite ease-in-out;
+        }
+        
+        .floating-element:nth-child(3n) {
+            animation-duration: 30s;
+        }
+        
+        .floating-element:nth-child(5n) {
+            animation-duration: 35s;
+        }
+        
+        /* Diferentes tamaños para los elementos */
+        .floating-element.small {
+            width: 60px;
+            height: 60px;
+        }
+        
+        .floating-element.medium {
+            width: 80px;
+            height: 80px;
+        }
+        
+        .floating-element.large {
+            width: 100px;
+            height: 100px;
+        }
+        
+        .floating-element.xlarge {
+            width: 120px;
+            height: 120px;
+        }
 
         body.dark-mode {
             --color-primary-bg: #1a1a1a;
@@ -9036,6 +9190,11 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
     </style>
 </head>
 <body class="flex flex-col min-h-screen">
+
+    <!-- Fondo animado con elementos flotantes -->
+    <div class="floating-background" id="floatingBackground">
+        <!-- Los elementos se generarán dinámicamente con JavaScript -->
+    </div>
 
     <header class="header-bg shadow-lg py-4 px-6 md:px-10 backdrop-blur-md bg-opacity-95">
         <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
