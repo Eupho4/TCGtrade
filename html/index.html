@@ -6621,10 +6621,13 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             // Limpiar elementos existentes
             floatingBg.innerHTML = '';
             
-            // Generar elementos
+            // Generar elementos con diferentes capas para parallax
             for (let i = 0; i < numElements; i++) {
                 const element = document.createElement('img');
-                element.className = `floating-element ${sizes[Math.floor(Math.random() * sizes.length)]}`;
+                const size = sizes[Math.floor(Math.random() * sizes.length)];
+                const layer = i % 3; // Distribuir en 3 capas
+                
+                element.className = `floating-element ${size}`;
                 element.src = pokemonImages[Math.floor(Math.random() * pokemonImages.length)];
                 element.alt = 'Pokemon';
                 
@@ -6635,9 +6638,22 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 // Retraso aleatorio en la animación
                 element.style.animationDelay = `${Math.random() * 20}s`;
                 
+                // Ajustar velocidad según la capa para efecto parallax
+                if (layer === 0) {
+                    element.style.animationDuration = '40s'; // Capa trasera más lenta
+                    element.style.opacity = '0.08';
+                } else if (layer === 1) {
+                    element.style.animationDuration = '30s'; // Capa media
+                    element.style.opacity = '0.12';
+                } else {
+                    element.style.animationDuration = '20s'; // Capa frontal más rápida
+                    element.style.opacity = '0.15';
+                }
+                
                 // Ajustar opacidad para modo oscuro
                 if (document.body.classList.contains('dark-mode')) {
                     element.classList.add('dark-mode');
+                    element.style.opacity = parseFloat(element.style.opacity) * 0.5;
                 }
                 
                 floatingBg.appendChild(element);
@@ -6655,12 +6671,58 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 }
             });
         }
+        
+        // Función para animar números
+        function animateNumber(element, start, end, duration) {
+            const startTime = performance.now();
+            const startValue = start;
+            const endValue = end;
+            
+            function update(currentTime) {
+                const elapsed = currentTime - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                
+                // Función de easing para hacer la animación más suave
+                const easeOutQuart = 1 - Math.pow(1 - progress, 4);
+                
+                const currentValue = Math.floor(startValue + (endValue - startValue) * easeOutQuart);
+                element.textContent = currentValue.toLocaleString();
+                
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+            
+            requestAnimationFrame(update);
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🚀 DOM cargado, configurando eventos...');
             
             // Generar elementos flotantes
             generateFloatingElements();
+            
+            // Configurar animación de estadísticas cuando entren en vista
+            const statsObserver = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting && !entry.target.dataset.animated) {
+                        const element = entry.target;
+                        const finalValue = parseInt(element.textContent.replace(/,/g, ''));
+                        element.dataset.animated = 'true';
+                        element.classList.add('count-animate');
+                        animateNumber(element, 0, finalValue, 2000);
+                    }
+                });
+            }, { threshold: 0.5 });
+            
+            // Observar elementos de estadísticas
+            const totalUsers = document.getElementById('totalUsersCount');
+            const totalTrades = document.getElementById('totalTradesCount');
+            const globalTotalCards = document.getElementById('globalTotalCardsCount');
+            
+            if (totalUsers) statsObserver.observe(totalUsers);
+            if (totalTrades) statsObserver.observe(totalTrades);
+            if (globalTotalCards) statsObserver.observe(globalTotalCards);
             
             // CARGAR MODO OSCURO DESDE LOCALSTORAGE AL INICIO
             const savedDarkMode = localStorage.getItem('darkMode');
@@ -8140,9 +8202,10 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                     cardsContainer.innerHTML = '';
                     
                     if (cards.length > 0) {
-                        cards.forEach(card => {
+                        cards.forEach((card, index) => {
                             const cardElement = document.createElement('div');
-                            cardElement.className = 'card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105';
+                            cardElement.className = 'card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105 card-animate';
+                            cardElement.style.animationDelay = `${index * 0.05}s`;
                             
                             const safeCardId = (card.id || '').replace(/'/g, "\\'");
                             const safeCardName = (card.name || '').replace(/'/g, "\\'");
@@ -8239,9 +8302,10 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                     console.log('🚀 Quick search success:', cards.length, 'cards');
                     
                     if (cards.length > 0) {
-                        cards.forEach(card => {
+                        cards.forEach((card, index) => {
                             const cardElement = document.createElement('div');
-                            cardElement.className = 'card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105';
+                            cardElement.className = 'card-bg rounded-xl shadow-lg overflow-hidden transform transition-transform hover:scale-105 card-animate';
+                            cardElement.style.animationDelay = `${index * 0.05}s`;
                             
                             const safeCardId = (card.id || '').replace(/'/g, "\\'");
                             const safeCardName = (card.name || '').replace(/'/g, "\\'");
@@ -8680,6 +8744,27 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             animation: gradientShift 20s ease infinite;
         }
         
+        /* Capas para efecto parallax */
+        .parallax-layer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+        }
+        
+        .parallax-back {
+            transform: translateZ(-2px) scale(3);
+        }
+        
+        .parallax-mid {
+            transform: translateZ(-1px) scale(2);
+        }
+        
+        .parallax-front {
+            transform: translateZ(0) scale(1);
+        }
+        
         @keyframes gradientShift {
             0% { background-position: 0% 50%; }
             50% { background-position: 100% 50%; }
@@ -8750,6 +8835,52 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
         .floating-element.large {
             width: 80px;
             height: 80px;
+        }
+        
+        /* Animaciones de entrada para las cartas */
+        @keyframes cardFadeIn {
+            0% {
+                opacity: 0;
+                transform: translateY(20px) scale(0.9);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+        
+        .card-animate {
+            animation: cardFadeIn 0.5s ease-out forwards;
+            opacity: 0;
+        }
+        
+        /* Retraso escalonado para las cartas */
+        .card-animate:nth-child(1) { animation-delay: 0.05s; }
+        .card-animate:nth-child(2) { animation-delay: 0.1s; }
+        .card-animate:nth-child(3) { animation-delay: 0.15s; }
+        .card-animate:nth-child(4) { animation-delay: 0.2s; }
+        .card-animate:nth-child(5) { animation-delay: 0.25s; }
+        .card-animate:nth-child(6) { animation-delay: 0.3s; }
+        .card-animate:nth-child(7) { animation-delay: 0.35s; }
+        .card-animate:nth-child(8) { animation-delay: 0.4s; }
+        .card-animate:nth-child(9) { animation-delay: 0.45s; }
+        .card-animate:nth-child(10) { animation-delay: 0.5s; }
+        .card-animate:nth-child(n+11) { animation-delay: 0.55s; }
+        
+        /* Animación para los números de estadísticas */
+        @keyframes countUp {
+            0% {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            100% {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .count-animate {
+            animation: countUp 0.6s ease-out;
         }
 
         body.dark-mode {
