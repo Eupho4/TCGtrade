@@ -414,33 +414,53 @@ app.get('/api/tcgdex/cards', async (req, res) => {
       return res.json(cached.data);
     }
     
-    // Import TCGdex SDK
+    // Import TCGdex SDK - usar múltiples idiomas para búsqueda
     const TCGdex = (await import('@tcgdex/sdk')).default;
-    const tcgdex = new TCGdex('es');
     
     let results = [];
+    const asianLanguages = ['ja', 'ko', 'zh-cn', 'zh-tw']; // Japonés, Coreano, Chino simplificado y tradicional
     
     if (q || name) {
-      // Search by name
+      // Search by name en múltiples idiomas asiáticos
       const searchQuery = q || name;
-      const cards = await tcgdex.fetchCards();
-      results = cards.filter(card => 
-        card.localName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        card.name?.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      const allResults = [];
+      
+      // Buscar en cada idioma asiático
+      for (const lang of asianLanguages) {
+        const tcgdex = new TCGdex(lang);
+        const cards = await tcgdex.fetchCards();
+        const langResults = cards.filter(card => {
+          // Excluir cartas de Pocket
+          if (card.set?.id?.includes('pocket') || card.set?.name?.toLowerCase().includes('pocket')) {
+            return false;
+          }
+          // Buscar por nombre local o nombre en inglés
+          return card.localName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                 card.name?.toLowerCase().includes(searchQuery.toLowerCase());
+        });
+        allResults.push(...langResults.map(card => ({...card, language: lang})));
+      }
+      
+      // Eliminar duplicados
+      const uniqueMap = new Map();
+      allResults.forEach(card => {
+        const key = `${card.id}-${card.language}`;
+        if (!uniqueMap.has(key)) {
+          uniqueMap.set(key, card);
+        }
+      });
+      results = Array.from(uniqueMap.values());
+      
     } else if (set) {
-      // Get cards by set
+      // Get cards by set - solo si es un set asiático
+      const tcgdex = new TCGdex('ja'); // Por defecto japonés
       const setData = await tcgdex.fetchSet(set);
-      results = setData.cards || [];
-    } else if (type) {
-      // Filter by type
-      const cards = await tcgdex.fetchCards();
-      results = cards.filter(card => card.types?.includes(type));
+      if (setData && !setData.id?.includes('pocket')) {
+        results = (setData.cards || []).map(card => ({...card, language: 'ja'}));
+      }
     } else {
-      // Get all cards (paginated)
-      const allCards = await tcgdex.fetchCards();
-      const startIndex = (page - 1) * pageSize;
-      results = allCards.slice(startIndex, startIndex + pageSize);
+      // No devolver todas las cartas sin filtro
+      results = [];
     }
     
     // Normalize response
@@ -505,11 +525,36 @@ app.get('/api/tcgdex/sets', async (req, res) => {
       return res.json(cached.data);
     }
     
-    // Import TCGdex SDK
+    // Import TCGdex SDK - obtener sets en idiomas asiáticos
     const TCGdex = (await import('@tcgdex/sdk')).default;
-    const tcgdex = new TCGdex('es');
+    const asianLanguages = ['ja', 'ko', 'zh-cn', 'zh-tw'];
+    const allSets = new Map();
     
-    const sets = await tcgdex.fetchSets();
+    // Obtener sets de cada idioma asiático
+    for (const lang of asianLanguages) {
+      const tcgdex = new TCGdex(lang);
+      const sets = await tcgdex.fetchSets();
+      
+      // Filtrar solo sets que no sean de Pocket
+      const validSets = sets.filter(set => 
+        !set.id?.includes('pocket') && 
+        !set.name?.toLowerCase().includes('pocket')
+      );
+      
+      validSets.forEach(set => {
+        const key = set.id;
+        if (!allSets.has(key)) {
+          allSets.set(key, {...set, availableLanguages: [lang]});
+        } else {
+          const existing = allSets.get(key);
+          if (!existing.availableLanguages.includes(lang)) {
+            existing.availableLanguages.push(lang);
+          }
+        }
+      });
+    }
+    
+    const sets = Array.from(allSets.values());
     
     const response = {
       data: sets.map(set => ({
@@ -629,7 +674,7 @@ app.get('/api/tcgdex/card/:id', async (req, res) => {
   }
 });
 
-// Endpoint de búsqueda combinada (Pokemon TCG + TCGdex)
+// Endpoint de búsqueda combinada (Pokemon TCG + TCGdex con traducción)
 app.get('/api/search/combined', async (req, res) => {
   try {
     const { q, name } = req.query;
@@ -650,19 +695,33 @@ app.get('/api/search/combined', async (req, res) => {
       });
     }
     
-    // Buscar en paralelo en ambas APIs
-    const [pokemonTCGResponse, tcgdexResponse] = await Promise.allSettled([
-      // Pokemon TCG API
+    // Importar utilidades de traducción
+    const { getPokemonNameVariants } = await import('./js/pokemon-translations.js');
+    const searchVariants = getPokemonNameVariants(searchQuery);
+    
+    // Crear promesas de búsqueda para cada variante
+    const searchPromises = [];
+    
+    // Pokemon TCG API (solo inglés/español)
+    searchPromises.push(
       (async () => {
         const fetch = (await import('node-fetch')).default;
         return fetch(`http://localhost:${PORT}/api/pokemontcg/cards?q=name:${searchQuery}*&pageSize=20`);
-      })(),
-      // TCGdex API
-      (async () => {
-        const fetch = (await import('node-fetch')).default;
-        return fetch(`http://localhost:${PORT}/api/tcgdex/cards?q=${searchQuery}`);
       })()
-    ]);
+    );
+    
+    // TCGdex API para cada variante del nombre
+    for (const variant of searchVariants) {
+      searchPromises.push(
+        (async () => {
+          const fetch = (await import('node-fetch')).default;
+          return fetch(`http://localhost:${PORT}/api/tcgdex/cards?q=${encodeURIComponent(variant)}`);
+        })()
+      );
+    }
+    
+    // Buscar en paralelo con todas las variantes
+    const allResponses = await Promise.allSettled(searchPromises);
     
     const results = {
       pokemonTCG: {
@@ -675,21 +734,36 @@ app.get('/api/search/combined', async (req, res) => {
       }
     };
     
-    // Procesar resultados de Pokemon TCG
-    if (pokemonTCGResponse.status === 'fulfilled' && pokemonTCGResponse.value.ok) {
-      const data = await pokemonTCGResponse.value.json();
+    // Procesar primera respuesta (Pokemon TCG)
+    if (allResponses[0].status === 'fulfilled' && allResponses[0].value.ok) {
+      const data = await allResponses[0].value.json();
       results.pokemonTCG.data = data.data || [];
     } else {
       results.pokemonTCG.error = 'Error al buscar en Pokemon TCG API';
     }
     
-    // Procesar resultados de TCGdex
-    if (tcgdexResponse.status === 'fulfilled' && tcgdexResponse.value.ok) {
-      const data = await tcgdexResponse.value.json();
-      results.tcgdex.data = data.data || [];
-    } else {
-      results.tcgdex.error = 'Error al buscar en TCGdex';
+    // Procesar respuestas de TCGdex (todas las variantes)
+    const tcgdexCards = [];
+    for (let i = 1; i < allResponses.length; i++) {
+      if (allResponses[i].status === 'fulfilled' && allResponses[i].value.ok) {
+        const data = await allResponses[i].value.json();
+        if (data.data && data.data.length > 0) {
+          tcgdexCards.push(...data.data);
+        }
+      }
     }
+    
+    // Eliminar duplicados de TCGdex
+    const uniqueTCGdexCards = tcgdexCards.reduce((acc, card) => {
+      const key = card.id;
+      if (!acc.map.has(key)) {
+        acc.map.set(key, card);
+        acc.list.push(card);
+      }
+      return acc;
+    }, { map: new Map(), list: [] }).list;
+    
+    results.tcgdex.data = uniqueTCGdexCards;
     
     // Combinar y deduplicar resultados
     const combinedResults = [

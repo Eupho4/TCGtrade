@@ -3860,27 +3860,29 @@ async function fetchSetsAndPopulateFilter() {
             console.log('✅ Sets TCGdex cargados:', tcgdexSets.length);
         }
 
-        // Combinar sets de ambas fuentes
-        const combinedSets = [...pokemonTCGSets];
+        // NO combinar sets - mantenerlos separados
+        // Solo añadir sets de TCGdex (asiáticos)
+        allSets = [...pokemonTCGSets];
         
-        // Añadir sets de TCGdex que no estén duplicados
+        // Añadir TODOS los sets de TCGdex como sets asiáticos
         tcgdexSets.forEach(tcgSet => {
-            const exists = combinedSets.some(set => 
+            // Solo añadir si es un set verdaderamente asiático (no duplicado)
+            const isDuplicate = pokemonTCGSets.some(set => 
                 set.id === tcgSet.id || 
-                (set.name === tcgSet.name && set.releaseDate === tcgSet.releaseDate)
+                (set.name === tcgSet.name && Math.abs(new Date(set.releaseDate) - new Date(tcgSet.releaseDate)) < 30*24*60*60*1000) // Mismo mes
             );
-            if (!exists) {
-                // Marcar sets exclusivos de TCGdex (japoneses, coreanos, chinos)
-                combinedSets.push({
+            
+            if (!isDuplicate) {
+                allSets.push({
                     ...tcgSet,
                     source: 'tcgdex',
-                    isAsian: true // Marcador para sets asiáticos
+                    isAsian: true,
+                    displayName: `${tcgSet.name} (${tcgSet.availableLanguages ? tcgSet.availableLanguages.join(', ').toUpperCase() : 'JA/KO/ZH'})`
                 });
             }
         });
-
-        allSets = combinedSets;
-        console.log('✅ Total sets combinados:', allSets.length);
+        
+        console.log('✅ Total sets:', allSets.length, '(Pokemon TCG:', pokemonTCGSets.length, ', TCGdex asiáticos:', tcgdexSets.length, ')');
         
         console.log('✅ Sets cargados:', allSets.length);
 
@@ -3952,12 +3954,37 @@ function populateSetFilter(setsToDisplay) {
     if (!setFilter) return;
 
     setFilter.innerHTML = '<option value="">Todas las Expansiones</option>';
-    setsToDisplay.forEach(set => {
-        const option = document.createElement('option');
-        option.value = set.id;
-        option.textContent = set.name;
-        setFilter.appendChild(option);
-    });
+    
+    // Separar sets por fuente
+    const pokemonTCGSets = setsToDisplay.filter(s => s.source !== 'tcgdex');
+    const asianSets = setsToDisplay.filter(s => s.source === 'tcgdex');
+    
+    // Añadir sets internacionales
+    if (pokemonTCGSets.length > 0) {
+        const optgroup1 = document.createElement('optgroup');
+        optgroup1.label = '🌍 Sets Internacionales (EN/ES/FR/DE/IT)';
+        pokemonTCGSets.forEach(set => {
+            const option = document.createElement('option');
+            option.value = set.id;
+            option.textContent = `${set.name} (${set.total || set.printedTotal || 'N/A'} cartas)`;
+            optgroup1.appendChild(option);
+        });
+        setFilter.appendChild(optgroup1);
+    }
+    
+    // Añadir sets asiáticos
+    if (asianSets.length > 0) {
+        const optgroup2 = document.createElement('optgroup');
+        optgroup2.label = '🌏 Sets Asiáticos (JA/KO/ZH)';
+        asianSets.forEach(set => {
+            const option = document.createElement('option');
+            option.value = set.id;
+            option.textContent = set.displayName || `${set.name} (${set.total || set.printedTotal || 'N/A'} cartas)`;
+            option.dataset.source = 'tcgdex';
+            optgroup2.appendChild(option);
+        });
+        setFilter.appendChild(optgroup2);
+    }
 }
 
 // --- Funciones de Autenticación ---
