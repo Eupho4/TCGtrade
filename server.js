@@ -574,7 +574,7 @@ app.get('/api/tcgdex/sets-japanese-only', async (req, res) => {
 
 app.get('/api/tcgdex/sets', async (req, res) => {
   try {
-    console.log('🎌 ENDPOINT TCGDEX SETS - VERSIÓN SIMPLIFICADA');
+    console.log('🎌 ENDPOINT TCGDEX SETS - VERSIÓN MULTIIDIOMA');
     
     const clientIP = req.ip || req.connection.remoteAddress;
     if (!checkRateLimit(clientIP)) {
@@ -588,40 +588,67 @@ app.get('/api/tcgdex/sets', async (req, res) => {
     const { default: TCGdex } = await import('@tcgdex/sdk');
     const { formatSetName } = require('./js/tcgdex-translations.js');
     
-    // Obtener sets japoneses (base principal)
-    const tcgdex = new TCGdex('ja');
-    const sets = await tcgdex.fetchSets();
+    // Definir idiomas asiáticos
+    const asianLanguages = ['ja', 'ko', 'zh-cn', 'zh-tw'];
+    const allSets = new Map();
     
-    // Filtrar sets válidos
-    const validSets = sets.filter(set => 
-      !set.id?.includes('pocket') && 
-      !set.name?.toLowerCase().includes('pocket') &&
-      set.cardCount?.total > 0
-    );
+    // Obtener sets de cada idioma asiático
+    for (const lang of asianLanguages) {
+      try {
+        const tcgdex = new TCGdex(lang);
+        const sets = await tcgdex.fetchSets();
+        
+        const validSets = sets.filter(set => 
+          !set.id?.includes('pocket') && 
+          !set.name?.toLowerCase().includes('pocket') &&
+          set.cardCount?.total > 0
+        );
+        
+        // Agregar o actualizar sets en el mapa
+        validSets.forEach(set => {
+          if (!allSets.has(set.id)) {
+            allSets.set(set.id, {
+              ...set,
+              availableLanguages: [lang],
+              names: { [lang]: set.name }
+            });
+          } else {
+            const existing = allSets.get(set.id);
+            if (!existing.availableLanguages.includes(lang)) {
+              existing.availableLanguages.push(lang);
+              existing.names[lang] = set.name;
+            }
+          }
+        });
+      } catch (error) {
+        console.error(`Error obteniendo sets en ${lang}:`, error);
+      }
+    }
     
-    // Ordenar por fecha (más recientes primero)
-    validSets.sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0));
+    // Convertir a array y ordenar
+    const sets = Array.from(allSets.values())
+      .sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0));
     
     const response = {
-      data: validSets.map(set => ({
+      data: sets.map(set => ({
         id: set.id,
-        name: set.name,
-        nameEN: set.name, // Por ahora mismo valor
-        displayName: formatSetName(set.name, set.id),
+        name: set.names?.ja || set.names?.ko || set.name, // Priorizar japonés
+        nameEN: set.name,
+        displayName: formatSetName(set.names?.ja || set.names?.ko || set.name, set.id),
         series: set.serie?.name,
         seriesEN: set.serie?.name,
         seriesDisplayName: set.serie?.name,
         printedTotal: set.cardCount?.total || 0,
         total: set.cardCount?.total || 0,
         releaseDate: set.releaseDate,
-        availableLanguages: ['ja'], // Por ahora solo japonés
+        availableLanguages: set.availableLanguages || ['ja'],
         images: {
           symbol: set.symbol,
           logo: set.logo
         },
         source: 'tcgdex'
       })),
-      count: validSets.length
+      count: sets.length
     };
     
     res.json(response);
