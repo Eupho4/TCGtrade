@@ -572,13 +572,17 @@ app.get('/api/tcgdex/sets', async (req, res) => {
     // Primero obtener sets japoneses (serán la base)
     const tcgdexJa = new TCGdex('ja');
     const japaneseSets = await tcgdexJa.fetchSets();
-    const validJapaneseSets = japaneseSets.filter(set => 
-      !set.id?.includes('pocket') && 
-      !set.name?.toLowerCase().includes('pocket') &&
-      set.cardCount?.total > 0 && // Solo sets con cartas
-      set.id !== 'base1' && // Excluir sets problemáticos conocidos
-      !set.id?.includes('promo') // Excluir promos por ahora
-    );
+    const validJapaneseSets = japaneseSets.filter(set => {
+      // Solo incluir sets modernos con prefijos conocidos
+      const modernPrefixes = ['sv', 's', 'sm', 'xy', 'bw', 'cp', 'sp'];
+      const hasModernPrefix = modernPrefixes.some(prefix => set.id?.toLowerCase().startsWith(prefix));
+      
+      return hasModernPrefix &&
+        !set.id?.includes('pocket') && 
+        !set.name?.toLowerCase().includes('pocket') &&
+        set.cardCount?.total > 0 && // Solo sets con cartas
+        !set.id?.includes('promo'); // Excluir promos por ahora
+    });
     
     // Ordenar por fecha de lanzamiento (más recientes primero)
     validJapaneseSets.sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0));
@@ -606,7 +610,7 @@ app.get('/api/tcgdex/sets', async (req, res) => {
     // Limitar a los sets más recientes y relevantes
     const sets = Array.from(allSets.values())
       .sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0))
-      .slice(0, 50); // Mostrar solo los 50 sets más recientes
+      .slice(0, 100); // Mostrar hasta 100 sets más recientes
     
     // Importar traducciones
     const { formatSetName } = await import('./js/tcgdex-translations.js');
