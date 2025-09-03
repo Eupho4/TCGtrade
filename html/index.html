@@ -1673,11 +1673,11 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
         };
         
         // Función para contar cuántas personas ofrecen una carta específica
-        function getCardOffersCount(cardName) {
+        function getCardOffersCount(cardName, cardSet) {
             let offersCount = 0;
             
             // Debug: log para ver qué carta estamos buscando
-            console.log('🔍 Buscando ofertas para:', cardName);
+            console.log('🔍 Buscando ofertas para:', cardName, 'del set:', cardSet);
             
             // Buscar en todos los intercambios guardados en localStorage
             for (let i = 0; i < localStorage.length; i++) {
@@ -1693,10 +1693,16 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                             if (trade.offeredCards && Array.isArray(trade.offeredCards)) {
                                 trade.offeredCards.forEach(offeredCard => {
                                     const offeredCardName = offeredCard.name || offeredCard;
-                                    console.log(`  - Comparando "${cardName}" con "${offeredCardName}"`);
-                                    // Comparación exacta, no parcial
-                                    if (offeredCardName && offeredCardName.toLowerCase() === cardName.toLowerCase()) {
-                                        console.log('  ✅ ¡Coincidencia encontrada!');
+                                    const offeredCardSet = offeredCard.set || '';
+                                    
+                                    console.log(`  - Comparando "${cardName}" (${cardSet}) con "${offeredCardName}" (${offeredCardSet})`);
+                                    
+                                    // Comparación exacta de nombre Y set
+                                    const nameMatch = offeredCardName && offeredCardName.toLowerCase() === cardName.toLowerCase();
+                                    const setMatch = offeredCardSet && offeredCardSet.toLowerCase() === cardSet.toLowerCase();
+                                    
+                                    if (nameMatch && setMatch) {
+                                        console.log('  ✅ ¡Coincidencia exacta encontrada!');
                                         offersCount++;
                                     }
                                 });
@@ -1708,12 +1714,12 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 }
             }
             
-            console.log(`📊 Total de ofertas encontradas para "${cardName}": ${offersCount}`);
+            console.log(`📊 Total de ofertas encontradas para "${cardName}" del set "${cardSet}": ${offersCount}`);
             return offersCount;
         }
         
         // Función para obtener todos los intercambios que ofrecen una carta específica
-        function getCardOfferDetails(cardName) {
+        function getCardOfferDetails(cardName, cardSet) {
             const offers = [];
             
             // Buscar en todos los intercambios guardados en localStorage
@@ -1728,8 +1734,13 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                             if (trade.offeredCards && Array.isArray(trade.offeredCards)) {
                                 const hasCard = trade.offeredCards.some(offeredCard => {
                                     const offeredCardName = offeredCard.name || offeredCard;
-                                    // Comparación exacta, no parcial
-                                    return offeredCardName && offeredCardName.toLowerCase() === cardName.toLowerCase();
+                                    const offeredCardSet = offeredCard.set || '';
+                                    
+                                    // Comparación exacta de nombre Y set
+                                    const nameMatch = offeredCardName && offeredCardName.toLowerCase() === cardName.toLowerCase();
+                                    const setMatch = offeredCardSet && offeredCardSet.toLowerCase() === cardSet.toLowerCase();
+                                    
+                                    return nameMatch && setMatch;
                                 });
                                 
                                 if (hasCard) {
@@ -1754,8 +1765,8 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
         }
         
         // Función para mostrar el modal con las ofertas de una carta
-        window.showCardOffers = function(cardName, cardImageUrl) {
-            const offers = getCardOfferDetails(cardName);
+        window.showCardOffers = function(cardName, cardSet, cardImageUrl) {
+            const offers = getCardOfferDetails(cardName, cardSet);
             
             if (offers.length === 0) {
                 showNotification('No hay ofertas disponibles para esta carta en este momento.', 'info', 4000);
@@ -5769,9 +5780,9 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                                 </div>
                                 <div class="flex gap-2 items-center">
                                     <button class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
-                                            onclick="showCardOffers('${safeCardName}', '${safeImageUrl}')">
+                                            onclick="showCardOffers('${safeCardName}', '${safeSetName}', '${safeImageUrl}')">
                                         <span>🤝</span>
-                                        <span>Ofrecidas: ${getCardOffersCount(card.name)}</span>
+                                        <span>Ofrecidas: ${getCardOffersCount(card.name, card.set?.name || '')}</span>
                                     </button>
                                     <button class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs"
                                         onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">Ver Detalles</button>
@@ -5866,9 +5877,9 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                                             <p class="text-gray-600 text-sm mb-3">Serie: ${card.set?.series || 'N/A'}</p>
                                             <p class="text-gray-600 text-sm mb-3">Número: ${card.number || 'N/A'}</p>
                                             <button class="w-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-3 py-2 rounded-lg text-sm font-semibold flex items-center justify-center gap-2 mb-3 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
-                                                    onclick="showCardOffers('${safeCardName}', '${safeImageUrl}')">
+                                                    onclick="showCardOffers('${safeCardName}', '${safeSetName}', '${safeImageUrl}')">
                                                 <span>🤝</span>
-                                                <span>Ofrecidas: ${getCardOffersCount(card.name)}</span>
+                                                <span>Ofrecidas: ${getCardOffersCount(card.name, card.set?.name || '')}</span>
                                             </button>
                                             <div class="flex justify-between items-center gap-2">
                                                 <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-2 rounded-lg text-sm font-semibold"
@@ -8637,9 +8648,9 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                             </div>
                             <div class="flex gap-2 items-center">
                                 <button class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
-                                        onclick="showCardOffers('${safeCardName}', '${safeImageUrl}')">
+                                        onclick="showCardOffers('${safeCardName}', '${safeSetName}', '${safeImageUrl}')">
                                     <span>🤝</span>
-                                    <span>Ofrecidas: ${getCardOffersCount(card.name)}</span>
+                                    <span>Ofrecidas: ${getCardOffersCount(card.name, card.set?.name || '')}</span>
                                 </button>
                                 <button class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs"
                                     onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">Ver Detalles</button>
