@@ -128,8 +128,26 @@ const setTranslationsKO = {
 
 // Función para obtener traducción de un set coreano
 function getSetTranslationKO(setId) {
-  const id = setId?.toUpperCase();
-  return setTranslationsKO[id] || null;
+  // Primero intentar con el ID tal cual
+  if (setTranslationsKO[setId]) {
+    return setTranslationsKO[setId];
+  }
+  
+  // Luego intentar en minúsculas
+  const idLower = setId?.toLowerCase();
+  for (const key in setTranslationsKO) {
+    if (key.toLowerCase() === idLower) {
+      return setTranslationsKO[key];
+    }
+  }
+  
+  // Luego intentar en mayúsculas
+  const idUpper = setId?.toUpperCase();
+  if (setTranslationsKO[idUpper]) {
+    return setTranslationsKO[idUpper];
+  }
+  
+  return null;
 }
 
 // Función para formatear nombre de set con traducción
