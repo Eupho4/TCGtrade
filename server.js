@@ -478,10 +478,9 @@ app.get('/api/tcgdex/cards', async (req, res) => {
           // Construir URL de imagen correctamente
           let imageUrl = card.image;
           if (!imageUrl) {
-            // Para cartas sin imagen, construir la URL manualmente
-            const cardNumber = card.localId || card.id.split('-')[1] || '001';
-            // Formato: https://assets.tcgdex.net/{lang}/{set}/{number}
-            imageUrl = `https://assets.tcgdex.net/${foundLanguage}/${set}/${cardNumber}`;
+            // Para cartas sin imagen (sets antiguos), NO hay imágenes disponibles
+            // Dejamos null para que el frontend use el placeholder
+            imageUrl = null;
           } else if (!imageUrl.startsWith('http')) {
             // Si la imagen es relativa, agregar el dominio
             imageUrl = `https://assets.tcgdex.net${imageUrl}`;
@@ -519,8 +518,8 @@ app.get('/api/tcgdex/cards', async (req, res) => {
         },
         number: card.localId,
         images: {
-          small: card.image ? card.image + '/low.webp' : '/images/card-placeholder.svg',
-          large: card.image ? card.image + '/high.webp' : '/images/card-placeholder.svg'
+          small: card.image ? `${card.image}/low.webp` : '/images/card-placeholder.svg',
+          large: card.image ? `${card.image}/high.webp` : '/images/card-placeholder.svg'
         },
         rarity: card.rarity,
         types: card.types || [],
