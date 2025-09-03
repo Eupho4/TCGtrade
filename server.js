@@ -33,6 +33,8 @@ app.use(express.json({ limit: '2mb' }));
 
 // Servir archivos estáticos desde el directorio raíz
 app.use(express.static('.'))
+// Servir archivos de imágenes
+app.use('/images', express.static('images'))
 
 // Servir archivo HTML principal
 app.get('/', (req, res) => {

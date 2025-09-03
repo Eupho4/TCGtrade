@@ -7792,7 +7792,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                         const option = document.createElement('option');
                         option.value = set.id;
                         option.dataset.source = 'pokemontcg';
-                        option.textContent = `${set.name} (${set.total || set.printedTotal} cartas)`;
+                        option.textContent = `${set.displayName || set.name} (${set.total || set.printedTotal || 0} cartas)`;
                         optgroup1.appendChild(option);
                     });
                     selector.appendChild(optgroup1);
@@ -7806,7 +7806,21 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                         const option = document.createElement('option');
                         option.value = set.id;
                         option.dataset.source = 'tcgdex';
-                        option.textContent = `${set.name} (${set.total || set.printedTotal} cartas)`;
+                        
+                        // Mostrar banderas de idiomas disponibles
+                        const languages = set.availableLanguages || [];
+                        const langDisplay = languages.map(l => {
+                            switch(l) {
+                                case 'ja': return '🇯🇵';
+                                case 'ko': return '🇰🇷';
+                                case 'zh-cn': 
+                                case 'zh-tw': return '🇨🇳';
+                                default: return '';
+                            }
+                        }).filter(Boolean).join(' ') || '🇯🇵';
+                        
+                        option.textContent = `${set.displayName || set.name} ${langDisplay} (${set.total || set.printedTotal || 0} cartas)`;
+                        option.dataset.languages = JSON.stringify(languages);
                         optgroup2.appendChild(option);
                     });
                     selector.appendChild(optgroup2);
@@ -7890,10 +7904,12 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                                     <td class="p-2 text-sm">${card.number}</td>
                                     <td class="p-2">
                                         <div class="card-hover-container">
-                                            <img src="${card.images.small}" alt="${card.displayName || card.name}" 
+                                            <img src="${card.images?.small || '/images/card-placeholder.svg'}" 
+                                                 alt="${card.displayName || card.name}" 
                                                  class="card-hover-image w-12 h-16 object-contain cursor-pointer"
                                                  loading="lazy"
-                                                 onclick="window.open('${card.images.large}', '_blank')">
+                                                 onerror="this.src='/images/card-placeholder.svg'"
+                                                 onclick="window.open('${card.images?.large || card.images?.small || '#'}', '_blank')">
                                         </div>
                                     </td>
                                     <td class="p-2 font-medium">${card.displayName || card.name}</td>
