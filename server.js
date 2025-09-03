@@ -581,6 +581,8 @@ app.get('/api/tcgdex/sets', async (req, res) => {
     // Primero obtener sets japoneses (serán la base)
     const tcgdexJa = new TCGdex('ja');
     const japaneseSets = await tcgdexJa.fetchSets();
+    console.log('🇯🇵 Sets japoneses obtenidos:', japaneseSets.length);
+    console.log('🇯🇵 Ejemplo de set japonés:', japaneseSets[0]);
     const validJapaneseSets = japaneseSets.filter(set => {
       // Solo excluir Pocket, incluir TODO lo demás
       return !set.id?.includes('pocket') && 
@@ -618,6 +620,9 @@ app.get('/api/tcgdex/sets', async (req, res) => {
     
     // Importar traducciones
     const { formatSetName } = await import('./js/tcgdex-translations.js');
+    
+    console.log('📦 Total sets para respuesta:', sets.length);
+    console.log('📦 Ejemplo de set para mapear:', sets[0]);
     
     const response = {
       data: sets.map(set => ({
