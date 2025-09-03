@@ -106,10 +106,10 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
         let authModal, loginForm, registerForm, loginEmailInput, loginPasswordInput, loginBtn, loginError;
         let registerEmailInput, registerPasswordInput, confirmPasswordInput, registerBtn, registerError;
         let closeAuthModalBtn, toggleToRegister, toggleToLogin;
-        let loginNavLink, registerNavLink, profileNavLink, logoutNavLink;
+        let loginLink, registerLink, profileLink, logoutLink;
         let myCardsNavLink, myCardsLink, myCardsSection, myCardsContainer, noMyCardsMessage, myCardsErrorMessage;
         let seriesFilter, setFilter, languageFilter, applyFiltersBtn, showAllSetCardsToggle;
-        let profileLink, profileSection, profileSidebarLinks, profileGeneralInfo, profileMyCardsTabContent, profileTradeHistory, profileSettings;
+        let profileSection, profileSidebarLinks, profileGeneralInfo, profileMyCardsTabContent, profileTradeHistory, profileSettings;
         let profileEmailDisplay, profileUidDisplay, profileMemberSince, profileLoginRequiredMessage, profileGeneralInfoContent;
         let profileNameInput, profileLastNameInput, profileAddressInput, profilePhoneInput, profileSaveMessage, saveProfileBtn;
         let settingsNewEmailInput, emailChangeMessage, saveEmailBtn;
@@ -6468,18 +6468,18 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 if (inboxSection) inboxSection.classList.add('hidden');
                 
                 // Actualizar manualmente los enlaces de navegación
-                const loginNavLink = document.getElementById('loginNavLink');
-                const registerNavLink = document.getElementById('registerNavLink');
-                const logoutNavLink = document.getElementById('logoutNavLink');
-                const chatNavLink = document.getElementById('chatNavLink');
-                const inboxNavLink = document.getElementById('inboxNavLink');
+                const loginLink = document.getElementById('loginLink');
+                const registerLink = document.getElementById('registerLink');
+                const logoutLink = document.getElementById('logoutLink');
+                const chatLink = document.getElementById('chatLink');
+                const inboxLink = document.getElementById('inboxLink');
                 
                 // Mostrar enlaces de login/register, ocultar logout y chat
-                if (loginNavLink) loginNavLink.classList.remove('hidden');
-                if (registerNavLink) registerNavLink.classList.remove('hidden');
-                if (logoutNavLink) logoutNavLink.classList.add('hidden');
-                if (chatNavLink) chatNavLink.classList.add('hidden');
-                if (inboxNavLink) inboxNavLink.classList.add('hidden');
+                if (loginLink) loginLink.classList.remove('hidden');
+                if (registerLink) registerLink.classList.remove('hidden');
+                if (logoutLink) logoutLink.classList.add('hidden');
+                if (chatLink) chatLink.classList.add('hidden');
+                if (inboxLink) inboxLink.classList.add('hidden');
                 
                 // Mostrar la pantalla inicial (hero y how it works)
                 showInitialSections();
@@ -7012,10 +7012,10 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             toggleToRegister = document.getElementById('toggleToRegister');
             toggleToLogin = document.getElementById('toggleToLogin');
 
-            loginNavLink = document.getElementById('loginNavLink');
-            registerNavLink = document.getElementById('registerNavLink');
-            profileNavLink = document.getElementById('profileNavLink');
-            logoutNavLink = document.getElementById('logoutNavLink');
+            loginLink = document.getElementById('loginLink');
+            registerLink = document.getElementById('registerLink');
+            profileLink = document.getElementById('profileLink');
+            logoutLink = document.getElementById('logoutLink');
             
             myCardsNavLink = document.getElementById('myCardsNavLink');
             myCardsLink = document.getElementById('myCardsLink');
@@ -7679,27 +7679,27 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 }
 
                 // Obtener referencias a los elementos de navegación
-                const loginNavLink = document.getElementById('loginNavLink');
-                const registerNavLink = document.getElementById('registerNavLink');
-                const logoutNavLink = document.getElementById('logoutNavLink');
-                const profileNavLink = document.getElementById('profileNavLink');
+                const loginLink = document.getElementById('loginLink');
+                const registerLink = document.getElementById('registerLink');
+                const logoutLink = document.getElementById('logoutLink');
+                const profileLink = document.getElementById('profileLink');
                 const myCardsNavLink = document.getElementById('myCardsNavLink');
-                const inboxNavLink = document.getElementById('inboxNavLink');
-                const chatNavLink = document.getElementById('chatNavLink');
+                const inboxLink = document.getElementById('inboxLink');
+                const chatLink = document.getElementById('chatLink');
 
                 // Mis Cartas siempre visible
                 if (myCardsNavLink) myCardsNavLink.classList.remove('hidden');
 
                 if (user) {
                     // Usuario conectado: ocultar login/register, mostrar logout y buzón
-                    if (loginNavLink) loginNavLink.classList.add('hidden');
-                    if (registerNavLink) registerNavLink.classList.add('hidden');
-                    if (logoutNavLink) logoutNavLink.classList.remove('hidden');
+                    if (loginLink) loginLink.classList.add('hidden');
+                    if (registerLink) registerLink.classList.add('hidden');
+                    if (logoutLink) logoutLink.classList.remove('hidden');
                     // Mi Perfil siempre visible (funciona diferente según estado)
-                    if (profileNavLink) profileNavLink.classList.remove('hidden');
+                    if (profileLink) profileLink.classList.remove('hidden');
                     // Mostrar buzón y chat para usuarios autenticados
-                    if (inboxNavLink) inboxNavLink.classList.remove('hidden');
-                    if (chatNavLink) chatNavLink.classList.remove('hidden');
+                    if (inboxLink) inboxLink.classList.remove('hidden');
+                    if (chatLink) chatLink.classList.remove('hidden');
                     
                     // Actualizar badge de notificaciones
                     updateNotificationBadge();
@@ -7730,32 +7730,32 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                     console.log('🔓 Usuario desconectado, actualizando navegación...');
                     
                     // Usuario desconectado: mostrar login/register, ocultar logout
-                    if (loginNavLink) {
-                        loginNavLink.classList.remove('hidden');
+                    if (loginLink) {
+                        loginLink.classList.remove('hidden');
                         console.log('✅ Login link mostrado');
                     } else {
-                        console.warn('⚠️ loginNavLink no encontrado');
+                        console.warn('⚠️ loginLink no encontrado');
                     }
                     
-                    if (registerNavLink) {
-                        registerNavLink.classList.remove('hidden');
+                    if (registerLink) {
+                        registerLink.classList.remove('hidden');
                         console.log('✅ Register link mostrado');
                     } else {
-                        console.warn('⚠️ registerNavLink no encontrado');
+                        console.warn('⚠️ registerLink no encontrado');
                     }
                     
-                    if (logoutNavLink) {
-                        logoutNavLink.classList.add('hidden');
+                    if (logoutLink) {
+                        logoutLink.classList.add('hidden');
                         console.log('✅ Logout link ocultado');
                     } else {
-                        console.warn('⚠️ logoutNavLink no encontrado');
+                        console.warn('⚠️ logoutLink no encontrado');
                     }
                     
                     // Ocultar chat y buzón para usuarios no autenticados
-                    if (chatNavLink) chatNavLink.classList.add('hidden');
-                    if (inboxNavLink) inboxNavLink.classList.add('hidden');
+                    if (chatLink) chatLink.classList.add('hidden');
+                    if (inboxLink) inboxLink.classList.add('hidden');
                     // Mi Perfil siempre visible (redirige a login si no está conectado)
-                    if (profileNavLink) profileNavLink.classList.remove('hidden');
+                    if (profileLink) profileLink.classList.remove('hidden');
                     
                     // Actualizar sidebar
                     if (window.updateSidebarVisibility) {
@@ -9860,12 +9860,12 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             <nav class="flex items-center gap-4">
                 <!-- Notificaciones (solo si está logueado) -->
                 <div class="flex items-center gap-2">
-                    <button id="inboxNavLink" class="hidden relative text-white hover:text-orange-300 transition-colors p-2">
+                    <button id="inboxLink" class="hidden relative text-white hover:text-orange-300 transition-colors p-2">
                         <span class="text-xl">📬</span>
                         <span id="notificationBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"></span>
                     </button>
                     
-                    <button id="chatNavLink" class="hidden relative text-white hover:text-orange-300 transition-colors p-2">
+                    <button id="chatLink" class="hidden relative text-white hover:text-orange-300 transition-colors p-2">
                         <span class="text-xl">💬</span>
                         <span id="chatBadge" class="hidden absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"></span>
                     </button>
@@ -9873,11 +9873,11 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 
                 <!-- Perfil / Login -->
                 <div class="relative">
-                    <button id="profileNavLink" class="hidden text-white hover:text-orange-300 transition-colors p-2 rounded-lg">
+                    <button id="profileLink" class="hidden text-white hover:text-orange-300 transition-colors p-2 rounded-lg">
                         <span class="text-xl">👤</span>
                     </button>
                     
-                    <button id="loginNavLink" class="text-white hover:text-orange-300 transition-colors p-2 rounded-lg flex items-center gap-2">
+                    <button id="loginLink" class="text-white hover:text-orange-300 transition-colors p-2 rounded-lg flex items-center gap-2">
                         <span class="text-xl">🚪</span>
                         <span class="hidden sm:inline text-sm">Entrar</span>
                     </button>
