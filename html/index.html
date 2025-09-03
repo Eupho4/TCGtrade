@@ -1008,7 +1008,22 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
 
                 // Calcular estadísticas
                 // Total de cartas sumando las cantidades
-                const totalCards = cards.reduce((total, card) => total + (card.quantity || 1), 0);
+                console.log('🔍 Debug - Cartas cargadas:', cards.length);
+                console.log('🔍 Debug - Primeras 3 cartas:', cards.slice(0, 3).map(c => ({
+                    name: c.name,
+                    quantity: c.quantity,
+                    hasQuantity: 'quantity' in c
+                })));
+                
+                const totalCards = cards.reduce((total, card) => {
+                    // Si no tiene quantity o es 0, contar como 1
+                    const qty = card.quantity > 0 ? card.quantity : 1;
+                    console.log(`Carta: ${card.name}, Cantidad: ${qty}, quantity original: ${card.quantity}`);
+                    return total + qty;
+                }, 0);
+                
+                console.log('🔍 Debug - Total calculado:', totalCards);
+                
                 const uniqueCards = new Set(cards.map(card => card.id)).size;
                 const uniqueSets = new Set(cards.map(card => (typeof card.set === 'string' ? card.set : card.set?.name)).filter(Boolean)).size;
                 
@@ -5411,7 +5426,12 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             const completedTradesElement = document.getElementById('completedTradesCount');
             const totalValueElement = document.getElementById('totalCollectionValue');
 
-            if (totalCardsElement) totalCardsElement.textContent = totalCards;
+            if (totalCardsElement) {
+                console.log('🎯 Actualizando totalCardsCount con:', totalCards);
+                totalCardsElement.textContent = totalCards;
+            } else {
+                console.error('❌ No se encontró el elemento totalCardsCount');
+            }
             if (uniqueCardsElement) uniqueCardsElement.textContent = uniqueCards;
             if (uniqueSetsElement) uniqueSetsElement.textContent = uniqueSets;
             if (completedTradesElement) completedTradesElement.textContent = completedTrades;
@@ -9074,7 +9094,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                             <div class="text-gray-600 dark:text-gray-400">Intercambios</div>
                         </div>
                         <div class="text-center">
-                            <div class="text-3xl font-bold text-purple-500" id="totalCardsCount">45,678</div>
+                            <div class="text-3xl font-bold text-purple-500" id="globalTotalCardsCount">45,678</div>
                             <div class="text-gray-600 dark:text-gray-400">Cartas en Colección</div>
                         </div>
                     </div>
