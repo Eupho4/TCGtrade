@@ -538,24 +538,31 @@ app.get('/api/tcgdex/sets', async (req, res) => {
     const asianLanguages = ['ja', 'ko', 'zh-cn', 'zh-tw'];
     const allSets = new Map();
     
-    // Obtener sets de cada idioma asiático
-    for (const lang of asianLanguages) {
+    // Obtener sets de cada idioma asiático - pero preferir japonés para la info base
+    const japaneseSetInfo = new Map();
+    
+    // Primero obtener sets japoneses (serán la base)
+    const tcgdexJa = new TCGdex('ja');
+    const japaneseSets = await tcgdexJa.fetchSets();
+    const validJapaneseSets = japaneseSets.filter(set => 
+      !set.id?.includes('pocket') && 
+      !set.name?.toLowerCase().includes('pocket')
+    );
+    
+    validJapaneseSets.forEach(set => {
+      japaneseSetInfo.set(set.id, set);
+      allSets.set(set.id, {...set, availableLanguages: ['ja'], baseLanguage: 'ja'});
+    });
+    
+    // Luego verificar qué otros idiomas tienen los mismos sets
+    for (const lang of asianLanguages.filter(l => l !== 'ja')) {
       const tcgdex = new TCGdex(lang);
       const sets = await tcgdex.fetchSets();
       
-      // Filtrar solo sets que no sean de Pocket
-      const validSets = sets.filter(set => 
-        !set.id?.includes('pocket') && 
-        !set.name?.toLowerCase().includes('pocket')
-      );
-      
-      validSets.forEach(set => {
-        const key = set.id;
-        if (!allSets.has(key)) {
-          allSets.set(key, {...set, availableLanguages: [lang]});
-        } else {
-          const existing = allSets.get(key);
-          if (!existing.availableLanguages.includes(lang)) {
+      sets.forEach(set => {
+        if (!set.id?.includes('pocket') && japaneseSetInfo.has(set.id)) {
+          const existing = allSets.get(set.id);
+          if (existing && !existing.availableLanguages.includes(lang)) {
             existing.availableLanguages.push(lang);
           }
         }
