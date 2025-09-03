@@ -3585,7 +3585,17 @@ async function fetchAllCardsInSet(setId) {
 
             const data = await response.json();
             console.log(`Obtenidas ${data.data?.length || 0} cartas TCGdex del set ${setId}`);
-            return data.data || [];
+            
+            // Asegurar que las imágenes estén correctas
+            const cards = (data.data || []).map(card => ({
+                ...card,
+                images: card.images || {
+                    small: `https://assets.tcgdex.net/ja/${setId}/${card.number || card.localId}/low.webp`,
+                    large: `https://assets.tcgdex.net/ja/${setId}/${card.number || card.localId}/high.webp`
+                }
+            }));
+            
+            return cards;
         } else {
             // Obtener cartas de Pokemon TCG API
             const response = await fetch(`/api/pokemontcg/cards?q=set.id:${setId}&pageSize=500`, {
@@ -3883,7 +3893,8 @@ async function fetchSetsAndPopulateFilter() {
                     ...tcgSet,
                     source: 'tcgdex',
                     isAsian: true,
-                    displayName: tcgSet.displayName || `${tcgSet.name} (${tcgSet.availableLanguages ? tcgSet.availableLanguages.join(', ').toUpperCase() : 'JA/KO/ZH'})`
+                    displayName: tcgSet.displayName || tcgSet.name,
+                    nameWithTranslation: tcgSet.displayName || tcgSet.name
                 });
             }
         });
@@ -3995,9 +4006,12 @@ function populateSetFilter(setsToDisplay) {
                     default: return l.toUpperCase();
                 }
             }).join(' ');
-            option.textContent = `${set.displayName || set.name} ${langDisplay}`;
+            // Mostrar nombre con traducción y banderas
+            const setName = set.displayName || set.name;
+            option.textContent = `${setName} ${langDisplay}`;
             option.dataset.source = 'tcgdex';
             option.dataset.languages = JSON.stringify(languages);
+            option.title = `${setName} - ${set.total || set.printedTotal || 0} cartas`;
             optgroup2.appendChild(option);
         });
         setFilter.appendChild(optgroup2);
