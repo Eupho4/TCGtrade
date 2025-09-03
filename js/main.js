@@ -3240,7 +3240,7 @@ function hideAuthModal() {
 }
 
 // --- Función de Búsqueda de Cartas (MEJORADA CON TCGDEX) ---
-async function fetchCards(query, searchMode = 'pokemontcg') {
+async function fetchCards(query, searchMode = 'combined') {
     console.log('🔍 fetchCards called with query:', query, 'mode:', searchMode);
     
     if (!cardsContainer) {
@@ -4848,7 +4848,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (query.length >= 3 || query.length === 0) {
                 searchTimeout = setTimeout(() => {
                     // Obtener el modo de búsqueda seleccionado
-                    const searchMode = document.querySelector('input[name="search-mode"]:checked')?.value || 'pokemontcg';
+                    const searchMode = 'combined'; // Siempre usar búsqueda combinada
                     fetchCards(query, searchMode);
                 }, 500);
             }
@@ -4874,7 +4874,7 @@ document.addEventListener('DOMContentLoaded', () => {
             searchFiltersState.language = filterLanguageSelect?.value || '';
             const q = (searchInput?.value || '').trim();
             if (q.length >= 3) {
-                const searchMode = document.querySelector('input[name="search-mode"]:checked')?.value || 'pokemontcg';
+                const searchMode = 'combined'; // Siempre usar búsqueda combinada
                 fetchCards(q, searchMode);
             }
         });
@@ -4891,7 +4891,7 @@ document.addEventListener('DOMContentLoaded', () => {
             searchFiltersState.language = '';
             const q = (searchInput?.value || '').trim();
             if (q.length >= 3) {
-                const searchMode = document.querySelector('input[name="search-mode"]:checked')?.value || 'pokemontcg';
+                const searchMode = 'combined'; // Siempre usar búsqueda combinada
                 fetchCards(q, searchMode);
             }
         });
@@ -5210,7 +5210,7 @@ window.quickSearch = async () => {
     console.log('🚀 Búsqueda rápida iniciada para:', query);
     
     // Obtener el modo de búsqueda seleccionado
-    const searchMode = document.querySelector('input[name="search-mode"]:checked')?.value || 'pokemontcg';
+    const searchMode = 'combined'; // Siempre usar búsqueda combinada
     
     if (cardsContainer) cardsContainer.innerHTML = '';
     if (noResultsMessage) noResultsMessage.classList.add('hidden');
