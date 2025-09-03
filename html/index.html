@@ -1008,21 +1008,11 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
 
                 // Calcular estadísticas
                 // Total de cartas sumando las cantidades
-                console.log('🔍 Debug - Cartas cargadas:', cards.length);
-                console.log('🔍 Debug - Primeras 3 cartas:', cards.slice(0, 3).map(c => ({
-                    name: c.name,
-                    quantity: c.quantity,
-                    hasQuantity: 'quantity' in c
-                })));
-                
                 const totalCards = cards.reduce((total, card) => {
                     // Si no tiene quantity o es 0, contar como 1
                     const qty = card.quantity > 0 ? card.quantity : 1;
-                    console.log(`Carta: ${card.name}, Cantidad: ${qty}, quantity original: ${card.quantity}`);
                     return total + qty;
                 }, 0);
-                
-                console.log('🔍 Debug - Total calculado:', totalCards);
                 
                 const uniqueCards = new Set(cards.map(card => card.id)).size;
                 const uniqueSets = new Set(cards.map(card => (typeof card.set === 'string' ? card.set : card.set?.name)).filter(Boolean)).size;
@@ -5427,10 +5417,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             const totalValueElement = document.getElementById('totalCollectionValue');
 
             if (totalCardsElement) {
-                console.log('🎯 Actualizando totalCardsCount con:', totalCards);
                 totalCardsElement.textContent = totalCards;
-            } else {
-                console.error('❌ No se encontró el elemento totalCardsCount');
             }
             if (uniqueCardsElement) uniqueCardsElement.textContent = uniqueCards;
             if (uniqueSetsElement) uniqueSetsElement.textContent = uniqueSets;
@@ -8733,11 +8720,26 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
         /* Estilos para las estadísticas */
         .stats-card {
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-height: 120px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         
         .stats-card:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Asegurar alineación consistente de iconos */
+        .stats-card .flex-shrink-0 {
+            width: 48px;
+            height: 48px;
+        }
+        
+        /* Asegurar tamaño consistente de texto */
+        .stats-card p {
+            line-height: 1.5;
         }
         
         /* Estilos para el desglose de sets */
@@ -10354,13 +10356,13 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
                         <!-- Estadística: Total de Cartas -->
                         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-blue-500 stats-card">
-                            <div class="flex items-center">
+                            <div class="flex items-center h-full">
                                 <div class="flex-shrink-0">
-                                    <div class="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                                    <div class="w-12 h-12 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
                                         <span class="text-2xl">🎴</span>
                                     </div>
                                 </div>
-                                <div class="ml-4">
+                                <div class="ml-4 flex-1">
                                     <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Total de Cartas</p>
                                     <p class="text-2xl font-bold text-gray-900 dark:text-white" id="totalCardsCount">0</p>
                                 </div>
@@ -10369,13 +10371,13 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
 
                         <!-- Estadística: Cartas por Sets -->
                         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-green-500 stats-card">
-                            <div class="flex items-center">
+                            <div class="flex items-center h-full">
                                 <div class="flex-shrink-0">
-                                    <div class="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                                    <div class="w-12 h-12 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
                                         <span class="text-2xl">📦</span>
                                     </div>
                                 </div>
-                                <div class="ml-4">
+                                <div class="ml-4 flex-1">
                                     <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Sets Diferentes</p>
                                     <p class="text-2xl font-bold text-gray-900 dark:text-white" id="uniqueSetsCount">0</p>
                                 </div>
@@ -10384,13 +10386,13 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
 
                         <!-- Estadística: Intercambios Completados -->
                         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-purple-500 stats-card">
-                            <div class="flex items-center">
+                            <div class="flex items-center h-full">
                                 <div class="flex-shrink-0">
-                                    <div class="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                                    <div class="w-12 h-12 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
                                         <span class="text-2xl">🤝</span>
                                     </div>
                                 </div>
-                                <div class="ml-4">
+                                <div class="ml-4 flex-1">
                                     <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Intercambios</p>
                                     <p class="text-2xl font-bold text-gray-900 dark:text-white" id="completedTradesCount">0</p>
                                 </div>
@@ -10399,13 +10401,13 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
 
                         <!-- Estadística: Cartas Únicas -->
                         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-orange-500 stats-card">
-                            <div class="flex items-center">
+                            <div class="flex items-center h-full">
                                 <div class="flex-shrink-0">
-                                    <div class="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                                    <div class="w-12 h-12 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
                                         <span class="text-2xl">⭐</span>
                                     </div>
                                 </div>
-                                <div class="ml-4">
+                                <div class="ml-4 flex-1">
                                     <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Cartas Únicas</p>
                                     <p class="text-2xl font-bold text-gray-900 dark:text-white" id="uniqueCardsCount">0</p>
                                 </div>
@@ -10414,16 +10416,16 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
 
                         <!-- Estadística: Valor Total de la Colección -->
                         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 border-l-4 border-emerald-500 stats-card">
-                            <div class="flex items-center">
+                            <div class="flex items-center h-full">
                                 <div class="flex-shrink-0">
-                                    <div class="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center">
+                                    <div class="w-12 h-12 bg-emerald-100 dark:bg-emerald-900 rounded-lg flex items-center justify-center">
                                         <span class="text-2xl">💰</span>
                                     </div>
                                 </div>
-                                <div class="ml-4">
+                                <div class="ml-4 flex-1">
                                     <p class="text-sm font-medium text-gray-500 dark:text-gray-400">Valor Total</p>
                                     <p class="text-2xl font-bold text-gray-900 dark:text-white" id="totalCollectionValue">€0.00</p>
-                                    <p class="text-xs text-gray-500 dark:text-gray-400 dark:text-gray-400" id="valueEstimateNote">Estimado</p>
+                                    <p class="text-xs text-gray-500 dark:text-gray-400" id="valueEstimateNote">Estimado</p>
                                 </div>
                             </div>
                         </div>
