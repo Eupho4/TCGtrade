@@ -1,5 +1,6 @@
 // Railway Server - Pokemon TCG Trading App
 // Express server con proxy para la API de Pokemon TCG
+// Update: 2024-12-19 - Fix contador de cartas
 
 const express = require('express');
 const path = require('path');
