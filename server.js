@@ -554,6 +554,9 @@ app.get('/api/tcgdex/cards', async (req, res) => {
 
 app.get('/api/tcgdex/sets', async (req, res) => {
   try {
+    // FORZAR respuesta en japonés para depuración
+    console.log('🎌 ENDPOINT TCGDEX SETS LLAMADO - VERSION JAPONESA');
+    
     const clientIP = req.ip || req.connection.remoteAddress;
     if (!checkRateLimit(clientIP)) {
       return res.status(429).json({ 
@@ -562,16 +565,21 @@ app.get('/api/tcgdex/sets', async (req, res) => {
       });
     }
     
-    // Check cache
+    // NO usar caché por ahora para depuración
+    /*
     const cacheKey = 'tcgdex_sets';
     const cached = cache.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < CACHE_DURATION) {
       res.setHeader('X-Cache', 'HIT');
       return res.json(cached.data);
     }
+    */
+    
+    console.log('🔍 Iniciando obtención de sets TCGdex...');
     
     // Import TCGdex SDK - obtener sets en idiomas asiáticos
     const TCGdex = (await import('@tcgdex/sdk')).default;
+    console.log('✅ TCGdex SDK importado correctamente');
     const asianLanguages = ['ja', 'ko', 'zh-cn', 'zh-tw'];
     const allSets = new Map();
     
