@@ -212,6 +212,113 @@ const setTranslations = {
   'cp5': 'Mythical & Legendary Dream Shine',
   'cp6': '20th Anniversary',
   
+  // Scarlet & Violet (adicionales)
+  'sv3': 'Ruler of the Black Flame',
+  'sv3a': 'Raging Surf',
+  'sv4': 'Ancient Roar & Future Flash',
+  'sv4a': 'Shiny Treasure ex',
+  'sv4k': 'Ancient Roar',
+  'sv4m': 'Future Flash',
+  'sv5': 'Wild Force & Cyber Judge',
+  'sv5a': 'Crimson Haze',
+  'sv5k': 'Wild Force',
+  'sv5m': 'Cyber Judge',
+  'sv6': 'Transformation Mask',
+  'sv6a': 'Night Wanderer',
+  'sv7': 'Stellar Crown',
+  'sv7a': 'Paradise Dragona',
+  'sv8': 'Supercharged Breaker',
+  'sv8a': 'Terastal Festival ex',
+  'sv9': 'Cyber Phantasm',
+  'sv9a': 'Heat Wave Arena',
+  
+  // Promocionales y especiales
+  'promo': 'Promo',
+  'svp': 'Scarlet & Violet Promo',
+  'swshp': 'Sword & Shield Promo',
+  'smp': 'Sun & Moon Promo',
+  'xyp': 'XY Promo',
+  'bwp': 'Black & White Promo',
+  'dp-p': 'Diamond & Pearl Promo',
+  'adv-p': 'ADV Promo',
+  'pcg-p': 'PCG Promo',
+  
+  // Special sets
+  'si': 'Southern Islands',
+  'w': 'Wizards Promo',
+  'pop': 'POP Series',
+  'np': 'Nintendo Promo',
+  
+  // Gym sets
+  'gym1': 'Gym Heroes',
+  'gym2': 'Gym Challenge',
+  'vs': 'VS Series',
+  
+  // e-Card adicionales
+  'ecard1': 'Base e-Card',
+  'ecard2': 'Expedition',
+  'ecard3': 'Aquapolis',
+  'ecard4': 'Skyridge',
+  'ecard5': 'Mysterious Mountains',
+  
+  // Platinum adicionales
+  'dpt1': 'Galactic Conquest',
+  'dpt2': 'Bonds to the End of Time',
+  'dpt3': 'Pulse of the Frontier',
+  'dpt4': 'Advent of Arceus',
+  'dpt-p': 'DPt-P Promotional cards',
+  
+  // HGSS adicionales
+  'hgss1': 'HeartGold Collection',
+  'hgss2': 'SoulSilver Collection',
+  'hgss3': 'Clash at the Summit',
+  'hgss4': 'Triumphant',
+  'l1': 'Legend HeartGold',
+  'l2': 'Legend SoulSilver',
+  'l3': 'Legend Clash at the Summit',
+  
+  // BW adicionales
+  'bw10': 'Plasma Blast',
+  'bw11': 'Legendary Treasures',
+  'bw-p': 'BW-P Promotional cards',
+  
+  // XY adicionales
+  'xy10': 'Fates Collide',
+  'xy11': 'Steam Siege',
+  'xy12': 'Evolutions',
+  'xy-p': 'XY-P Promotional cards',
+  
+  // SM adicionales
+  'sm8': 'Lost Thunder',
+  'sm9': 'Team Up',
+  'sm10': 'Unbroken Bonds',
+  'sm11': 'Unified Minds',
+  'sm12': 'Cosmic Eclipse',
+  'sm-p': 'SM-P Promotional cards',
+  
+  // SWSH adicionales
+  's10': 'Space Juggler',
+  's10b': 'Time Gazer',
+  's10p': 'Space Juggler',
+  's10d': 'Time Gazer',
+  's11': 'Lost Abyss',
+  's11a': 'Incandescent Arcana',
+  's12': 'Paradigm Trigger',
+  's12a': 'VSTAR Universe',
+  's-p': 'Sword & Shield Promotional cards',
+  
+  // Starter sets
+  'sta': 'Starter Set V',
+  'stb': 'Starter Set VMAX',
+  'stc': 'Starter Set VSTAR',
+  'std': 'Starter Deck & Build Sets',
+  
+  // Battle Decks
+  'sva': 'Battle Academy',
+  'svb': 'Battle Master Decks',
+  'svc': 'Challenger Decks',
+  'svd': 'League Battle Decks',
+  
   // Series names
   'sv': 'Scarlet & Violet',
   'swsh': 'Sword & Shield',

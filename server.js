@@ -604,6 +604,8 @@ app.get('/api/tcgdex/sets', async (req, res) => {
     // Importar TCGdex y traducciones
     const { default: TCGdex } = await import('@tcgdex/sdk');
     const { formatSetName } = require('./js/tcgdex-translations.js');
+    const { formatSetNameKO } = require('./js/tcgdex-translations-ko.js');
+    const { formatSetNameZH } = require('./js/tcgdex-translations-zh.js');
     
     // Definir idiomas asiáticos
     const asianLanguages = ['ja', 'ko', 'zh-cn', 'zh-tw'];
@@ -651,7 +653,17 @@ app.get('/api/tcgdex/sets', async (req, res) => {
         id: set.id,
         name: set.names?.ja || set.names?.ko || set.name, // Priorizar japonés
         nameEN: set.name,
-        displayName: formatSetName(set.names?.ja || set.names?.ko || set.name, set.id),
+        displayName: (() => {
+          // Aplicar traducción según el idioma principal del set
+          if (set.names?.ja) {
+            return formatSetName(set.names.ja, set.id);
+          } else if (set.names?.ko) {
+            return formatSetNameKO(set.names.ko, set.id);
+          } else if (set.names?.['zh-cn'] || set.names?.['zh-tw']) {
+            return formatSetNameZH(set.names['zh-cn'] || set.names['zh-tw'], set.id);
+          }
+          return set.name;
+        })(),
         series: set.serie?.name,
         seriesEN: set.serie?.name,
         seriesDisplayName: set.serie?.name,
