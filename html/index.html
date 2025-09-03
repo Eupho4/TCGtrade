@@ -6749,6 +6749,148 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             });
         }
         
+        // Función para configurar el sidebar
+        function setupSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const sidebarOverlay = document.getElementById('sidebarOverlay');
+            const hamburgerBtn = document.getElementById('hamburgerBtn');
+            
+            // Función para abrir sidebar
+            function openSidebar() {
+                sidebar.classList.add('open');
+                sidebarOverlay.classList.add('show');
+                hamburgerBtn.classList.add('active');
+                document.body.style.overflow = 'hidden'; // Prevenir scroll del body
+            }
+            
+            // Función para cerrar sidebar
+            function closeSidebar() {
+                sidebar.classList.remove('open');
+                sidebarOverlay.classList.remove('show');
+                hamburgerBtn.classList.remove('active');
+                document.body.style.overflow = ''; // Restaurar scroll
+            }
+            
+            // Click en hamburguesa
+            hamburgerBtn.addEventListener('click', () => {
+                if (sidebar.classList.contains('open')) {
+                    closeSidebar();
+                } else {
+                    openSidebar();
+                }
+            });
+            
+            // Click en overlay
+            sidebarOverlay.addEventListener('click', closeSidebar);
+            
+            // ESC para cerrar
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && sidebar.classList.contains('open')) {
+                    closeSidebar();
+                }
+            });
+            
+            // Configurar links del sidebar
+            const sidebarLinks = {
+                'sidebarHomeLink': () => {
+                    closeSidebar();
+                    showInitialSections();
+                    window.scrollTo(0, 0);
+                },
+                'sidebarMyCardsLink': () => {
+                    closeSidebar();
+                    document.getElementById('myCardsLink')?.click();
+                },
+                'sidebarInterchangesLink': () => {
+                    closeSidebar();
+                    document.getElementById('interchangesLink')?.click();
+                },
+                'sidebarCollectionLink': () => {
+                    closeSidebar();
+                    // Ir directamente a Mi Perfil > Mi Colección
+                    document.getElementById('profileLink')?.click();
+                    setTimeout(() => {
+                        const collectionTab = document.querySelector('[data-tab="collection"]');
+                        if (collectionTab) collectionTab.click();
+                    }, 100);
+                },
+                'sidebarInboxLink': () => {
+                    closeSidebar();
+                    document.getElementById('inboxLink')?.click();
+                },
+                'sidebarChatLink': () => {
+                    closeSidebar();
+                    document.getElementById('chatLink')?.click();
+                },
+                'sidebarHelpLink': () => {
+                    closeSidebar();
+                    document.getElementById('helpLink')?.click();
+                },
+                'sidebarLoginLink': () => {
+                    closeSidebar();
+                    document.getElementById('loginLink')?.click();
+                },
+                'sidebarRegisterLink': () => {
+                    closeSidebar();
+                    document.getElementById('registerLink')?.click();
+                },
+                'sidebarLogoutLink': () => {
+                    closeSidebar();
+                    document.getElementById('logoutLink')?.click();
+                }
+            };
+            
+            // Asignar eventos a los links
+            Object.keys(sidebarLinks).forEach(linkId => {
+                const link = document.getElementById(linkId);
+                if (link) {
+                    link.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        sidebarLinks[linkId]();
+                    });
+                }
+            });
+            
+            // Actualizar tema del sidebar cuando cambie el modo oscuro
+            const updateSidebarTheme = () => {
+                if (document.body.classList.contains('dark-mode')) {
+                    sidebar.classList.add('dark');
+                } else {
+                    sidebar.classList.remove('dark');
+                }
+            };
+            
+            // Observar cambios en el modo oscuro
+            const observer = new MutationObserver(updateSidebarTheme);
+            observer.observe(document.body, { attributes: true, attributeFilter: ['class'] });
+            
+            // Aplicar tema inicial
+            updateSidebarTheme();
+            
+            // Actualizar visibilidad de items según el estado de login
+            window.updateSidebarVisibility = function() {
+                const isLoggedIn = !!currentUser;
+                
+                // Items que solo se muestran cuando está logueado
+                const loggedInItems = ['sidebarInboxLink', 'sidebarChatLink', 'sidebarLogoutLink', 'sidebarCommDivider'];
+                loggedInItems.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.classList.toggle('hidden', !isLoggedIn);
+                    }
+                });
+                
+                // Items que solo se muestran cuando NO está logueado
+                const loggedOutItems = ['sidebarLoginLink', 'sidebarRegisterLink'];
+                loggedOutItems.forEach(id => {
+                    const element = document.getElementById(id);
+                    if (element) {
+                        element.classList.toggle('hidden', isLoggedIn);
+                    }
+                });
+            };
+        }
+        
         // Función para animar números
         function animateNumber(element, start, end, duration) {
             const startTime = performance.now();
@@ -6778,6 +6920,9 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             
             // Generar elementos flotantes
             generateFloatingElements();
+            
+            // Configurar sidebar
+            setupSidebar();
             
             // Configurar animación de estadísticas cuando entren en vista
             const statsObserver = new IntersectionObserver((entries) => {
@@ -7529,6 +7674,11 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                     // Actualizar badge de notificaciones
                     updateNotificationBadge();
                     
+                    // Actualizar sidebar
+                    if (window.updateSidebarVisibility) {
+                        window.updateSidebarVisibility();
+                    }
+                    
                     // CARGAR MODO OSCURO INMEDIATAMENTE AL INICIAR SESIÓN
                     try {
                         console.log('🌙 Cargando preferencia de modo oscuro del usuario...');
@@ -7576,6 +7726,11 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                     if (inboxNavLink) inboxNavLink.classList.add('hidden');
                     // Mi Perfil siempre visible (redirige a login si no está conectado)
                     if (profileNavLink) profileNavLink.classList.remove('hidden');
+                    
+                    // Actualizar sidebar
+                    if (window.updateSidebarVisibility) {
+                        window.updateSidebarVisibility();
+                    }
                     
                     // Opcional: Restaurar modo por defecto al cerrar sesión
                     // Si quieres que al cerrar sesión vuelva al modo claro, descomenta estas líneas:
@@ -8959,6 +9114,149 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
         .count-animate {
             animation: countUp 0.6s ease-out;
         }
+        
+        /* Estilos para el sidebar */
+        .sidebar {
+            position: fixed;
+            top: 0;
+            left: -280px;
+            width: 280px;
+            height: 100vh;
+            background: white;
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.1);
+            transition: left 0.3s ease-out;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+        
+        .sidebar.dark {
+            background: #1f2937;
+            box-shadow: 2px 0 20px rgba(0, 0, 0, 0.3);
+        }
+        
+        .sidebar.open {
+            left: 0;
+        }
+        
+        .sidebar-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
+            z-index: 999;
+        }
+        
+        .sidebar-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        /* Hamburger menu animation */
+        .hamburger {
+            width: 30px;
+            height: 24px;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .hamburger span {
+            display: block;
+            height: 3px;
+            width: 100%;
+            background: white;
+            border-radius: 3px;
+            transition: all 0.3s ease-out;
+            transform-origin: left center;
+        }
+        
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg);
+            width: 33px;
+        }
+        
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+            transform: translateX(-20px);
+        }
+        
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg);
+            width: 33px;
+        }
+        
+        /* Sidebar content styles */
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .sidebar.dark .sidebar-header {
+            border-bottom-color: #374151;
+        }
+        
+        .sidebar-menu {
+            padding: 20px 0;
+        }
+        
+        .sidebar-item {
+            display: flex;
+            align-items: center;
+            padding: 15px 25px;
+            color: #374151;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .sidebar.dark .sidebar-item {
+            color: #e5e7eb;
+        }
+        
+        .sidebar-item:hover {
+            background: #f3f4f6;
+            color: #f97316;
+            padding-left: 30px;
+        }
+        
+        .sidebar.dark .sidebar-item:hover {
+            background: #374151;
+        }
+        
+        .sidebar-item.active {
+            background: #fef3c7;
+            color: #f97316;
+            font-weight: 600;
+        }
+        
+        .sidebar.dark .sidebar-item.active {
+            background: #374151;
+        }
+        
+        .sidebar-item .icon {
+            font-size: 20px;
+            margin-right: 15px;
+            width: 25px;
+            text-align: center;
+        }
+        
+        .sidebar-divider {
+            height: 1px;
+            background: #e5e7eb;
+            margin: 15px 25px;
+        }
+        
+        .sidebar.dark .sidebar-divider {
+            background: #374151;
+        }
 
         body.dark-mode {
             --color-primary-bg: #1a1a1a;
@@ -9405,13 +9703,98 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
         <!-- Los elementos se generarán dinámicamente con JavaScript -->
     </div>
 
-    <header class="header-bg shadow-lg py-4 px-6 md:px-10 backdrop-blur-md bg-opacity-95">
-        <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
-            <a href="#" class="text-white text-3xl font-bold rounded-md px-3 py-1 flex items-center h-12 hover:scale-105 transition-transform" id="homeLink">
-                <span class="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
-                    TCGtrade
-                </span>
+    <!-- Sidebar overlay -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h2 class="text-2xl font-bold text-gray-800 dark:text-white">TCGtrade</h2>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Tu plataforma de intercambio</p>
+        </div>
+        
+        <nav class="sidebar-menu">
+            <!-- Navegación principal -->
+            <a href="#" class="sidebar-item" id="sidebarHomeLink">
+                <span class="icon">🏠</span>
+                <span>Inicio</span>
             </a>
+            
+            <a href="#" class="sidebar-item" id="sidebarMyCardsLink">
+                <span class="icon">📦</span>
+                <span>Mis Cartas</span>
+            </a>
+            
+            <a href="#" class="sidebar-item" id="sidebarInterchangesLink">
+                <span class="icon">💱</span>
+                <span>Intercambios</span>
+            </a>
+            
+            <a href="#" class="sidebar-item" id="sidebarCollectionLink">
+                <span class="icon">📚</span>
+                <span>Mi Colección</span>
+            </a>
+            
+            <div class="sidebar-divider"></div>
+            
+            <!-- Comunicación -->
+            <a href="#" class="sidebar-item hidden" id="sidebarInboxLink">
+                <span class="icon">📬</span>
+                <span>Buzón</span>
+                <span class="ml-auto bg-red-500 text-white text-xs rounded-full px-2 py-1 hidden" id="sidebarInboxBadge">0</span>
+            </a>
+            
+            <a href="#" class="sidebar-item hidden" id="sidebarChatLink">
+                <span class="icon">💬</span>
+                <span>Chats</span>
+                <span class="ml-auto bg-green-500 text-white text-xs rounded-full px-2 py-1 hidden" id="sidebarChatBadge">0</span>
+            </a>
+            
+            <div class="sidebar-divider hidden" id="sidebarCommDivider"></div>
+            
+            <!-- Ayuda y configuración -->
+            <a href="#" class="sidebar-item" id="sidebarHelpLink">
+                <span class="icon">❓</span>
+                <span>Ayuda</span>
+            </a>
+            
+            <div class="sidebar-divider"></div>
+            
+            <!-- Sesión -->
+            <a href="#" class="sidebar-item" id="sidebarLoginLink">
+                <span class="icon">🚪</span>
+                <span>Iniciar Sesión</span>
+            </a>
+            
+            <a href="#" class="sidebar-item" id="sidebarRegisterLink">
+                <span class="icon">📝</span>
+                <span>Registrarse</span>
+            </a>
+            
+            <a href="#" class="sidebar-item hidden" id="sidebarLogoutLink">
+                <span class="icon">👋</span>
+                <span>Cerrar Sesión</span>
+            </a>
+        </nav>
+    </aside>
+
+    <header class="header-bg shadow-lg py-4 px-6 md:px-10 backdrop-blur-md bg-opacity-95">
+        <div class="container mx-auto flex items-center justify-between">
+            <!-- Lado izquierdo: Hamburguesa y Logo -->
+            <div class="flex items-center gap-4">
+                <!-- Botón hamburguesa -->
+                <button class="hamburger" id="hamburgerBtn">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                
+                <a href="#" class="text-white text-3xl font-bold flex items-center hover:scale-105 transition-transform" id="homeLink">
+                    <span class="bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent">
+                        TCGtrade
+                    </span>
+                </a>
+            </div>
 
             <div class="w-full md:w-1/2 lg:w-1/3 mt-4 md:mt-0 relative">
                 <div class="search-container glassmorphism dark:glassmorphism-dark p-1 rounded-2xl shadow-xl">
@@ -9428,27 +9811,40 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 </div>
             </div>
 
-            <nav class="mt-4 md:mt-0">
-                <ul class="flex space-x-4 text-white" id="authNavLinks">
-                    <li><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="navHomeLink"><span class="icon">🏠</span> <span data-i18n="nav.home">Inicio</span></a></li>
-                    <li id="myCardsNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="myCardsLink"><span class="icon">📦</span> <span data-i18n="nav.myCards">Mis Cartas</span></a></li>
-                    <li id="interchangesNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="interchangesLink"><span class="icon">🤝</span> <span data-i18n="nav.interchanges">Intercambios</span></a></li>
-                    <li id="inboxNavLink" class="hidden"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap relative" id="inboxLink"><span class="icon">📬</span> <span>Buzón</span><span id="notificationBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"></span></a></li>
-                    <li id="chatNavLink" class="hidden"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap relative" id="chatLink"><span class="icon">💬</span> <span>Chats</span><span id="chatBadge" class="hidden absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"></span></a></li>
-                    <li id="loginNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="loginLink"><span class="icon">🚪</span> <span data-i18n="nav.login">Iniciar Sesión</span></a></li>
-                    <li id="registerNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="registerLink"><span class="icon">📝</span> <span data-i18n="nav.register">Registrarse</span></a></li>
-                    <li id="profileNavLink"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center text-sm h-12 whitespace-nowrap" id="profileLink"><span class="icon">👤</span> <span data-i18n="nav.profile">Mi Perfil</span></a></li>
-                    <li id="logoutNavLink" class="hidden"><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="logoutLink"><span class="icon">👋</span> <span data-i18n="nav.logout">Cerrar Sesión</span></a></li>
-                    <li><a href="#" class="nav-link hover:underline rounded-md px-2 py-1 flex items-center h-12 text-sm whitespace-nowrap" id="helpLink"><span class="icon">❓</span> <span>Ayuda</span></a></li>
-                    <li class="ml-auto flex items-center h-12">
-                        <button id="darkModeToggle" class="relative w-14 h-7 bg-gray-300 dark:bg-gray-600 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 hover:bg-gray-400 dark:hover:bg-gray-500">
-                            <span class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform duration-300 dark:translate-x-7 flex items-center justify-center text-xs shadow-sm">
-                                <span class="dark:hidden">☀️</span>
-                                <span class="hidden dark:inline">🌙</span>
-                            </span>
-                        </button>
-                    </li>
-                </ul>
+            <!-- Lado derecho: Notificaciones, Perfil y Modo Oscuro -->
+            <nav class="flex items-center gap-4">
+                <!-- Notificaciones (solo si está logueado) -->
+                <div class="flex items-center gap-2">
+                    <button id="inboxNavLink" class="hidden relative text-white hover:text-orange-300 transition-colors p-2">
+                        <span class="text-xl">📬</span>
+                        <span id="notificationBadge" class="hidden absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"></span>
+                    </button>
+                    
+                    <button id="chatNavLink" class="hidden relative text-white hover:text-orange-300 transition-colors p-2">
+                        <span class="text-xl">💬</span>
+                        <span id="chatBadge" class="hidden absolute -top-1 -right-1 bg-green-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold"></span>
+                    </button>
+                </div>
+                
+                <!-- Perfil / Login -->
+                <div class="relative">
+                    <button id="profileNavLink" class="hidden text-white hover:text-orange-300 transition-colors p-2 rounded-lg">
+                        <span class="text-xl">👤</span>
+                    </button>
+                    
+                    <button id="loginNavLink" class="text-white hover:text-orange-300 transition-colors p-2 rounded-lg flex items-center gap-2">
+                        <span class="text-xl">🚪</span>
+                        <span class="hidden sm:inline text-sm">Entrar</span>
+                    </button>
+                </div>
+                
+                <!-- Modo oscuro -->
+                <button id="darkModeToggle" class="relative w-14 h-7 bg-gray-300 dark:bg-gray-600 rounded-full transition-colors duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500 hover:bg-gray-400 dark:hover:bg-gray-500">
+                    <span class="absolute left-1 top-1 w-5 h-5 bg-white rounded-full transition-transform duration-300 dark:translate-x-7 flex items-center justify-center text-xs shadow-sm">
+                        <span class="dark:hidden">☀️</span>
+                        <span class="hidden dark:inline">🌙</span>
+                    </span>
+                </button>
             </nav>
         </div>
     </header>
