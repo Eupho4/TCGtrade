@@ -1,56 +1,112 @@
 // Traducciones de sets chinos a inglés (Simplificado y Tradicional)
 const setTranslationsZH = {
+  // Scarlet & Violet Series (Chino - usan mismos IDs que japonés)
+  'sv1s': 'Scarlet ex',
+  'sv1v': 'Violet ex',
+  'sv1a': 'Triplet Beat',
+  'sv2p': 'Snow Hazard',
+  'sv2d': 'Clay Burst',
+  'sv2a': 'Pokemon Card 151',
+  'sv3': 'Ruler of the Black Flame',
+  'sv3a': 'Raging Surf',
+  'sv4k': 'Ancient Roar',
+  'sv4m': 'Future Flash',
+  'sv4a': 'Shiny Treasure ex',
+  'sv5k': 'Wild Force',
+  'sv5m': 'Cyber Judge',
+  'sv5a': 'Crimson Haze',
+  'sv6': 'Transformation Mask',
+  'sv6a': 'Night Wanderer',
+  'sv7': 'Stellar Miracle',
+  'sv7a': 'Paradise Dragona',
+  'sv8': 'Supercharged Breaker',
+  'sv8a': 'Terastal Festival ex',
+  'sv9': 'Battle Partners',
+  'sv9a': 'Heat Wave Arena',
+  'sv10': 'Team Rocket Glory',
+  
+  // Sword & Shield Series (Chino - usan mismos IDs)
+  's1w': 'Sword',
+  's1h': 'Shield',
+  's1a': 'VMAX Rising',
+  's2': 'Rebel Clash',
+  's2a': 'Explosive Walker',
+  's3': 'Infinity Zone',
+  's3a': 'Legendary Heartbeat',
+  's4': 'Astonishing Volt Tackle',
+  's4a': 'Shiny Star V',
+  's5i': 'Single Strike Master',
+  's5r': 'Rapid Strike Master',
+  's5a': 'Matchless Fighters',
+  's6h': 'Silver Lance',
+  's6k': 'Jet-Black Spirit',
+  's6a': 'Eevee Heroes',
+  's7d': 'Skyscraping Perfect',
+  's7r': 'Blue Sky Stream',
+  's8': 'Fusion Arts',
+  's8a': '25th Anniversary',
+  's8b': 'VMAX Climax',
+  's9': 'Star Birth',
+  's9a': 'Battle Region',
+  's10d': 'Time Gazer',
+  's10p': 'Space Juggler',
+  's10a': 'Dark Phantasma',
+  's10b': 'Pokémon GO',
+  's11': 'Lost Abyss',
+  's11a': 'Incandescent Arcana',
+  's12': 'Paradigm Trigger',
+  's12a': 'VSTAR Universe',
+  
   // Sun & Moon Series (Chino)
-  'SM-SC': 'Sun Collection',
-  'SM-MC': 'Moon Collection',
-  'SM1': 'Sun & Moon Base',
-  'SM2': 'Guardians Rising',
-  'SM3': 'Burning Shadows',
-  'SM4': 'Crimson Invasion',
-  'SM5': 'Ultra Prism',
-  'SM6': 'Forbidden Light',
-  'SM7': 'Celestial Storm',
-  'SM8': 'Lost Thunder',
-  'SM9': 'Team Up',
-  'SM10': 'Unbroken Bonds',
-  'SM11': 'Unified Minds',
-  'SM12': 'Cosmic Eclipse',
+  'sm1s': 'Sun Collection',
+  'sm1m': 'Moon Collection',
+  'sm1+': 'Sun & Moon',
+  'sm2k': 'Islands Await You',
+  'sm2l': 'Alolan Moonlight',
+  'sm3n': 'Darkness That Consumes Light',
+  'sm3h': 'To Have Seen the Battle Rainbow',
+  'sm3+': 'Shining Legends',
+  'sm4a': 'Crimson Invasion',
+  'sm4s': 'Awakened Heroes',
+  'sm4+': 'GX Battle Boost',
+  'sm5s': 'Ultra Sun',
+  'sm5m': 'Ultra Moon',
+  'sm5+': 'Ultra Force',
+  'sm6': 'Forbidden Light',
+  'sm6a': 'Dragon Storm',
+  'sm6b': 'Champion Road',
+  'sm7': 'Sky-Splitting Charisma',
+  'sm7a': 'Thunderclap Spark',
+  'sm7b': 'Fairy Rise',
+  'sm8': 'Burst Impact',
+  'sm8a': 'Dark Order',
+  'sm8b': 'GX Ultra Shiny',
+  'sm9': 'Tag Bolt',
+  'sm9a': 'Night Unison',
+  'sm9b': 'Full Metal Wall',
+  'sm10': 'Double Blaze',
+  'sm10a': 'GG End',
+  'sm10b': 'Sky Legend',
+  'sm11': 'Miracle Twin',
+  'sm11a': 'Remix Bout',
+  'sm11b': 'Dream League',
+  'sm12': 'Alter Genesis',
+  'sm12a': 'TAG TEAM GX All Stars',
   
-  // Sword & Shield Series (Chino)
-  'SWSH1': 'Sword & Shield Base',
-  'SWSH2': 'Rebel Clash',
-  'SWSH3': 'Darkness Ablaze',
-  'SWSH4': 'Vivid Voltage',
-  'SWSH5': 'Battle Styles',
-  'SWSH6': 'Chilling Reign',
-  'SWSH7': 'Evolving Skies',
-  'SWSH8': 'Fusion Strike',
-  'SWSH9': 'Brilliant Stars',
-  'SWSH10': 'Astral Radiance',
-  'SWSH11': 'Lost Origin',
-  'SWSH12': 'Silver Tempest',
-  'SWSH-V': 'V Starter Decks',
-  'SWSH-VMAX': 'VMAX Special Set',
-  
-  // Scarlet & Violet Series (Chino)
-  'SV1': 'Scarlet & Violet Base',
-  'SV2': 'Paldea Evolved',
-  'SV3': 'Obsidian Flames',
-  'SV4': 'Paradox Rift',
-  'SV5': 'Temporal Forces',
-  'SV6': 'Twilight Masquerade',
-  'SV-151': 'Pokémon Card 151',
-  
-  // Special Chinese Sets
-  'CS1a': 'Legendary Starter Set',
-  'CS1b': 'Amazing Volt Tackle',
-  'CS2a': 'Explosive Walker',
-  'CS2b': 'Legendary Heartbeat',
-  'CS3a': 'Dragon King',
-  'CS3b': 'Phoenix King',
-  'CS4a': 'Sword & Shield Enhanced',
-  'CS5a': 'Battle Academy',
-  'CS6a': 'Trainer Toolkit',
+  // Special Chinese Sets (Taiwan/Hong Kong)
+  'sc1a': 'Sword & Shield Family Set A',
+  'sc1b': 'Sword & Shield Family Set B',
+  'sc1d': 'Sword & Shield Premium Trainer Box',
+  'sc2a': 'Infinity Zone Set A',
+  'sc2b': 'Infinity Zone Set B',
+  'sc2d': 'Infinity Zone',
+  'cs1a': 'Triplet Beat',
+  'cs1b': 'Triplet Beat',
+  'cs1.5': 'Triplet Beat',
+  'cs2a': 'Triplet Beat',
+  'cs2b': 'Triplet Beat',
+  'cs2.5': 'Triplet Beat',
+  'cs3.5': 'Triplet Beat',
   
   // Hong Kong/Taiwan Exclusive
   'AS1a': 'Beginning Set',
@@ -113,13 +169,24 @@ const setTranslationsZH = {
 
 // Función para obtener traducción de un set chino
 function getSetTranslationZH(setId) {
-  const id = setId?.toUpperCase();
-  // Intentar con mayúsculas primero
-  if (setTranslationsZH[id]) {
-    return setTranslationsZH[id];
+  // Primero intentar con el ID tal cual
+  if (setTranslationsZH[setId]) {
+    return setTranslationsZH[setId];
   }
-  // Intentar con el ID original
-  return setTranslationsZH[setId] || null;
+  
+  // Luego intentar en minúsculas
+  const idLower = setId?.toLowerCase();
+  if (setTranslationsZH[idLower]) {
+    return setTranslationsZH[idLower];
+  }
+  
+  // Luego intentar en mayúsculas
+  const idUpper = setId?.toUpperCase();
+  if (setTranslationsZH[idUpper]) {
+    return setTranslationsZH[idUpper];
+  }
+  
+  return null;
 }
 
 // Función para formatear nombre de set con traducción
