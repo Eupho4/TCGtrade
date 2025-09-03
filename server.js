@@ -469,9 +469,16 @@ app.get('/api/tcgdex/cards', async (req, res) => {
         id: card.id,
         name: card.localName || card.name,
         nameEN: card.name,
+        displayName: card.localName && card.name && card.localName !== card.name 
+          ? `${card.localName} (${card.name})` 
+          : card.localName || card.name,
         set: {
           id: card.set?.id,
-          name: card.set?.localName || card.set?.name
+          name: card.set?.localName || card.set?.name,
+          nameEN: card.set?.name,
+          displayName: card.set?.localName && card.set?.name && card.set?.localName !== card.set?.name
+            ? `${card.set?.localName} (${card.set?.name})`
+            : card.set?.localName || card.set?.name
         },
         number: card.localId,
         images: {
@@ -481,7 +488,8 @@ app.get('/api/tcgdex/cards', async (req, res) => {
         rarity: card.rarity,
         types: card.types || [],
         hp: card.hp,
-        source: 'tcgdex'
+        source: 'tcgdex',
+        language: card.language || 'unknown'
       })),
       page: parseInt(page),
       pageSize: parseInt(pageSize),
@@ -561,10 +569,18 @@ app.get('/api/tcgdex/sets', async (req, res) => {
         id: set.id,
         name: set.localName || set.name,
         nameEN: set.name,
+        displayName: set.localName && set.name && set.localName !== set.name
+          ? `${set.localName} (${set.name})`
+          : set.localName || set.name,
         series: set.serie?.localName || set.serie?.name,
+        seriesEN: set.serie?.name,
+        seriesDisplayName: set.serie?.localName && set.serie?.name && set.serie?.localName !== set.serie?.name
+          ? `${set.serie?.localName} (${set.serie?.name})`
+          : set.serie?.localName || set.serie?.name,
         printedTotal: set.cardCount?.total || 0,
         total: set.cardCount?.total || 0,
         releaseDate: set.releaseDate,
+        availableLanguages: set.availableLanguages || [],
         images: {
           symbol: set.symbol,
           logo: set.logo
@@ -630,10 +646,21 @@ app.get('/api/tcgdex/card/:id', async (req, res) => {
         id: card.id,
         name: card.localName || card.name,
         nameEN: card.name,
+        displayName: card.localName && card.name && card.localName !== card.name
+          ? `${card.localName} (${card.name})`
+          : card.localName || card.name,
         set: {
           id: card.set?.id,
           name: card.set?.localName || card.set?.name,
-          series: card.set?.serie?.localName || card.set?.serie?.name
+          nameEN: card.set?.name,
+          displayName: card.set?.localName && card.set?.name && card.set?.localName !== card.set?.name
+            ? `${card.set?.localName} (${card.set?.name})`
+            : card.set?.localName || card.set?.name,
+          series: card.set?.serie?.localName || card.set?.serie?.name,
+          seriesEN: card.set?.serie?.name,
+          seriesDisplayName: card.set?.serie?.localName && card.set?.serie?.name && card.set?.serie?.localName !== card.set?.serie?.name
+            ? `${card.set?.serie?.localName} (${card.set?.serie?.name})`
+            : card.set?.serie?.localName || card.set?.serie?.name
         },
         number: card.localId,
         images: {

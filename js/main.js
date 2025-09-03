@@ -1072,13 +1072,15 @@ window.searchCardForTrade = async function(input, type, cardIndex) {
                 resultsContainer.innerHTML = uniqueCards.slice(0, 15).map(card => {
                     const sourceIcon = card.source === 'tcgdex' ? '🌏' : '🌍';
                     const imageUrl = card.images?.small || card.images?.large || '/images/card-placeholder.png';
+                    const displayName = card.displayName || card.name;
+                    const displaySetName = card.set?.displayName || card.set?.name || 'Set desconocido';
                     return `
                         <div class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center gap-2 border-b border-gray-200 dark:border-gray-600 last:border-0"
-                             onclick="selectCardForTrade('${type}', ${cardIndex}, '${card.id}', '${card.name.replace(/'/g, "\\'")}', '${imageUrl}', '${(card.set?.name || '').replace(/'/g, "\\'")}', '${card.number || ''}')">
-                            <img src="${imageUrl}" alt="${card.name}" class="w-10 h-14 object-contain" onerror="this.src='/images/card-placeholder.png'">
+                             onclick="selectCardForTrade('${type}', ${cardIndex}, '${card.id}', '${displayName.replace(/'/g, "\\'")}', '${imageUrl}', '${displaySetName.replace(/'/g, "\\'")}', '${card.number || ''}')">
+                            <img src="${imageUrl}" alt="${displayName}" class="w-10 h-14 object-contain" onerror="this.src='/images/card-placeholder.png'">
                             <div class="flex-1">
-                                <div class="font-medium text-sm text-gray-900 dark:text-white">${sourceIcon} ${card.name}</div>
-                                <div class="text-xs text-gray-500 dark:text-gray-400">${card.set?.name || 'Set desconocido'} - ${card.number || 'N/A'}</div>
+                                <div class="font-medium text-sm text-gray-900 dark:text-white">${sourceIcon} ${displayName}</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">${displaySetName} - ${card.number || 'N/A'}</div>
                             </div>
                         </div>
                     `;
@@ -3342,8 +3344,10 @@ async function fetchCards(query, searchMode = 'pokemontcg') {
                 row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 h-16 overflow-visible';
 
                 const safeCardId = (card.id || '').replace(/'/g, "\\'");
-                const safeCardName = (card.name || '').replace(/'/g, "\\'");
-                const safeSetName = (card.set?.name || 'N/A').replace(/'/g, "\\'");
+                const displayName = card.displayName || card.name || '';
+                const safeCardName = displayName.replace(/'/g, "\\'");
+                const displaySetName = card.set?.displayName || card.set?.name || 'N/A';
+                const safeSetName = displaySetName.replace(/'/g, "\\'");
                 const safeSeries = (card.set?.series || 'N/A').replace(/'/g, "\\'");
                 const safeNumber = (card.number || 'N/A').replace(/'/g, "\\'");
                 const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
@@ -3381,8 +3385,8 @@ async function fetchCards(query, searchMode = 'pokemontcg') {
                 info.innerHTML = `
                     <div class="flex items-center justify-between">
                         <div class="truncate">
-                            <div class="font-semibold text-gray-900 dark:text-white truncate">${card.name || 'Nombre no disponible'}</div>
-                            <div class="text-xs text-gray-600 dark:text-gray-300 truncate">Set: ${card.set?.name || 'N/A'} · Serie: ${card.set?.series || 'N/A'} · Nº: ${card.number || 'N/A'}</div>
+                            <div class="font-semibold text-gray-900 dark:text-white truncate">${displayName || 'Nombre no disponible'}</div>
+                            <div class="text-xs text-gray-600 dark:text-gray-300 truncate">Set: ${displaySetName} · Serie: ${card.set?.series || 'N/A'} · Nº: ${card.number || 'N/A'}</div>
                         </div>
                         <div class="flex gap-2 items-center">
                             <button class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
@@ -3877,7 +3881,7 @@ async function fetchSetsAndPopulateFilter() {
                     ...tcgSet,
                     source: 'tcgdex',
                     isAsian: true,
-                    displayName: `${tcgSet.name} (${tcgSet.availableLanguages ? tcgSet.availableLanguages.join(', ').toUpperCase() : 'JA/KO/ZH'})`
+                    displayName: tcgSet.displayName || `${tcgSet.name} (${tcgSet.availableLanguages ? tcgSet.availableLanguages.join(', ').toUpperCase() : 'JA/KO/ZH'})`
                 });
             }
         });
