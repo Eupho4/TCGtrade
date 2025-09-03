@@ -452,11 +452,32 @@ app.get('/api/tcgdex/cards', async (req, res) => {
       results = Array.from(uniqueMap.values());
       
     } else if (set) {
-      // Get cards by set - solo si es un set asiático
-      const tcgdex = new TCGdex('ja'); // Por defecto japonés
-      const setData = await tcgdex.fetchSet(set);
+      // Get cards by set - intentar múltiples idiomas si falla
+      let setData = null;
+      let foundLanguage = null;
+      
+      // Intentar obtener el set en diferentes idiomas (empezar por japonés)
+      for (const lang of ['ja', ...asianLanguages.filter(l => l !== 'ja')]) {
+        try {
+          const tcgdex = new TCGdex(lang);
+          const tempSetData = await tcgdex.fetchSet(set);
+          if (tempSetData && tempSetData.cards && tempSetData.cards.length > 0) {
+            setData = tempSetData;
+            foundLanguage = lang;
+            break;
+          }
+        } catch (e) {
+          console.log(`Set ${set} no encontrado en ${lang}, intentando siguiente...`);
+        }
+      }
+      
       if (setData && !setData.id?.includes('pocket')) {
-        results = (setData.cards || []).map(card => ({...card, language: 'ja'}));
+        results = (setData.cards || []).map(card => ({
+          ...card, 
+          language: foundLanguage,
+          // Asegurar que las URLs de imagen sean completas
+          image: card.image?.startsWith('http') ? card.image : `https://assets.tcgdex.net/ja/${set}/${card.localId}`
+        }));
       }
     } else {
       // No devolver todas las cartas sin filtro
@@ -482,8 +503,12 @@ app.get('/api/tcgdex/cards', async (req, res) => {
         },
         number: card.localId,
         images: {
-          small: card.image + '/low.webp',
-          large: card.image + '/high.webp'
+          small: card.image?.startsWith('http') 
+            ? card.image + '/low.webp' 
+            : `https://assets.tcgdex.net/${card.language || 'ja'}/${card.set?.id || set}/${card.localId}/low.webp`,
+          large: card.image?.startsWith('http') 
+            ? card.image + '/high.webp' 
+            : `https://assets.tcgdex.net/${card.language || 'ja'}/${card.set?.id || set}/${card.localId}/high.webp`
         },
         rarity: card.rarity,
         types: card.types || [],
@@ -546,8 +571,14 @@ app.get('/api/tcgdex/sets', async (req, res) => {
     const japaneseSets = await tcgdexJa.fetchSets();
     const validJapaneseSets = japaneseSets.filter(set => 
       !set.id?.includes('pocket') && 
-      !set.name?.toLowerCase().includes('pocket')
+      !set.name?.toLowerCase().includes('pocket') &&
+      set.cardCount?.total > 0 && // Solo sets con cartas
+      set.id !== 'base1' && // Excluir sets problemáticos conocidos
+      !set.id?.includes('promo') // Excluir promos por ahora
     );
+    
+    // Ordenar por fecha de lanzamiento (más recientes primero)
+    validJapaneseSets.sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0));
     
     validJapaneseSets.forEach(set => {
       japaneseSetInfo.set(set.id, set);
@@ -569,7 +600,10 @@ app.get('/api/tcgdex/sets', async (req, res) => {
       });
     }
     
-    const sets = Array.from(allSets.values());
+    // Limitar a los sets más recientes y relevantes
+    const sets = Array.from(allSets.values())
+      .sort((a, b) => new Date(b.releaseDate || 0) - new Date(a.releaseDate || 0))
+      .slice(0, 50); // Mostrar solo los 50 sets más recientes
     
     const response = {
       data: sets.map(set => ({
@@ -671,8 +705,12 @@ app.get('/api/tcgdex/card/:id', async (req, res) => {
         },
         number: card.localId,
         images: {
-          small: card.image + '/low.webp',
-          large: card.image + '/high.webp'
+          small: card.image?.startsWith('http') 
+            ? card.image + '/low.webp' 
+            : `https://assets.tcgdex.net/ja/${card.set?.id}/${card.localId}/low.webp`,
+          large: card.image?.startsWith('http') 
+            ? card.image + '/high.webp' 
+            : `https://assets.tcgdex.net/ja/${card.set?.id}/${card.localId}/high.webp`
         },
         rarity: card.rarity,
         types: card.types || [],
