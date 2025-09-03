@@ -7881,22 +7881,22 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                                     <td class="p-2">
                                         <input type="checkbox" class="card-checkbox rounded" 
                                                data-card-id="${card.id}"
-                                               data-card-name="${card.name}"
+                                               data-card-name="${card.displayName || card.name}"
                                                data-card-image="${card.images.small}"
-                                               data-card-set="${card.set.name}"
-                                               data-card-series="${card.set.series || ''}"
+                                               data-card-set="${card.set?.displayName || card.set?.name || ''}"
+                                               data-card-series="${card.set?.series || ''}"
                                                data-card-number="${card.number}">
                                     </td>
                                     <td class="p-2 text-sm">${card.number}</td>
                                     <td class="p-2">
                                         <div class="card-hover-container">
-                                            <img src="${card.images.small}" alt="${card.name}" 
+                                            <img src="${card.images.small}" alt="${card.displayName || card.name}" 
                                                  class="card-hover-image w-12 h-16 object-contain cursor-pointer"
                                                  loading="lazy"
                                                  onclick="window.open('${card.images.large}', '_blank')">
                                         </div>
                                     </td>
-                                    <td class="p-2 font-medium">${card.name}</td>
+                                    <td class="p-2 font-medium">${card.displayName || card.name}</td>
                                     <td class="p-2 text-sm">${card.rarity || 'Common'}</td>
                                     <td class="p-2">
                                         <input type="number" min="1" max="99" value="1" 
