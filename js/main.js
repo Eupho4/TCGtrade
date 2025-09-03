@@ -1034,20 +1034,55 @@ window.searchCardForTrade = async function(input, type, cardIndex) {
     // Debounce de 300ms
     searchTimeout = setTimeout(async () => {
         try {
-            const response = await fetch(`https://api.pokemontcg.io/v2/cards?q=name:"${query}*"&pageSize=10`);
-            const data = await response.json();
+            // Buscar en ambas APIs en paralelo
+            const [pokemonResponse, tcgdexResponse] = await Promise.allSettled([
+                fetch(`/api/pokemontcg/cards?q=name:"${query}*"&pageSize=10`),
+                fetch(`/api/tcgdex/cards?q=${query}&pageSize=10`)
+            ]);
             
-            if (data.data && data.data.length > 0) {
-                resultsContainer.innerHTML = data.data.map(card => `
-                    <div class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center gap-2 border-b border-gray-200 dark:border-gray-600 last:border-0"
-                         onclick="selectCardForTrade('${type}', ${cardIndex}, '${card.id}', '${card.name.replace(/'/g, "\\'")}', '${card.images.small}', '${(card.set?.name || '').replace(/'/g, "\\'")}', '${card.number || ''}')">
-                        <img src="${card.images.small}" alt="${card.name}" class="w-10 h-14 object-contain">
-                        <div class="flex-1">
-                            <div class="font-medium text-sm text-gray-900 dark:text-white">${card.name}</div>
-                            <div class="text-xs text-gray-500 dark:text-gray-400">${card.set?.name || 'Set desconocido'} - ${card.number || 'N/A'}</div>
+            let allCards = [];
+            
+            // Procesar resultados de Pokemon TCG
+            if (pokemonResponse.status === 'fulfilled' && pokemonResponse.value.ok) {
+                const data = await pokemonResponse.value.json();
+                if (data.data) {
+                    allCards.push(...data.data.map(card => ({...card, source: 'pokemontcg'})));
+                }
+            }
+            
+            // Procesar resultados de TCGdex
+            if (tcgdexResponse.status === 'fulfilled' && tcgdexResponse.value.ok) {
+                const data = await tcgdexResponse.value.json();
+                if (data.data) {
+                    allCards.push(...data.data.map(card => ({...card, source: 'tcgdex'})));
+                }
+            }
+            
+            // Eliminar duplicados por nombre
+            const uniqueCards = allCards.reduce((acc, card) => {
+                const key = `${card.name}-${card.set?.id}`;
+                if (!acc.map.has(key)) {
+                    acc.map.set(key, card);
+                    acc.list.push(card);
+                }
+                return acc;
+            }, { map: new Map(), list: [] }).list;
+            
+            if (uniqueCards.length > 0) {
+                resultsContainer.innerHTML = uniqueCards.slice(0, 15).map(card => {
+                    const sourceIcon = card.source === 'tcgdex' ? '🌏' : '🌍';
+                    const imageUrl = card.images?.small || card.images?.large || '/images/card-placeholder.png';
+                    return `
+                        <div class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer flex items-center gap-2 border-b border-gray-200 dark:border-gray-600 last:border-0"
+                             onclick="selectCardForTrade('${type}', ${cardIndex}, '${card.id}', '${card.name.replace(/'/g, "\\'")}', '${imageUrl}', '${(card.set?.name || '').replace(/'/g, "\\'")}', '${card.number || ''}')">
+                            <img src="${imageUrl}" alt="${card.name}" class="w-10 h-14 object-contain" onerror="this.src='/images/card-placeholder.png'">
+                            <div class="flex-1">
+                                <div class="font-medium text-sm text-gray-900 dark:text-white">${sourceIcon} ${card.name}</div>
+                                <div class="text-xs text-gray-500 dark:text-gray-400">${card.set?.name || 'Set desconocido'} - ${card.number || 'N/A'}</div>
+                            </div>
                         </div>
-                    </div>
-                `).join('');
+                    `;
+                }).join('');
             } else {
                 resultsContainer.innerHTML = `
                     <div class="p-3 text-center text-gray-500 dark:text-gray-400">
@@ -3520,26 +3555,48 @@ async function fetchCards(query, searchMode = 'pokemontcg') {
     }
 }
 
-// Función corregida para obtener cartas de un set
+// Función corregida para obtener cartas de un set (INCLUYE TCGDEX)
 async function fetchAllCardsInSet(setId) {
     console.log(`Obteniendo todas las cartas del set: ${setId}`);
 
     try {
-        // URL corregida para usar tu función pokemon-proxy
-        const response = await fetch(`/api/pokemontcg/cards?q=set.id:${setId}&pageSize=500`, {
-            method: 'GET',
-            headers: {
-                'Content-Type': 'application/json'
+        // Verificar si el set es de TCGdex (asiático)
+        const setInfo = allSets.find(s => s.id === setId);
+        const isTCGdexSet = setInfo && setInfo.source === 'tcgdex';
+
+        if (isTCGdexSet) {
+            // Obtener cartas de TCGdex
+            const response = await fetch(`/api/tcgdex/cards?set=${setId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
             }
-        });
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            console.log(`Obtenidas ${data.data?.length || 0} cartas TCGdex del set ${setId}`);
+            return data.data || [];
+        } else {
+            // Obtener cartas de Pokemon TCG API
+            const response = await fetch(`/api/pokemontcg/cards?q=set.id:${setId}&pageSize=500`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            console.log(`Obtenidas ${data.data?.length || 0} cartas Pokemon TCG del set ${setId}`);
+            return data.data || [];
         }
-
-        const data = await response.json();
-        console.log(`Obtenidas ${data.data?.length || 0} cartas del set ${setId}`);
-        return data.data || [];
 
     } catch (error) {
         console.error('Error al obtener cartas del set:', error);
@@ -3761,37 +3818,69 @@ window.removeCardFromCollection = async (cardId) => {
     }
 };
 
-// Función para obtener sets de la API (MEJORADA)
+// Función para obtener sets de la API (MEJORADA CON TCGDEX)
 async function fetchSetsAndPopulateFilter() {
     if (allSets.length > 0) return;
 
-    console.log('🔄 Cargando sets desde la API...');
+    console.log('🔄 Cargando sets desde las APIs...');
 
     try {
-        // Timeout reducido para sets
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 segundos
+        // Cargar sets de ambas APIs en paralelo
+        const [pokemonTCGResponse, tcgdexResponse] = await Promise.allSettled([
+            // Pokemon TCG API
+            fetch('/api/pokemontcg/sets?pageSize=50', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            }),
+            // TCGdex API
+            fetch('/api/tcgdex/sets', {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+        ]);
 
-        const response = await fetch('/api/pokemontcg/sets?pageSize=50', {
-            method: 'GET',
-            signal: controller.signal,
-            headers: {
-                'Content-Type': 'application/json'
+        let pokemonTCGSets = [];
+        let tcgdexSets = [];
+
+        // Procesar respuesta de Pokemon TCG
+        if (pokemonTCGResponse.status === 'fulfilled' && pokemonTCGResponse.value.ok) {
+            const data = await pokemonTCGResponse.value.json();
+            pokemonTCGSets = data.data || [];
+            console.log('✅ Sets Pokemon TCG cargados:', pokemonTCGSets.length);
+        }
+
+        // Procesar respuesta de TCGdex
+        if (tcgdexResponse.status === 'fulfilled' && tcgdexResponse.value.ok) {
+            const data = await tcgdexResponse.value.json();
+            tcgdexSets = data.data || [];
+            console.log('✅ Sets TCGdex cargados:', tcgdexSets.length);
+        }
+
+        // Combinar sets de ambas fuentes
+        const combinedSets = [...pokemonTCGSets];
+        
+        // Añadir sets de TCGdex que no estén duplicados
+        tcgdexSets.forEach(tcgSet => {
+            const exists = combinedSets.some(set => 
+                set.id === tcgSet.id || 
+                (set.name === tcgSet.name && set.releaseDate === tcgSet.releaseDate)
+            );
+            if (!exists) {
+                // Marcar sets exclusivos de TCGdex (japoneses, coreanos, chinos)
+                combinedSets.push({
+                    ...tcgSet,
+                    source: 'tcgdex',
+                    isAsian: true // Marcador para sets asiáticos
+                });
             }
         });
 
-        clearTimeout(timeoutId);
-
-        console.log('📡 Sets API Response status:', response.status);
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            console.error('❌ Sets API Error:', errorText);
-            throw new Error(`HTTP ${response.status}: ${errorText}`);
-        }
-
-        const data = await response.json();
-        allSets = data.data || [];
+        allSets = combinedSets;
+        console.log('✅ Total sets combinados:', allSets.length);
         
         console.log('✅ Sets cargados:', allSets.length);
 

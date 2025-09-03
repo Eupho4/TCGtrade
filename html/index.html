@@ -7734,41 +7734,101 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             bulkAddBtn.addEventListener('click', () => addSelectedCards());
         };
 
-        // Cargar sets disponibles
+        // Cargar sets disponibles (INCLUYE TCGDEX)
         async function loadAvailableSets() {
             const selector = document.getElementById('bulkSetSelector');
             if (!selector) return;
             
             try {
-                const response = await fetch('/api/pokemontcg/sets');
-                if (!response.ok) throw new Error('Error al cargar sets');
+                // Cargar sets de ambas APIs
+                const [pokemonResponse, tcgdexResponse] = await Promise.allSettled([
+                    fetch('/api/pokemontcg/sets'),
+                    fetch('/api/tcgdex/sets')
+                ]);
                 
-                const data = await response.json();
-                const sets = data.data || [];
+                let allSets = [];
+                
+                // Procesar sets de Pokemon TCG
+                if (pokemonResponse.status === 'fulfilled' && pokemonResponse.value.ok) {
+                    const data = await pokemonResponse.value.json();
+                    const pokemonSets = data.data || [];
+                    allSets = [...pokemonSets];
+                }
+                
+                // Procesar sets de TCGdex
+                if (tcgdexResponse.status === 'fulfilled' && tcgdexResponse.value.ok) {
+                    const data = await tcgdexResponse.value.json();
+                    const tcgdexSets = data.data || [];
+                    
+                    // Añadir sets de TCGdex que no estén duplicados
+                    tcgdexSets.forEach(tcgSet => {
+                        const exists = allSets.some(set => 
+                            set.id === tcgSet.id || 
+                            (set.name === tcgSet.name && set.releaseDate === tcgSet.releaseDate)
+                        );
+                        if (!exists) {
+                            allSets.push({
+                                ...tcgSet,
+                                source: 'tcgdex'
+                            });
+                        }
+                    });
+                }
                 
                 // Ordenar sets por fecha de lanzamiento (más recientes primero)
-                sets.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
+                allSets.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
                 
                 selector.innerHTML = '<option value="">Selecciona un set...</option>';
-                sets.forEach(set => {
-                    const option = document.createElement('option');
-                    option.value = set.id;
-                    option.textContent = `${set.name} (${set.total} cartas)`;
-                    selector.appendChild(option);
-                });
+                
+                // Agrupar por fuente
+                const pokemonTCGSets = allSets.filter(s => s.source !== 'tcgdex');
+                const tcgdexSets = allSets.filter(s => s.source === 'tcgdex');
+                
+                // Añadir sets de Pokemon TCG
+                if (pokemonTCGSets.length > 0) {
+                    const optgroup1 = document.createElement('optgroup');
+                    optgroup1.label = '🌍 Pokemon TCG (Internacional)';
+                    pokemonTCGSets.forEach(set => {
+                        const option = document.createElement('option');
+                        option.value = set.id;
+                        option.dataset.source = 'pokemontcg';
+                        option.textContent = `${set.name} (${set.total || set.printedTotal} cartas)`;
+                        optgroup1.appendChild(option);
+                    });
+                    selector.appendChild(optgroup1);
+                }
+                
+                // Añadir sets de TCGdex
+                if (tcgdexSets.length > 0) {
+                    const optgroup2 = document.createElement('optgroup');
+                    optgroup2.label = '🌏 TCGdex (Japonés/Coreano/Chino)';
+                    tcgdexSets.forEach(set => {
+                        const option = document.createElement('option');
+                        option.value = set.id;
+                        option.dataset.source = 'tcgdex';
+                        option.textContent = `${set.name} (${set.total || set.printedTotal} cartas)`;
+                        optgroup2.appendChild(option);
+                    });
+                    selector.appendChild(optgroup2);
+                }
             } catch (error) {
                 console.error('Error al cargar sets:', error);
                 selector.innerHTML = '<option value="">Error al cargar sets</option>';
             }
         }
 
-        // Cargar cartas de un set
+        // Cargar cartas de un set (INCLUYE TCGDEX)
         async function loadSetCards(setId) {
             const container = document.getElementById('bulkCardsContainer');
             const selectAllBtn = document.getElementById('selectAllBtn');
             const deselectAllBtn = document.getElementById('deselectAllBtn');
+            const selector = document.getElementById('bulkSetSelector');
             
-            if (!container) return;
+            if (!container || !selector) return;
+            
+            // Obtener la fuente del set seleccionado
+            const selectedOption = selector.options[selector.selectedIndex];
+            const source = selectedOption?.dataset?.source || 'pokemontcg';
             
             container.innerHTML = `
                 <div class="text-center py-8">
@@ -7781,7 +7841,15 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             deselectAllBtn.disabled = true;
             
             try {
-                const response = await fetch(`/api/pokemontcg/cards?q=set.id:${setId}&pageSize=250&orderBy=number`);
+                let response;
+                if (source === 'tcgdex') {
+                    // Usar API de TCGdex
+                    response = await fetch(`/api/tcgdex/cards?set=${setId}`);
+                } else {
+                    // Usar API de Pokemon TCG
+                    response = await fetch(`/api/pokemontcg/cards?q=set.id:${setId}&pageSize=250&orderBy=number`);
+                }
+                
                 if (!response.ok) throw new Error('Error al cargar cartas');
                 
                 const data = await response.json();
