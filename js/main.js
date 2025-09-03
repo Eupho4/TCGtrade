@@ -3351,6 +3351,8 @@ async function fetchCards(query, searchMode = 'pokemontcg') {
                 const safeSeries = (card.set?.series || 'N/A').replace(/'/g, "\\'");
                 const safeNumber = (card.number || 'N/A').replace(/'/g, "\\'");
                 const safeImageUrl = (card.images?.small || '').replace(/'/g, "\\'");
+                const cardSource = card.source || 'pokemontcg';
+                const isAsianCard = cardSource === 'tcgdex';
 
                 const imgWrapper = document.createElement('div');
                 imgWrapper.className = 'w-10 h-10 flex items-center justify-center bg-transparent rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2 z-10';
@@ -3397,7 +3399,7 @@ async function fetchCards(query, searchMode = 'pokemontcg') {
                             <button class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs"
                                 onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">Ver Detalles</button>
                             <button class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs"
-                                onclick="addCardDirectly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">+ Añadir</button>
+                                onclick="addCardDirectly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}', '${cardSource}')">+ Añadir</button>
                         </div>
                     </div>
                 `;
@@ -3983,8 +3985,19 @@ function populateSetFilter(setsToDisplay) {
         asianSets.forEach(set => {
             const option = document.createElement('option');
             option.value = set.id;
-            option.textContent = set.displayName || `${set.name} (${set.total || set.printedTotal || 'N/A'} cartas)`;
+            const languages = set.availableLanguages || ['JA/KO/ZH'];
+            const langDisplay = languages.map(l => {
+                switch(l) {
+                    case 'ja': return '🇯🇵';
+                    case 'ko': return '🇰🇷';
+                    case 'zh-cn': 
+                    case 'zh-tw': return '🇨🇳';
+                    default: return l.toUpperCase();
+                }
+            }).join(' ');
+            option.textContent = `${set.displayName || set.name} ${langDisplay}`;
             option.dataset.source = 'tcgdex';
+            option.dataset.languages = JSON.stringify(languages);
             optgroup2.appendChild(option);
         });
         setFilter.appendChild(optgroup2);
@@ -4910,8 +4923,16 @@ window.showCardDetailsOnly = (cardId, cardName, imageUrl, setName, series, numbe
 };
 
 // Función para mostrar modal de confirmación personalizado
-window.showAddCardModal = (cardId, cardName, imageUrl, setName, series, number) => {
+window.showAddCardModal = (cardId, cardName, imageUrl, setName, series, number, source = 'pokemontcg') => {
     return new Promise((resolve) => {
+        // Detectar si es un set asiático basándose en el source o en el filtro actual
+        const setId = cardId.split('-')[0];
+        const currentSetOption = setFilter ? setFilter.selectedOptions[0] : null;
+        const isAsianSet = source === 'tcgdex' || (currentSetOption && currentSetOption.dataset.source === 'tcgdex');
+        const availableLanguages = currentSetOption && currentSetOption.dataset.languages 
+            ? JSON.parse(currentSetOption.dataset.languages) 
+            : ['ja', 'ko', 'zh-cn', 'zh-tw']; // Default para sets asiáticos
+        
         const modal = document.createElement('div');
         modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
         modal.innerHTML = `
@@ -4950,16 +4971,27 @@ window.showAddCardModal = (cardId, cardName, imageUrl, setName, series, number) 
                         </label>
                         <select id="cardLanguageSelect" 
                                 class="w-full p-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-400">
-                            <option value="Español" selected>🇪🇸 Español</option>
-                            <option value="Inglés">🇺🇸 Inglés</option>
-                            <option value="Francés">🇫🇷 Francés</option>
-                            <option value="Italiano">🇮🇹 Italiano</option>
-                            <option value="Alemán">🇩🇪 Alemán</option>
-                            <option value="Portugués">🇵🇹 Portugués</option>
-                            <option value="Japonés">🇯🇵 Japonés</option>
-                            <option value="Chino">🇨🇳 Chino</option>
-                            <option value="Coreano">🇰🇷 Coreano</option>
-                            <option value="Otro">🌍 Otro</option>
+                            ${isAsianSet && availableLanguages ? 
+                                // Para sets asiáticos, mostrar solo los idiomas disponibles
+                                availableLanguages.map(lang => {
+                                    const langOptions = {
+                                        'ja': { value: 'Japonés', flag: '🇯🇵', name: 'Japonés' },
+                                        'ko': { value: 'Coreano', flag: '🇰🇷', name: 'Coreano' },
+                                        'zh-cn': { value: 'Chino', flag: '🇨🇳', name: 'Chino Simplificado' },
+                                        'zh-tw': { value: 'Chino Tradicional', flag: '🇹🇼', name: 'Chino Tradicional' }
+                                    };
+                                    const opt = langOptions[lang] || { value: lang, flag: '🌏', name: lang };
+                                    return `<option value="${opt.value}" ${lang === 'ja' ? 'selected' : ''}>${opt.flag} ${opt.name}</option>`;
+                                }).join('') :
+                                // Para sets internacionales, mostrar los idiomas habituales
+                                `<option value="Español" selected>🇪🇸 Español</option>
+                                <option value="Inglés">🇺🇸 Inglés</option>
+                                <option value="Francés">🇫🇷 Francés</option>
+                                <option value="Italiano">🇮🇹 Italiano</option>
+                                <option value="Alemán">🇩🇪 Alemán</option>
+                                <option value="Portugués">🇵🇹 Portugués</option>
+                                <option value="Otro">🌍 Otro</option>`
+                            }
                         </select>
                     </div>
                 </div>
@@ -5016,14 +5048,14 @@ window.showAddCardModal = (cardId, cardName, imageUrl, setName, series, number) 
 };
 
 // Función para añadir carta directamente (botón separado)
-window.addCardDirectly = async (cardId, cardName, imageUrl, setName, series, number) => {
+window.addCardDirectly = async (cardId, cardName, imageUrl, setName, series, number, source = 'pokemontcg') => {
     if (!currentUser) {
         showNotification('Inicia sesión para añadir cartas a tu colección', 'warning', 4000);
         showAuthModal('login');
         return;
     }
 
-    const result = await showAddCardModal(cardId, cardName, imageUrl, setName, series, number);
+    const result = await showAddCardModal(cardId, cardName, imageUrl, setName, series, number, source);
     
     if (result) {
         addCardToCollection(cardId, cardName, imageUrl, setName, series, number, result.condition, result.language);
