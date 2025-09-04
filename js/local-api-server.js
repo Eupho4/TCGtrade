@@ -314,7 +314,7 @@ class LocalAPIServer {
         try {
             await this.init();
             
-            this.app.listen(this.port, () => {
+            this.app.listen(this.port, '0.0.0.0', () => {
                 console.log(`🚀 Servidor de API local ejecutándose en puerto ${this.port}`);
                 console.log(`🌐 URL: http://localhost:${this.port}`);
                 console.log(`📊 Estado: http://localhost:${this.port}/api/status`);
