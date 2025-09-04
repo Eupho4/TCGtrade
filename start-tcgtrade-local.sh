@@ -127,9 +127,9 @@ migrate_sample_data() {
 start_api_server() {
     print_status "Iniciando servidor de API local..."
     
-    # Verificar si el puerto 3002 está disponible
-    if lsof -Pi :3002 -sTCP:LISTEN -t >/dev/null ; then
-        print_warning "Puerto 3002 ya está en uso. Deteniendo proceso anterior..."
+    # Verificar si el puerto 8080 está disponible
+if lsof -Pi :8080 -sTCP:LISTEN -t >/dev/null ; then
+    print_warning "Puerto 8080 ya está en uso. Deteniendo proceso anterior..."
         pkill -f "local-api-server.js"
         sleep 2
     fi
@@ -141,8 +141,8 @@ start_api_server() {
     # Esperar a que el servidor esté listo
     print_status "Esperando a que el servidor esté listo..."
     for i in {1..30}; do
-        if curl -s http://localhost:3002/api/status > /dev/null 2>&1; then
-            print_success "Servidor de API local iniciado en puerto 3002"
+        if curl -s http://localhost:8080/api/status > /dev/null 2>&1; then
+            print_success "Servidor de API local iniciado en puerto 8080"
             break
         fi
         
@@ -171,9 +171,9 @@ show_system_info() {
     echo "=================================="
     echo ""
     echo "🌐 URLs disponibles:"
-    echo "  - TCGtrade Principal: http://localhost:3002"
-    echo "  - Panel de Admin: http://localhost:3002/admin-panel.html"
-    echo "  - API Status: http://localhost:3002/api/status"
+            echo "  - TCGtrade Principal: http://localhost:8080"
+        echo "  - Panel de Admin: http://localhost:8080/admin-panel.html"
+        echo "  - API Status: http://localhost:8080/api/status"
     echo ""
     echo "📊 Base de datos:"
     echo "  - Ubicación: ./data/cards.db"
@@ -184,7 +184,7 @@ show_system_info() {
     echo "  - Detener servidor: pkill -f 'local-api-server.js'"
     echo "  - Reiniciar: ./start-tcgtrade-local.sh"
     echo ""
-    echo "💡 Para acceder a TCGtrade, abre: http://localhost:3002"
+            echo "💡 Para acceder a TCGtrade, abre: http://localhost:8080"
     echo ""
 }
 

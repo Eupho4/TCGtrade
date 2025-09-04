@@ -34,11 +34,11 @@ class APISwitcher {
             const changes = [
                 {
                     from: 'https://api.pokemontcg.io/v2',
-                    to: 'http://localhost:3002/api/pokemontcg'
+                    to: 'http://localhost:8080/api/pokemontcg'
                 },
                 {
                     from: '/api/pokemontcg',
-                    to: 'http://localhost:3002/api/pokemontcg'
+                    to: 'http://localhost:8080/api/pokemontcg'
                 }
             ];
 
@@ -76,7 +76,7 @@ class APISwitcher {
             fs.writeFileSync(this.htmlFile, htmlContent, 'utf8');
             
             console.log('✅ TCGtrade configurado para usar API local');
-            console.log('🌐 API Local: http://localhost:3002');
+            console.log('🌐 API Local: http://localhost:8080');
             console.log('⚡ Rendimiento: 100x más rápido');
             
         } catch (error) {
