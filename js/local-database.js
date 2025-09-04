@@ -1,0 +1,292 @@
+const sqlite3 = require('sqlite3').verbose();
+const path = require('path');
+const fs = require('fs');
+
+class LocalCardDatabase {
+    constructor() {
+        this.dbPath = path.join(__dirname, '../data/cards.db');
+        this.ensureDataDirectory();
+        this.db = new sqlite3.Database(this.dbPath);
+        this.init();
+    }
+
+    ensureDataDirectory() {
+        const dataDir = path.dirname(this.dbPath);
+        if (!fs.existsSync(dataDir)) {
+            fs.mkdirSync(dataDir, { recursive: true });
+        }
+    }
+
+    async init() {
+        return new Promise((resolve, reject) => {
+            console.log('🗄️ Inicializando base de datos local...');
+            
+            // Crear tabla de cartas
+            this.db.run(`
+                CREATE TABLE IF NOT EXISTS cards (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    set_name TEXT,
+                    series TEXT,
+                    number TEXT,
+                    rarity TEXT,
+                    types TEXT,
+                    images TEXT,
+                    last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
+                    search_vector TEXT
+                )
+            `, (err) => {
+                if (err) {
+                    console.error('❌ Error creando tabla cards:', err);
+                    reject(err);
+                    return;
+                }
+
+                // Crear tabla de sets
+                this.db.run(`
+                    CREATE TABLE IF NOT EXISTS sets (
+                        id TEXT PRIMARY KEY,
+                        name TEXT NOT NULL,
+                        series TEXT,
+                        printed_total INTEGER,
+                        total INTEGER,
+                        legalities TEXT,
+                        ptcgo_code TEXT,
+                        release_date TEXT,
+                        updated_at TEXT,
+                        images TEXT
+                    )
+                `, (err) => {
+                    if (err) {
+                        console.error('❌ Error creando tabla sets:', err);
+                        reject(err);
+                        return;
+                    }
+
+                    // Crear índices para búsquedas rápidas
+                    this.createIndexes().then(() => {
+                        console.log('✅ Base de datos local inicializada correctamente');
+                        resolve();
+                    }).catch(reject);
+                });
+            });
+        });
+    }
+
+    async createIndexes() {
+        return new Promise((resolve, reject) => {
+            const indexes = [
+                'CREATE INDEX IF NOT EXISTS idx_cards_name ON cards(name)',
+                'CREATE INDEX IF NOT EXISTS idx_cards_set ON cards(set_name)',
+                'CREATE INDEX IF NOT EXISTS idx_cards_series ON cards(series)',
+                'CREATE INDEX IF NOT EXISTS idx_cards_number ON cards(number)',
+                'CREATE INDEX IF NOT EXISTS idx_cards_rarity ON cards(rarity)',
+                'CREATE INDEX IF NOT EXISTS idx_cards_types ON cards(types)',
+                'CREATE INDEX IF NOT EXISTS idx_cards_updated ON cards(last_updated)',
+                'CREATE INDEX IF NOT EXISTS idx_sets_name ON sets(name)',
+                'CREATE INDEX IF NOT EXISTS idx_sets_series ON sets(series)'
+            ];
+
+            let completed = 0;
+            const total = indexes.length;
+
+            indexes.forEach((indexSQL, i) => {
+                this.db.run(indexSQL, (err) => {
+                    if (err) {
+                        console.error(`❌ Error creando índice ${i + 1}:`, err);
+                    }
+                    
+                    completed++;
+                    if (completed === total) {
+                        console.log('✅ Índices creados correctamente');
+                        resolve();
+                    }
+                });
+            });
+        });
+    }
+
+    // Función para ejecutar queries con promesas
+    run(sql, params = []) {
+        return new Promise((resolve, reject) => {
+            this.db.run(sql, params, function(err) {
+                if (err) reject(err);
+                else resolve({ id: this.lastID, changes: this.changes });
+            });
+        });
+    }
+
+    get(sql, params = []) {
+        return new Promise((resolve, reject) => {
+            this.db.get(sql, params, (err, row) => {
+                if (err) reject(err);
+                else resolve(row);
+            });
+        });
+    }
+
+    all(sql, params = []) {
+        return new Promise((resolve, reject) => {
+            this.db.all(sql, params, (err, rows) => {
+                if (err) reject(err);
+                else resolve(rows);
+            });
+        });
+    }
+
+    // Búsqueda de cartas optimizada
+    async searchCards(query, page = 1, pageSize = 20, filters = {}) {
+        try {
+            const queryLower = `%${query.toLowerCase()}%`;
+            const offset = (page - 1) * pageSize;
+            
+            let whereClause = 'WHERE (name LIKE ? OR set_name LIKE ? OR series LIKE ?)';
+            let params = [queryLower, queryLower, queryLower];
+            
+            // Aplicar filtros adicionales
+            if (filters.set) {
+                whereClause += ' AND set_name = ?';
+                params.push(filters.set);
+            }
+            
+            if (filters.rarity) {
+                whereClause += ' AND rarity = ?';
+                params.push(filters.rarity);
+            }
+            
+            if (filters.type) {
+                whereClause += ' AND types LIKE ?';
+                params.push(`%${filters.type}%`);
+            }
+
+            // Obtener cartas
+            const cards = await this.all(`
+                SELECT * FROM cards 
+                ${whereClause}
+                ORDER BY name
+                LIMIT ? OFFSET ?
+            `, [...params, pageSize, offset]);
+
+            // Obtener total de resultados
+            const totalResult = await this.get(`
+                SELECT COUNT(*) as count FROM cards 
+                ${whereClause}
+            `, params);
+
+            // Procesar imágenes JSON
+            const processedCards = cards.map(card => ({
+                ...card,
+                images: card.images ? JSON.parse(card.images) : null,
+                types: card.types ? card.types.split(',') : []
+            }));
+
+            return {
+                data: processedCards,
+                totalCount: totalResult.count,
+                page,
+                pageSize,
+                totalPages: Math.ceil(totalResult.count / pageSize)
+            };
+        } catch (error) {
+            console.error('❌ Error en búsqueda local:', error);
+            throw error;
+        }
+    }
+
+    // Obtener carta por ID
+    async getCardById(id) {
+        try {
+            const card = await this.get('SELECT * FROM cards WHERE id = ?', [id]);
+            if (card) {
+                return {
+                    ...card,
+                    images: card.images ? JSON.parse(card.images) : null,
+                    types: card.types ? card.types.split(',') : []
+                };
+            }
+            return null;
+        } catch (error) {
+            console.error('❌ Error obteniendo carta por ID:', error);
+            throw error;
+        }
+    }
+
+    // Obtener sets disponibles
+    async getSets() {
+        try {
+            const sets = await this.all('SELECT * FROM sets ORDER BY name');
+            return sets.map(set => ({
+                ...set,
+                images: set.images ? JSON.parse(set.images) : null
+            }));
+        } catch (error) {
+            console.error('❌ Error obteniendo sets:', error);
+            throw error;
+        }
+    }
+
+    // Obtener estadísticas de la base de datos
+    async getStats() {
+        try {
+            const cardCount = await this.get('SELECT COUNT(*) as count FROM cards');
+            const setCount = await this.get('SELECT COUNT(*) as count FROM sets');
+            const lastUpdate = await this.get('SELECT MAX(last_updated) as last FROM cards');
+            
+            return {
+                totalCards: cardCount.count,
+                totalSets: setCount.count,
+                lastUpdated: lastUpdate.last,
+                databaseSize: await this.getDatabaseSize()
+            };
+        } catch (error) {
+            console.error('❌ Error obteniendo estadísticas:', error);
+            throw error;
+        }
+    }
+
+    // Obtener tamaño de la base de datos
+    async getDatabaseSize() {
+        try {
+            const stats = fs.statSync(this.dbPath);
+            const sizeInMB = (stats.size / (1024 * 1024)).toFixed(2);
+            return `${sizeInMB} MB`;
+        } catch (error) {
+            return 'N/A';
+        }
+    }
+
+    // Cerrar conexión
+    close() {
+        return new Promise((resolve) => {
+            this.db.close((err) => {
+                if (err) {
+                    console.error('❌ Error cerrando base de datos:', err);
+                } else {
+                    console.log('✅ Base de datos cerrada correctamente');
+                }
+                resolve();
+            });
+        });
+    }
+}
+
+// Exportar la clase
+module.exports = LocalCardDatabase;
+
+// Si se ejecuta directamente, crear una instancia de prueba
+if (require.main === module) {
+    (async () => {
+        try {
+            const db = new LocalCardDatabase();
+            await db.init();
+            
+            const stats = await db.getStats();
+            console.log('📊 Estadísticas de la base de datos:');
+            console.log(stats);
+            
+            await db.close();
+        } catch (error) {
+            console.error('❌ Error en prueba:', error);
+        }
+    })();
+}
