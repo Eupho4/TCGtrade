@@ -5756,6 +5756,10 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 lastSearchBase = base;
                 searchPage = 1;
                 searchPageSize = 20;
+                
+                // Generar ID único para esta búsqueda (para cache)
+                currentSearchId = Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                console.log('🆔 Nueva búsqueda con ID:', currentSearchId);
                 const apiUrl = buildCardsApiUrl(base, searchPage, searchPageSize);
 
                 console.log('🌐 Fetching from URL:', apiUrl);
@@ -8805,6 +8809,8 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
         let searchPage = 1;
         let searchPageSize = 20;
         let searchTotal = 0;
+        let searchCache = new Map(); // Cache para resultados de búsqueda
+        let currentSearchId = null; // ID único para cada búsqueda
 
         function buildCardsQuery(baseQuery) {
             const filters = [];
@@ -8855,9 +8861,24 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
         }
 
         async function goToSearchPage(targetPage) {
+            // Verificar si ya tenemos esta página en cache
+            const cacheKey = `${currentSearchId}_${targetPage}`;
+            if (searchCache.has(cacheKey)) {
+                console.log('⚡ Loading from cache:', targetPage);
+                const cachedData = searchCache.get(cacheKey);
+                searchPage = targetPage;
+                renderCardsFromData(cachedData.cards);
+                renderPagination(cachedData.totalCount, searchPage, searchPageSize);
+                return;
+            }
+
+            // Si no está en cache, hacer la llamada a la API
             searchPage = targetPage;
             const apiUrl = buildCardsApiUrl(lastSearchBase, searchPage, searchPageSize);
             console.log('🌐 Fetching page:', searchPage, apiUrl);
+
+            // Mostrar loading instantáneo
+            showPageLoading();
 
             const controller = new AbortController();
             const timeoutId = setTimeout(() => controller.abort(), 20000);
@@ -8941,11 +8962,123 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 });
 
                 const totalCount = data.totalCount || 0;
+
+                // Guardar en cache
+                searchCache.set(cacheKey, { cards, totalCount });
+                
+                // Limpiar cache si es muy grande (máximo 50 páginas)
+                if (searchCache.size > 50) {
+                    const firstKey = searchCache.keys().next().value;
+                    searchCache.delete(firstKey);
+                }
+
+                renderCardsFromData(cards);
                 renderPagination(totalCount, searchPage, searchPageSize);
+                hidePageLoading();
             } catch (e) {
                 clearTimeout(timeoutId);
                 console.error('❌ Error al cargar página:', e);
+                hidePageLoading();
+                showPageError();
             }
+        }
+
+        // Función para renderizar cartas desde datos (reutilizable)
+        function renderCardsFromData(cards) {
+            cardsContainer.innerHTML = '';
+            cards.forEach((card) => {
+                // Función para escapar caracteres especiales
+                const escapeForOnclick = (str) => {
+                    return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+                };
+                
+                const safeCardId = escapeForOnclick(card.id);
+                const safeCardName = escapeForOnclick(card.name);
+                const safeSetName = escapeForOnclick(card.set?.name || 'N/A');
+                const safeSeries = escapeForOnclick(card.set?.series || 'N/A');
+                const safeNumber = escapeForOnclick(card.number || 'N/A');
+                const safeImageUrl = escapeForOnclick(card.images?.small);
+
+                const row = document.createElement('div');
+                row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 h-16 overflow-visible';
+                const imgWrapper = document.createElement('div');
+                imgWrapper.className = 'w-10 h-10 flex items-center justify-center bg-transparent rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2 z-10';
+                imgWrapper.title = 'Pasa el mouse para ver imagen';
+                imgWrapper.innerHTML = '<span class="text-xl">🎴</span>';
+                
+                // Crear contenedor de imagen con hover
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'hidden absolute left-14 top-1/2 -translate-y-1/2 z-30';
+                imgContainer.style.pointerEvents = 'none';
+                
+                const imgEl = document.createElement('img');
+                imgEl.src = (card.images?.large || card.images?.small) || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen';
+                imgEl.alt = card.name || 'Carta';
+                imgEl.className = 'w-64 h-auto object-contain rounded-lg shadow-2xl border-2 border-gray-200';
+                imgEl.onerror = () => { imgEl.src = 'https://placehold.co/400x550/a0aec0/ffffff?text=Error'; };
+                
+                imgContainer.appendChild(imgEl);
+                row.appendChild(imgContainer);
+                
+                // Eventos de hover
+                imgWrapper.addEventListener('mouseenter', () => { 
+                    imgContainer.classList.remove('hidden');
+                });
+                
+                imgWrapper.addEventListener('mouseleave', () => { 
+                    imgContainer.classList.add('hidden');
+                });
+
+                const info = document.createElement('div');
+                info.className = 'flex-1 min-w-0 pl-16';
+                info.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="truncate">
+                            <div class="font-semibold text-gray-900 dark:text-white truncate">${card.name || 'Nombre no disponible'}</div>
+                            <div class="text-xs text-gray-600 dark:text-gray-300 truncate">Set: ${card.set?.name || 'N/A'} · Serie: ${card.set?.series || 'N/A'} · Nº: ${card.number || 'N/A'}</div>
+                        </div>
+                        <div class="flex gap-2 items-center">
+                            <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs"
+                                onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">Ver Detalles</button>
+                            <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs"
+                                onclick="addCardDirectly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">+ Añadir</button>
+                        </div>
+                    </div>
+                `;
+
+                row.appendChild(imgWrapper);
+                row.appendChild(info);
+                cardsContainer.appendChild(row);
+            });
+        }
+
+        // Funciones para mostrar/ocultar loading de página
+        function showPageLoading() {
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.id = 'pageLoadingIndicator';
+            loadingIndicator.className = 'absolute inset-0 bg-white dark:bg-gray-800 bg-opacity-90 flex items-center justify-center z-10';
+            loadingIndicator.innerHTML = `
+                <div class="flex flex-col items-center">
+                    <div class="pokeball-spinner mb-3"></div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Cambiando página...</p>
+                </div>
+            `;
+            cardsContainer.style.position = 'relative';
+            cardsContainer.appendChild(loadingIndicator);
+        }
+
+        function hidePageLoading() {
+            const loadingIndicator = document.getElementById('pageLoadingIndicator');
+            if (loadingIndicator) {
+                loadingIndicator.remove();
+            }
+        }
+
+        function showPageError() {
+            const errorIndicator = document.createElement('div');
+            errorIndicator.className = 'text-center text-red-500 py-8';
+            errorIndicator.innerHTML = '❌ Error al cargar la página. Intenta de nuevo.';
+            cardsContainer.appendChild(errorIndicator);
         }
     </script>
 
