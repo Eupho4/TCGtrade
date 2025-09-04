@@ -1,5 +1,5 @@
 // Traducciones de nombres de Pokémon coreano a inglés
-export const pokemonNameTranslationsKO = {
+const pokemonNameTranslationsKO = {
   // Gen 1 (Kanto)
   '이상해씨': 'Bulbasaur',
   '이상해풀': 'Ivysaur',

@@ -522,7 +522,7 @@ app.get('/api/tcgdex/cards', async (req, res) => {
     
     // Normalize response
     const response = {
-      data: results.map(card => ({
+      data: results.length > 0 ? results.map(card => ({
         id: card.id,
         name: card.localName || card.name,
         nameEN: card.name,
@@ -543,7 +543,7 @@ app.get('/api/tcgdex/cards', async (req, res) => {
         hp: card.hp,
         source: 'tcgdex',
         language: card.language || 'unknown'
-      })),
+      })) : [],
       page: parseInt(page),
       pageSize: parseInt(pageSize),
       count: results.length,

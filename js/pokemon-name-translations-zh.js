@@ -1,5 +1,5 @@
 // Traducciones de nombres de Pokémon chino a inglés (Simplificado y Tradicional)
-export const pokemonNameTranslationsZH = {
+const pokemonNameTranslationsZH = {
   // Gen 1 (Kanto) - Chino Simplificado
   '妙蛙种子': 'Bulbasaur',
   '妙蛙草': 'Ivysaur',
