@@ -27,11 +27,15 @@ class LocalCardDatabase {
                     id TEXT PRIMARY KEY,
                     name TEXT NOT NULL,
                     set_name TEXT,
+                    set_id TEXT,
                     series TEXT,
                     number TEXT,
                     rarity TEXT,
                     types TEXT,
+                    subtypes TEXT,
                     images TEXT,
+                    tcgplayer TEXT,
+                    cardmarket TEXT,
                     last_updated DATETIME DEFAULT CURRENT_TIMESTAMP,
                     search_vector TEXT
                 )
