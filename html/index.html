@@ -10315,6 +10315,11 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 </aside>
                 <!-- Lista de resultados -->
                 <div class="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow p-2">
+                    <!-- Loading spinner con Pokéball -->
+                    <div id="loadingSpinner" class="hidden flex flex-col items-center justify-center py-16">
+                        <div class="pokeball-spinner mb-6"></div>
+                        <p class="text-xl text-gray-700 dark:text-gray-300 font-semibold">🔍 Buscando cartas...</p>
+                    </div>
                     <div id="cardsContainer" class="divide-y divide-gray-200 dark:divide-gray-700"></div>
                     <p id="noResultsMessage" class="text-center text-gray-600 dark:text-gray-400 mt-8 hidden">No se encontraron resultados para tu búsqueda.</p>
                     <p id="errorMessage" class="text-center text-red-500 mt-8 hidden">Ha ocurrido un error al cargar las cartas.</p>
@@ -11761,13 +11766,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
         </div>
     </footer>
 
-    <!-- Overlay de carga con Pokéball girando -->
-    <div id="loadingSpinner" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
-        <div class="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-2xl flex flex-col items-center">
-            <div class="pokeball-spinner mb-6"></div>
-            <p class="text-xl text-gray-700 dark:text-gray-300 font-semibold">🔍 Buscando cartas...</p>
-        </div>
-    </div>
+
 
 </body>
 </html>
