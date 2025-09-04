@@ -32,16 +32,6 @@ const inflightEbayRequests = new Map();     // cacheKey -> Promise
 app.use(cors());
 app.use(express.json({ limit: '2mb' }));
 
-// Servir archivos estáticos desde el directorio raíz
-app.use(express.static('.'))
-// Servir archivos de imágenes
-app.use('/images', express.static('images'))
-
-// Servir archivo HTML principal
-app.get('/', (req, res) => {
-  res.sendFile(path.join(__dirname, 'html', 'index.html'));
-});
-
 // Función de rate limiting
 function checkRateLimit(identifier) {
   const now = Date.now();
@@ -1502,6 +1492,16 @@ app.get('*', (req, res) => {
     }
   });
 });
+
+// Servir archivo HTML principal (ANTES del middleware estático)
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'html', 'index.html'));
+});
+
+// Servir archivos estáticos desde el directorio raíz (DESPUÉS de las rutas API)
+app.use(express.static('.'))
+// Servir archivos de imágenes
+app.use('/images', express.static('images'))
 
 // Iniciar servidor
 app.listen(PORT, () => {
