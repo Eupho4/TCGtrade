@@ -543,7 +543,12 @@ input:checked + .toggle-slider:hover {
     width: 40px;
     height: 40px;
     animation: spin 1s linear infinite;
-    display: none;
+}
+
+/* Modo oscuro para el loader */
+.dark-mode .loader {
+    border-color: #4b5563;
+    border-top-color: #f97316;
 }
 
 /* ==============================================
