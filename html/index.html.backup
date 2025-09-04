@@ -1189,7 +1189,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 try {
                     // Usar el proxy en lugar de la API directa
                     const encodedQuery = encodeURIComponent(query);
-                    const response = await fetch(`http://localhost:3002/api/pokemontcg/cards?q=name:${encodedQuery}*&pageSize=10`, {
+                    const response = await fetch(`/api/pokemontcg/cards?q=name:${encodedQuery}*&pageSize=10`, {
                         headers: { 'Content-Type': 'application/json' }
                     });
                     const data = await response.json();
@@ -2668,7 +2668,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             proposalSearchTimeout = setTimeout(async () => {
                 try {
                     const encodedQuery = encodeURIComponent(query);
-                    const response = await fetch(`http://localhost:3002/api/pokemontcg/cards?q=name:${encodedQuery}*&pageSize=10`, {
+                    const response = await fetch(`/api/pokemontcg/cards?q=name:${encodedQuery}*&pageSize=10`, {
                         headers: { 'Content-Type': 'application/json' }
                     });
                     const data = await response.json();
@@ -6046,7 +6046,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
 
             try {
                 // URL corregida para usar tu función pokemon-proxy
-                const response = await fetch(`http://localhost:3002/api/pokemontcg/cards?q=set.id:${setId}&pageSize=500`, {
+                const response = await fetch(`/api/pokemontcg/cards?q=set.id:${setId}&pageSize=500`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
@@ -6294,7 +6294,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos
 
                 // Intentar primero con menos sets para ver si funciona
-                const response = await fetch('http://localhost:3002/api/pokemontcg/sets?pageSize=20&orderBy=-releaseDate', {
+                const response = await fetch('/api/pokemontcg/sets?pageSize=20&orderBy=-releaseDate', {
                     method: 'GET',
                     signal: controller.signal,
                     headers: {
@@ -8160,7 +8160,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             try {
                 // Cargar sets de ambas APIs
                 const [pokemonResponse, tcgdexResponse] = await Promise.allSettled([
-                    fetch('http://localhost:3002/api/pokemontcg/sets'),
+                    fetch('/api/pokemontcg/sets'),
                     fetch('/api/tcgdex/sets')
                 ]);
                 
@@ -8297,7 +8297,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                     response = await fetch(`/api/tcgdex/cards?set=${setId}`);
                 } else {
                     // Usar API de Pokemon TCG
-                    response = await fetch(`http://localhost:3002/api/pokemontcg/cards?q=set.id:${setId}&pageSize=250&orderBy=number`);
+                    response = await fetch(`/api/pokemontcg/cards?q=set.id:${setId}&pageSize=250&orderBy=number`);
                 }
                 
                 if (!response.ok) throw new Error('Error al cargar cartas');
@@ -8466,7 +8466,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             try {
                 // Intentar con wildcard pero menos resultados
                 const encodedQuery = encodeURIComponent(query.toLowerCase());
-                const moreUrl = `http://localhost:3002/api/pokemontcg/cards?q=name:*${encodedQuery}*&pageSize=50`;
+                const moreUrl = `/api/pokemontcg/cards?q=name:*${encodedQuery}*&pageSize=50`;
                 
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 15000); // Más tiempo
@@ -8570,7 +8570,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             try {
                 const encodedQuery = encodeURIComponent(query.toLowerCase());
                 // Búsqueda súper específica y rápida
-                const quickUrl = `http://localhost:3002/api/pokemontcg/cards?q=name:${encodedQuery}&pageSize=10`;
+                const quickUrl = `/api/pokemontcg/cards?q=name:${encodedQuery}&pageSize=10`;
                 
                 console.log('🚀 Quick URL:', quickUrl);
                 
@@ -8825,7 +8825,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             const withFilters = buildCardsQuery(baseQuery);
             const qParam = encodeURIComponent(withFilters);
             const pageParam = page ? `&page=${page}` : '';
-            return `http://localhost:3002/api/pokemontcg/cards?q=${qParam}${pageParam}&pageSize=${pageSize}`;
+            return `/api/pokemontcg/cards?q=${qParam}${pageParam}&pageSize=${pageSize}`;
         }
 
         function renderPagination(totalCount, page, pageSize) {
@@ -10112,11 +10112,6 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                         <span class="hidden dark:inline">🌙</span>
                     </span>
                 </button>
-                
-                <!-- Panel de Administración -->
-                <a href="admin-panel.html" class="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium transition-colors">
-                    ⚙️ Admin
-                </a>
             </nav>
         </div>
     </header>
@@ -11909,12 +11904,5 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
 
 
 
-
-                <!-- ==============================================
-                     INFORMACIÓN DE RENDIMIENTO
-                     ============================================== -->
-                <div id="performanceInfo" class="fixed top-16 right-4 bg-blue-500 text-white px-3 py-1 rounded-full text-sm font-medium shadow-lg z-50">
-                    ⚡ 100x Más Rápido
-                </div>
-            </body>
+</body>
 </html>
