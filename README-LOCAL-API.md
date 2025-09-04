@@ -16,7 +16,7 @@ TCGtrade ahora incluye un sistema completo de **API local** que reemplaza las AP
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
 │   Frontend      │    │   API Local      │    │   Base de       │
 │   TCGtrade      │◄──►│   Express.js     │◄──►│   Datos SQLite  │
-│   (HTML/JS)     │    │   Puerto 3002    │    │   (cards.db)    │
+│   (HTML/JS)     │    │   Puerto 8080    │    │   (cards.db)    │
 └─────────────────┘    └──────────────────┘    └─────────────────┘
 ```
 
@@ -64,7 +64,7 @@ node js/migrate-sample-data.js
 # 3. Iniciar servidor API local
 node js/local-api-server.js
 
-# 4. Abrir TCGtrade en: http://localhost:3002
+# 4. Abrir TCGtrade en: http://localhost:8080
 ```
 
 ## 🔧 **Configuración**
@@ -85,8 +85,8 @@ node js/switch-to-local-api.js external
 ### **Variables de Entorno**
 
 ```bash
-# Puerto del servidor (por defecto: 3002)
-export PORT=3002
+# Puerto del servidor (por defecto: 8080)
+export PORT=8080
 
 # Ruta de la base de datos
 export DB_PATH=./data/cards.db
@@ -199,7 +199,7 @@ GET /api/status
 
 ## 🛠️ **Panel de Administración**
 
-Accede al panel de administración en: `http://localhost:3002/admin-panel.html`
+Accede al panel de administración en: `http://localhost:8080/admin-panel.html`
 
 ### **Funcionalidades:**
 
@@ -238,20 +238,20 @@ Accede al panel de administración en: `http://localhost:3002/admin-panel.html`
 
 ```bash
 # Iniciar migración completa
-curl -X POST http://localhost:3002/api/admin/migrate
+curl -X POST http://localhost:8080/api/admin/migrate
 
 # Ver progreso
-curl http://localhost:3002/api/admin/migration-progress
+curl http://localhost:8080/api/admin/migration-progress
 
 # Detener migración
-curl -X POST http://localhost:3002/api/admin/migration-stop
+curl -X POST http://localhost:8080/api/admin/migration-stop
 ```
 
 ### **Sincronización Incremental**
 
 ```bash
 # Sincronizar solo datos nuevos
-curl -X POST http://localhost:3002/api/admin/sync \
+curl -X POST http://localhost:8080/api/admin/sync \
   -H "Content-Type: application/json" \
   -d '{"type": "cards"}'
 ```
@@ -261,7 +261,7 @@ curl -X POST http://localhost:3002/api/admin/sync \
 ### **Error: Puerto en uso**
 ```bash
 # Verificar qué está usando el puerto
-lsof -i :3002
+lsof -i :8080
 
 # Detener proceso anterior
 pkill -f "local-api-server.js"
@@ -374,13 +374,13 @@ grep "GET /api" logs/api-server.log | wc -l
 
 ```bash
 # Tiempo de respuesta promedio
-curl -w "@curl-format.txt" -o /dev/null -s "http://localhost:3002/api/pokemontcg/cards?q=pikachu"
+curl -w "@curl-format.txt" -o /dev/null -s "http://localhost:8080/api/pokemontcg/cards?q=pikachu"
 
 # Tamaño de base de datos
 du -h data/cards.db
 
 # Estadísticas de cache
-curl http://localhost:3002/api/status | jq '.cache'
+curl http://localhost:8080/api/status | jq '.cache'
 ```
 
 ## 🎯 **Casos de Uso**
@@ -429,10 +429,10 @@ curl http://localhost:3002/api/status | jq '.cache'
 node js/switch-to-local-api.js help
 
 # Estado del sistema
-curl http://localhost:3002/api/status
+curl http://localhost:8080/api/status
 
 # Verificar migración
-curl http://localhost:3002/api/admin/migration-progress
+curl http://localhost:8080/api/admin/migration-progress
 ```
 
 ### **Logs de Debug**

@@ -8,7 +8,7 @@ class LocalAPIServer {
         this.app = express();
         this.searchEngine = new LocalSearchEngine();
         this.migrator = new DataMigrator();
-        this.port = process.env.PORT || 3002;
+        this.port = process.env.PORT || 8080;
         this.isInitialized = false;
         
         this.setupMiddleware();
