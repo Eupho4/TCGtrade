@@ -8252,7 +8252,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                         option.textContent = displayText;
                         // Guardar indicadores como data attribute para uso posterior
                         option.dataset.langIndicators = langIndicators.join(',');
-                        option.dataset.languages = JSON.stringify(languages);
+                        option.dataset.languages = JSON.stringify(set.availableLanguages || []);
                         optgroup2.appendChild(option);
                     });
                     selector.appendChild(optgroup2);
