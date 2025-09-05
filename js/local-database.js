@@ -197,6 +197,39 @@ class LocalCardDatabase {
         }
     }
 
+    // Agregar carta a la base de datos
+    async addCard(cardData) {
+        try {
+            const sql = `
+                INSERT OR REPLACE INTO cards (
+                    id, name, set_name, set_id, series, number, rarity, 
+                    types, subtypes, images, tcgplayer, cardmarket, last_updated
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            `;
+            
+            const params = [
+                cardData.id,
+                cardData.name,
+                cardData.set_name || '',
+                cardData.set_id || '',
+                cardData.series || '',
+                cardData.number || '',
+                cardData.rarity || '',
+                cardData.types || '',
+                cardData.subtypes || '',
+                cardData.images || '',
+                cardData.tcgplayer || '',
+                cardData.cardmarket || ''
+            ];
+            
+            await this.run(sql, params);
+            return true;
+        } catch (error) {
+            console.error('❌ Error agregando carta:', error);
+            throw error;
+        }
+    }
+
     // Obtener carta por ID
     async getCardById(id) {
         try {
