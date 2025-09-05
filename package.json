@@ -5,8 +5,8 @@
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node server.js",
+    "start": "node js/local-api-server.js",
+    "dev": "node js/local-api-server.js",
     "build": "echo 'Build completed for Railway'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
