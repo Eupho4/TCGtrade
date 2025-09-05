@@ -14,3 +14,29 @@ nohup: ignoring input
 ⚠️ Intento 1 falló: This operation was aborted
 ⏳ Esperando 1s antes del siguiente intento...
 📡 Intento 2/10: https://api.pokemontcg.io/v2/cards?page=65&pageSize=250
+⚠️ Intento 2 falló: HTTP 504: Gateway Timeout
+⏳ Esperando 2s antes del siguiente intento...
+📡 Intento 3/10: https://api.pokemontcg.io/v2/cards?page=65&pageSize=250
+🎴 Procesando 250 cartas...
+✅ Lote procesado: 20 cartas totales
+✅ Lote procesado: 40 cartas totales
+✅ Lote procesado: 60 cartas totales
+✅ Lote procesado: 80 cartas totales
+✅ Lote procesado: 100 cartas totales
+✅ Lote procesado: 120 cartas totales
+✅ Lote procesado: 140 cartas totales
+✅ Lote procesado: 160 cartas totales
+✅ Lote procesado: 180 cartas totales
+✅ Lote procesado: 200 cartas totales
+✅ Lote procesado: 220 cartas totales
+✅ Lote procesado: 240 cartas totales
+✅ Lote procesado: 250 cartas totales
+
+📄 Procesando página 66...
+📡 Intento 1/10: https://api.pokemontcg.io/v2/cards?page=66&pageSize=250
+⚠️ Intento 1 falló: This operation was aborted
+⏳ Esperando 1s antes del siguiente intento...
+📡 Intento 2/10: https://api.pokemontcg.io/v2/cards?page=66&pageSize=250
+⚠️ Intento 2 falló: This operation was aborted
+⏳ Esperando 2s antes del siguiente intento...
+📡 Intento 3/10: https://api.pokemontcg.io/v2/cards?page=66&pageSize=250
