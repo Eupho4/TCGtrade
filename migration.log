@@ -109,3 +109,47 @@ nohup: ignoring input
 ✅ Lote procesado: 1330 cartas totales
 ✅ Lote procesado: 1350 cartas totales
 ✅ Lote procesado: 1370 cartas totales
+✅ Lote procesado: 1390 cartas totales
+✅ Lote procesado: 1410 cartas totales
+✅ Lote procesado: 1430 cartas totales
+✅ Lote procesado: 1450 cartas totales
+✅ Lote procesado: 1470 cartas totales
+✅ Lote procesado: 1490 cartas totales
+✅ Lote procesado: 1500 cartas totales
+
+📄 Procesando página 71...
+📡 Intento 1/10: https://api.pokemontcg.io/v2/cards?page=71&pageSize=250
+🎴 Procesando 250 cartas...
+✅ Lote procesado: 1520 cartas totales
+✅ Lote procesado: 1540 cartas totales
+✅ Lote procesado: 1560 cartas totales
+✅ Lote procesado: 1580 cartas totales
+✅ Lote procesado: 1600 cartas totales
+✅ Lote procesado: 1620 cartas totales
+✅ Lote procesado: 1640 cartas totales
+✅ Lote procesado: 1660 cartas totales
+✅ Lote procesado: 1680 cartas totales
+✅ Lote procesado: 1700 cartas totales
+✅ Lote procesado: 1720 cartas totales
+✅ Lote procesado: 1740 cartas totales
+✅ Lote procesado: 1750 cartas totales
+
+📄 Procesando página 72...
+📡 Intento 1/10: https://api.pokemontcg.io/v2/cards?page=72&pageSize=250
+🎴 Procesando 250 cartas...
+✅ Lote procesado: 1770 cartas totales
+✅ Lote procesado: 1790 cartas totales
+✅ Lote procesado: 1810 cartas totales
+✅ Lote procesado: 1830 cartas totales
+✅ Lote procesado: 1850 cartas totales
+✅ Lote procesado: 1870 cartas totales
+✅ Lote procesado: 1890 cartas totales
+✅ Lote procesado: 1910 cartas totales
+✅ Lote procesado: 1930 cartas totales
+✅ Lote procesado: 1950 cartas totales
+✅ Lote procesado: 1970 cartas totales
+✅ Lote procesado: 1990 cartas totales
+✅ Lote procesado: 2000 cartas totales
+
+📄 Procesando página 73...
+📡 Intento 1/10: https://api.pokemontcg.io/v2/cards?page=73&pageSize=250
