@@ -162,3 +162,24 @@ nohup: ignoring input
 📡 Intento 1/10: https://api.pokemontcg.io/v2/cards?page=72&pageSize=250
 ⚠️ Intento 1 falló: This operation was aborted
 ⏳ Esperando 1s antes del siguiente intento...
+📡 Intento 2/10: https://api.pokemontcg.io/v2/cards?page=72&pageSize=250
+🎴 Procesando 250 cartas...
+✅ Lote procesado: 1770 cartas totales
+✅ Lote procesado: 1790 cartas totales
+✅ Lote procesado: 1810 cartas totales
+✅ Lote procesado: 1830 cartas totales
+✅ Lote procesado: 1850 cartas totales
+✅ Lote procesado: 1870 cartas totales
+✅ Lote procesado: 1890 cartas totales
+✅ Lote procesado: 1910 cartas totales
+✅ Lote procesado: 1930 cartas totales
+✅ Lote procesado: 1950 cartas totales
+✅ Lote procesado: 1970 cartas totales
+✅ Lote procesado: 1990 cartas totales
+✅ Lote procesado: 2000 cartas totales
+
+📄 Procesando página 73...
+📡 Intento 1/10: https://api.pokemontcg.io/v2/cards?page=73&pageSize=250
+🎴 Procesando 250 cartas...
+✅ Lote procesado: 2020 cartas totales
+✅ Lote procesado: 2040 cartas totales
