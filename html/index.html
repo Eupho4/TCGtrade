@@ -7000,40 +7000,6 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             }
         }
         
-        // Configurar scroll del header
-        function setupHeaderScroll() {
-            const header = document.getElementById('modernHeader');
-            let lastScrollY = window.scrollY;
-            let ticking = false;
-            
-            function updateHeader() {
-                const scrollY = window.scrollY;
-                
-                if (header) {
-                    if (scrollY > 100) {
-                        header.classList.add('scrolled');
-                    } else {
-                        header.classList.remove('scrolled');
-                    }
-                    
-                    // Efecto parallax sutil
-                    const parallax = scrollY * 0.5;
-                    header.style.transform = `translateY(${parallax}px)`;
-                }
-                
-                lastScrollY = scrollY;
-                ticking = false;
-            }
-            
-            function requestTick() {
-                if (!ticking) {
-                    requestAnimationFrame(updateHeader);
-                    ticking = true;
-                }
-            }
-            
-            window.addEventListener('scroll', requestTick, { passive: true });
-        }
         
         // Configurar búsqueda inteligente
         function setupSmartSearch() {
@@ -7297,8 +7263,6 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             // Inicializar header moderno
             initializeModernHeader();
             
-            // Configurar scroll del header
-            setupHeaderScroll();
             
             // Configurar búsqueda inteligente
             setupSmartSearch();
@@ -9908,12 +9872,6 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
         }
         
-        .modern-header.scrolled {
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-        }
-        
         /* Fondo animado del header */
         .header-background {
             background: linear-gradient(-45deg, #667eea, #764ba2, #f093fb, #f5576c);
@@ -10428,31 +10386,6 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             white-space: nowrap;
         }
         
-        /* Indicador de API Local */
-        .api-indicator {
-            position: absolute;
-            top: 100%;
-            right: 20px;
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 0 0 8px 8px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
-            animation: pulse 2s infinite;
-        }
-        
-        .api-indicator-text {
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.8; }
-        }
         
         /* Responsive */
         @media (max-width: 768px) {
@@ -10998,7 +10931,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
     </div>
 
     <!-- Header Moderno con Glassmorphism -->
-    <header class="modern-header fixed top-0 left-0 right-0 z-50 transition-all duration-300" id="modernHeader">
+    <header class="modern-header fixed top-0 left-0 right-0 z-50" id="modernHeader">
         <!-- Fondo con gradiente animado -->
         <div class="header-background absolute inset-0 bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 opacity-90 dark:opacity-95"></div>
         
@@ -11121,11 +11054,6 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                     </a>
                 </div>
             </div>
-        </div>
-        
-        <!-- Indicador de API Local -->
-        <div class="api-indicator">
-            <span class="api-indicator-text">🚀 API Local</span>
         </div>
     </header>
     
