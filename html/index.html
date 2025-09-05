@@ -7993,17 +7993,19 @@
                 currentUser = user;
                 console.log('🔐 onAuthStateChanged ejecutado. Usuario:', !!user);
 
-                // Inicializar sistema de chat si el usuario está autenticado
+                // Inicializar sistema de chat si el usuario está autenticado (comentado - módulos no disponibles)
                 if (user && !chatManager) {
-                    chatManager = new ChatManager(auth, db);
-                    chatUI = new ChatUI(chatManager);
-                    const chatDebugger = new ChatDebugger(chatManager);
+                    console.log('💬 Chat deshabilitado - módulos no disponibles');
+                    // chatManager = new ChatManager(auth, db);
+                    // chatUI = new ChatUI(chatManager);
+                    // const chatDebugger = new ChatDebugger(chatManager);
                     
-                    window.chatManager = chatManager; // Hacer disponible globalmente
-                    window.chatUI = chatUI; // Hacer disponible globalmente
-                    window.chatDebugger = chatDebugger; // Hacer disponible globalmente
+                    // window.chatManager = chatManager; // Hacer disponible globalmente
+                    // window.chatUI = chatUI; // Hacer disponible globalmente
+                    // window.chatDebugger = chatDebugger; // Hacer disponible globalmente
                     
-                    // Escuchar actualizaciones de mensajes no leídos
+                    // Escuchar actualizaciones de mensajes no leídos (comentado - chat deshabilitado)
+                    /*
                     window.addEventListener('unreadCountUpdated', (event) => {
                         // Contar CHATS con mensajes sin leer (no mensajes totales)
                         let chatsWithUnread = 0;
@@ -8066,12 +8068,14 @@
                             await chatUI.updateChatBadge();
                         }
                     }, 10000);
+                    */
                     
                 } else if (!user && chatManager) {
-                    // Limpiar chat si el usuario cierra sesión
-                    chatManager.disconnectAll();
-                    chatManager = null;
-                    chatUI = null;
+                    // Limpiar chat si el usuario cierra sesión (comentado - chat deshabilitado)
+                    console.log('💬 Chat deshabilitado - limpieza omitida');
+                    // chatManager.disconnectAll();
+                    // chatManager = null;
+                    // chatUI = null;
                 }
 
                 // Obtener referencias a los elementos de navegación
