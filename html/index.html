@@ -7057,17 +7057,65 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             
             // Generar sugerencias inteligentes
             async function generateSmartSuggestions(query) {
-                // Simular sugerencias basadas en el query
-                const mockSuggestions = [
-                    { type: 'card', text: `Pikachu (${query})`, icon: '⚡' },
-                    { type: 'set', text: `Base Set (${query})`, icon: '📦' },
-                    { type: 'user', text: `Usuario ${query}`, icon: '👤' },
-                    { type: 'type', text: `Tipo ${query}`, icon: '🏷️' }
+                if (query.length < 2) return [];
+                
+                // Sugerencias más realistas basadas en Pokémon TCG
+                const suggestions = [];
+                
+                // Sugerencias de cartas populares
+                const popularCards = [
+                    'Pikachu', 'Charizard', 'Blastoise', 'Venusaur', 'Mewtwo', 
+                    'Lugia', 'Ho-Oh', 'Rayquaza', 'Garchomp', 'Lucario',
+                    'Greninja', 'Decidueye', 'Incineroar', 'Primarina'
                 ];
                 
-                return mockSuggestions.filter(s => 
-                    s.text.toLowerCase().includes(query.toLowerCase())
-                );
+                popularCards.forEach(card => {
+                    if (card.toLowerCase().includes(query.toLowerCase())) {
+                        suggestions.push({ 
+                            type: 'card', 
+                            text: card, 
+                            icon: '⚡',
+                            description: 'Carta Pokémon'
+                        });
+                    }
+                });
+                
+                // Sugerencias de sets populares
+                const popularSets = [
+                    'Base Set', 'Jungle', 'Fossil', 'Team Rocket', 'Gym Heroes',
+                    'Neo Genesis', 'Neo Discovery', 'Neo Destiny', 'Expedition',
+                    'Aquapolis', 'Skyridge', 'Ruby & Sapphire', 'Diamond & Pearl'
+                ];
+                
+                popularSets.forEach(set => {
+                    if (set.toLowerCase().includes(query.toLowerCase())) {
+                        suggestions.push({ 
+                            type: 'set', 
+                            text: set, 
+                            icon: '📦',
+                            description: 'Set de cartas'
+                        });
+                    }
+                });
+                
+                // Sugerencias de tipos
+                const types = [
+                    'Fire', 'Water', 'Grass', 'Electric', 'Psychic', 'Fighting',
+                    'Darkness', 'Metal', 'Dragon', 'Fairy', 'Colorless'
+                ];
+                
+                types.forEach(type => {
+                    if (type.toLowerCase().includes(query.toLowerCase())) {
+                        suggestions.push({ 
+                            type: 'type', 
+                            text: type, 
+                            icon: '🏷️',
+                            description: 'Tipo de energía'
+                        });
+                    }
+                });
+                
+                return suggestions.slice(0, 6); // Máximo 6 sugerencias
             }
             
             // Mostrar sugerencias
@@ -7080,7 +7128,10 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 searchSuggestions.innerHTML = suggestions.map(suggestion => `
                     <div class="suggestion-item" data-type="${suggestion.type}">
                         <span class="suggestion-icon">${suggestion.icon}</span>
-                        <span class="suggestion-text">${suggestion.text}</span>
+                        <div class="suggestion-content">
+                            <span class="suggestion-text">${suggestion.text}</span>
+                            <span class="suggestion-description">${suggestion.description || ''}</span>
+                        </div>
                     </div>
                 `).join('');
                 
@@ -7237,11 +7288,26 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             
             .suggestion-icon {
                 font-size: 1.2rem;
+                flex-shrink: 0;
+            }
+            
+            .suggestion-content {
+                display: flex;
+                flex-direction: column;
+                gap: 2px;
+                flex: 1;
             }
             
             .suggestion-text {
                 color: white;
-                font-weight: 500;
+                font-weight: 600;
+                font-size: 0.95rem;
+            }
+            
+            .suggestion-description {
+                color: rgba(255, 255, 255, 0.7);
+                font-size: 0.8rem;
+                font-weight: 400;
             }
         `;
         
@@ -10090,6 +10156,27 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             position: relative;
         }
         
+        .search-suggestions {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            margin-top: 4px;
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+        
+        .search-suggestions.hidden {
+            display: none;
+        }
+        
         .search-glass {
             display: flex;
             background: rgba(255, 255, 255, 0.1);
@@ -10130,13 +10217,14 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
         
         .modern-search-input {
             width: 100%;
-            padding: 12px 12px 12px 44px;
+            padding: 12px 16px 12px 44px;
             background: transparent;
             border: none;
             outline: none;
             color: white;
             font-size: 0.95rem;
             font-weight: 500;
+            box-sizing: border-box;
         }
         
         .modern-search-input::placeholder {
