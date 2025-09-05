@@ -183,3 +183,108 @@ nohup: ignoring input
 🎴 Procesando 250 cartas...
 ✅ Lote procesado: 2020 cartas totales
 ✅ Lote procesado: 2040 cartas totales
+✅ Lote procesado: 2060 cartas totales
+✅ Lote procesado: 2080 cartas totales
+✅ Lote procesado: 2100 cartas totales
+✅ Lote procesado: 2120 cartas totales
+✅ Lote procesado: 2140 cartas totales
+✅ Lote procesado: 2160 cartas totales
+✅ Lote procesado: 2180 cartas totales
+✅ Lote procesado: 2200 cartas totales
+✅ Lote procesado: 2220 cartas totales
+✅ Lote procesado: 2240 cartas totales
+✅ Lote procesado: 2250 cartas totales
+
+📄 Procesando página 74...
+📡 Intento 1/10: https://api.pokemontcg.io/v2/cards?page=74&pageSize=250
+⚠️ Intento 1 falló: This operation was aborted
+⏳ Esperando 1s antes del siguiente intento...
+📡 Intento 2/10: https://api.pokemontcg.io/v2/cards?page=74&pageSize=250
+🎴 Procesando 250 cartas...
+✅ Lote procesado: 2270 cartas totales
+✅ Lote procesado: 2290 cartas totales
+✅ Lote procesado: 2310 cartas totales
+✅ Lote procesado: 2330 cartas totales
+✅ Lote procesado: 2350 cartas totales
+✅ Lote procesado: 2370 cartas totales
+✅ Lote procesado: 2390 cartas totales
+✅ Lote procesado: 2410 cartas totales
+✅ Lote procesado: 2430 cartas totales
+✅ Lote procesado: 2450 cartas totales
+✅ Lote procesado: 2470 cartas totales
+✅ Lote procesado: 2490 cartas totales
+✅ Lote procesado: 2500 cartas totales
+
+📄 Procesando página 75...
+📡 Intento 1/10: https://api.pokemontcg.io/v2/cards?page=75&pageSize=250
+🎴 Procesando 250 cartas...
+✅ Lote procesado: 2520 cartas totales
+✅ Lote procesado: 2540 cartas totales
+✅ Lote procesado: 2560 cartas totales
+✅ Lote procesado: 2580 cartas totales
+✅ Lote procesado: 2600 cartas totales
+✅ Lote procesado: 2620 cartas totales
+✅ Lote procesado: 2640 cartas totales
+✅ Lote procesado: 2660 cartas totales
+✅ Lote procesado: 2680 cartas totales
+✅ Lote procesado: 2700 cartas totales
+✅ Lote procesado: 2720 cartas totales
+✅ Lote procesado: 2740 cartas totales
+✅ Lote procesado: 2750 cartas totales
+
+📄 Procesando página 76...
+📡 Intento 1/10: https://api.pokemontcg.io/v2/cards?page=76&pageSize=250
+🎴 Procesando 250 cartas...
+✅ Lote procesado: 2770 cartas totales
+✅ Lote procesado: 2790 cartas totales
+✅ Lote procesado: 2810 cartas totales
+✅ Lote procesado: 2830 cartas totales
+✅ Lote procesado: 2850 cartas totales
+✅ Lote procesado: 2870 cartas totales
+✅ Lote procesado: 2890 cartas totales
+✅ Lote procesado: 2910 cartas totales
+✅ Lote procesado: 2930 cartas totales
+✅ Lote procesado: 2950 cartas totales
+✅ Lote procesado: 2970 cartas totales
+✅ Lote procesado: 2990 cartas totales
+✅ Lote procesado: 3000 cartas totales
+
+📄 Procesando página 77...
+📡 Intento 1/10: https://api.pokemontcg.io/v2/cards?page=77&pageSize=250
+🎴 Procesando 250 cartas...
+✅ Lote procesado: 3020 cartas totales
+✅ Lote procesado: 3040 cartas totales
+✅ Lote procesado: 3060 cartas totales
+✅ Lote procesado: 3080 cartas totales
+✅ Lote procesado: 3100 cartas totales
+✅ Lote procesado: 3120 cartas totales
+✅ Lote procesado: 3140 cartas totales
+✅ Lote procesado: 3160 cartas totales
+✅ Lote procesado: 3180 cartas totales
+✅ Lote procesado: 3200 cartas totales
+✅ Lote procesado: 3220 cartas totales
+✅ Lote procesado: 3240 cartas totales
+✅ Lote procesado: 3250 cartas totales
+
+📄 Procesando página 78...
+📡 Intento 1/10: https://api.pokemontcg.io/v2/cards?page=78&pageSize=250
+🎴 Procesando 250 cartas...
+✅ Lote procesado: 3270 cartas totales
+✅ Lote procesado: 3290 cartas totales
+✅ Lote procesado: 3310 cartas totales
+✅ Lote procesado: 3330 cartas totales
+✅ Lote procesado: 3350 cartas totales
+✅ Lote procesado: 3370 cartas totales
+✅ Lote procesado: 3390 cartas totales
+✅ Lote procesado: 3410 cartas totales
+✅ Lote procesado: 3430 cartas totales
+✅ Lote procesado: 3450 cartas totales
+✅ Lote procesado: 3470 cartas totales
+✅ Lote procesado: 3490 cartas totales
+✅ Lote procesado: 3500 cartas totales
+
+📄 Procesando página 79...
+📡 Intento 1/10: https://api.pokemontcg.io/v2/cards?page=79&pageSize=250
+✅ No hay más cartas para migrar
+
+🎉 Migración completada! Total de cartas procesadas: 3500
