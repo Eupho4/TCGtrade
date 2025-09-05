@@ -68,3 +68,20 @@ nohup: ignoring input
 
 📄 Procesando página 68...
 📡 Intento 1/10: https://api.pokemontcg.io/v2/cards?page=68&pageSize=250
+🎴 Procesando 250 cartas...
+✅ Lote procesado: 770 cartas totales
+✅ Lote procesado: 790 cartas totales
+✅ Lote procesado: 810 cartas totales
+✅ Lote procesado: 830 cartas totales
+✅ Lote procesado: 850 cartas totales
+✅ Lote procesado: 870 cartas totales
+✅ Lote procesado: 890 cartas totales
+✅ Lote procesado: 910 cartas totales
+✅ Lote procesado: 930 cartas totales
+✅ Lote procesado: 950 cartas totales
+✅ Lote procesado: 970 cartas totales
+✅ Lote procesado: 990 cartas totales
+✅ Lote procesado: 1000 cartas totales
+
+📄 Procesando página 69...
+📡 Intento 1/10: https://api.pokemontcg.io/v2/cards?page=69&pageSize=250
