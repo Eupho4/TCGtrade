@@ -1189,7 +1189,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 try {
                     // Usar el proxy en lugar de la API directa
                     const encodedQuery = encodeURIComponent(query);
-                    const response = await fetch(`http://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=name:${encodedQuery}*&pageSize=10`, {
+                    const response = await fetch(`http://https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=name:${encodedQuery}*&pageSize=10`, {
                         headers: { 'Content-Type': 'application/json' }
                     });
                     const data = await response.json();
@@ -2668,7 +2668,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             proposalSearchTimeout = setTimeout(async () => {
                 try {
                     const encodedQuery = encodeURIComponent(query);
-                    const response = await fetch(`http://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=name:${encodedQuery}*&pageSize=10`, {
+                    const response = await fetch(`http://https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=name:${encodedQuery}*&pageSize=10`, {
                         headers: { 'Content-Type': 'application/json' }
                     });
                     const data = await response.json();
@@ -6046,7 +6046,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
 
             try {
                 // URL corregida para usar tu función pokemon-proxy
-                const response = await fetch(`http://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=set.id:${setId}&pageSize=500`, {
+                const response = await fetch(`http://https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=set.id:${setId}&pageSize=500`, {
                     method: 'GET',
                     headers: {
                         'Content-Type': 'application/json'
@@ -6294,7 +6294,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                 const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos
 
                 // Intentar primero con menos sets para ver si funciona
-                const response = await fetch('http://tcgtrade-production.up.railway.app/api/pokemontcg/sets?pageSize=20&orderBy=-releaseDate', {
+                const response = await fetch('http://https://tcgtrade-production.up.railway.app/api/pokemontcg/sets?pageSize=20&orderBy=-releaseDate', {
                     method: 'GET',
                     signal: controller.signal,
                     headers: {
@@ -8541,7 +8541,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             try {
                 // Cargar sets de ambas APIs
                 const [pokemonResponse, tcgdexResponse] = await Promise.allSettled([
-                    fetch('http://tcgtrade-production.up.railway.app/api/pokemontcg/sets'),
+                    fetch('http://https://tcgtrade-production.up.railway.app/api/pokemontcg/sets'),
                     fetch('/api/tcgdex/sets')
                 ]);
                 
@@ -8678,7 +8678,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
                     response = await fetch(`/api/tcgdex/cards?set=${setId}`);
                 } else {
                     // Usar API de Pokemon TCG
-                    response = await fetch(`http://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=set.id:${setId}&pageSize=250&orderBy=number`);
+                    response = await fetch(`http://https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=set.id:${setId}&pageSize=250&orderBy=number`);
                 }
                 
                 if (!response.ok) throw new Error('Error al cargar cartas');
@@ -8847,7 +8847,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             try {
                 // Intentar con wildcard pero menos resultados
                 const encodedQuery = encodeURIComponent(query.toLowerCase());
-                const moreUrl = `http://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=name:*${encodedQuery}*&pageSize=50`;
+                const moreUrl = `http://https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=name:*${encodedQuery}*&pageSize=50`;
                 
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 15000); // Más tiempo
@@ -8951,7 +8951,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             try {
                 const encodedQuery = encodeURIComponent(query.toLowerCase());
                 // Búsqueda súper específica y rápida
-                const quickUrl = `http://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=name:${encodedQuery}&pageSize=10`;
+                const quickUrl = `http://https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=name:${encodedQuery}&pageSize=10`;
                 
                 console.log('🚀 Quick URL:', quickUrl);
                 
@@ -9206,7 +9206,7 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             const withFilters = buildCardsQuery(baseQuery);
             const qParam = encodeURIComponent(withFilters);
             const pageParam = page ? `&page=${page}` : '';
-            return `http://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=${qParam}${pageParam}&pageSize=${pageSize}`;
+            return `http://https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=${qParam}${pageParam}&pageSize=${pageSize}`;
         }
 
         function renderPagination(totalCount, page, pageSize) {
