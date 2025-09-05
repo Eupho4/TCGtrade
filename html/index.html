@@ -10010,6 +10010,20 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             background: #ef4444;
             border-radius: 20px 20px 0 0;
             border: 2px solid #1f2937;
+            position: relative;
+        }
+        
+        .pokeball-top::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            border: 1px solid #1f2937;
         }
         
         .pokeball-center {
@@ -10463,6 +10477,20 @@ import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
             background: #ef4444;
             border-radius: 22px 22px 0 0;
             border: 2px solid #1f2937;
+            position: relative;
+        }
+        
+        .pokeball-top-mini::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 6px;
+            height: 6px;
+            background: white;
+            border-radius: 50%;
+            border: 1px solid #1f2937;
         }
         
         .pokeball-center-mini {
