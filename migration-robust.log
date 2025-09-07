@@ -1,0 +1,89 @@
+nohup: ignoring input
+🗄️ Inicializando base de datos local...
+🗄️ Inicializando base de datos local...
+🗄️ Inicializando migración ULTRA-ROBUSTA...
+🗄️ Inicializando base de datos local...
+✅ Índices creados correctamente
+✅ Base de datos local inicializada correctamente
+✅ Índices creados correctamente
+✅ Base de datos local inicializada correctamente
+✅ Índices creados correctamente
+✅ Base de datos local inicializada correctamente
+🗄️ Inicializando base de datos local...
+✅ Índices creados correctamente
+✅ Base de datos local inicializada correctamente
+🔍 Motor de búsqueda local inicializado
+✅ Migración ultra-robusta inicializada
+🚀 Iniciando MIGRACIÓN ULTRA-ROBUSTA de la API de Pokémon TCG...
+🛡️ Configurado para ser EXTREMADAMENTE persistente
+⚡ Timeouts: 90 segundos, Reintentos: 15, Páginas: desde 65
+
+📚 FASE 1: Migrando TODOS los sets...
+🌐 Obteniendo TODOS los sets con manejo ULTRA-ROBUSTO...
+📄 Obteniendo página 1 de sets...
+📚 Procesando 168 sets de la página 1...
+✅ 168 sets migrados hasta ahora
+📄 Obteniendo página 2 de sets...
+✅ 168 sets migrados correctamente
+
+🎴 FASE 2: Migrando TODAS las cartas restantes...
+🌐 Obteniendo TODAS las cartas con manejo ULTRA-ROBUSTO...
+📄 Empezando desde página 65...
+📄 Obteniendo página 65 de cartas...
+🎴 Procesando 250 cartas de la página 65...
+🎴 Cartas: 15 migradas - Página 65 - Progreso: 0.0%
+🎴 Cartas: 30 migradas - Página 65 - Progreso: 0.0%
+🎴 Cartas: 45 migradas - Página 65 - Progreso: 0.0%
+🎴 Cartas: 60 migradas - Página 65 - Progreso: 0.0%
+🎴 Cartas: 75 migradas - Página 65 - Progreso: 0.0%
+🎴 Cartas: 90 migradas - Página 65 - Progreso: 0.0%
+🎴 Cartas: 105 migradas - Página 65 - Progreso: 0.0%
+🎴 Cartas: 120 migradas - Página 65 - Progreso: 0.0%
+🎴 Cartas: 135 migradas - Página 65 - Progreso: 0.0%
+🎴 Cartas: 150 migradas - Página 65 - Progreso: 0.0%
+🎴 Cartas: 165 migradas - Página 65 - Progreso: 0.0%
+🎴 Cartas: 180 migradas - Página 65 - Progreso: 0.0%
+🎴 Cartas: 195 migradas - Página 65 - Progreso: 0.0%
+🎴 Cartas: 210 migradas - Página 65 - Progreso: 0.0%
+🎴 Cartas: 225 migradas - Página 65 - Progreso: 0.0%
+🎴 Cartas: 240 migradas - Página 65 - Progreso: 0.0%
+🎴 Cartas: 250 migradas - Página 65 - Progreso: 0.0%
+📄 Obteniendo página 66 de cartas...
+🎴 Procesando 250 cartas de la página 66...
+🎴 Cartas: 265 migradas - Página 66 - Progreso: 6.7%
+🎴 Cartas: 280 migradas - Página 66 - Progreso: 6.7%
+🎴 Cartas: 295 migradas - Página 66 - Progreso: 6.7%
+🎴 Cartas: 310 migradas - Página 66 - Progreso: 6.7%
+🎴 Cartas: 325 migradas - Página 66 - Progreso: 6.7%
+🎴 Cartas: 340 migradas - Página 66 - Progreso: 6.7%
+🎴 Cartas: 355 migradas - Página 66 - Progreso: 6.7%
+🎴 Cartas: 370 migradas - Página 66 - Progreso: 6.7%
+🎴 Cartas: 385 migradas - Página 66 - Progreso: 6.7%
+🎴 Cartas: 400 migradas - Página 66 - Progreso: 6.7%
+🎴 Cartas: 415 migradas - Página 66 - Progreso: 6.7%
+🎴 Cartas: 430 migradas - Página 66 - Progreso: 6.7%
+🎴 Cartas: 445 migradas - Página 66 - Progreso: 6.7%
+🎴 Cartas: 460 migradas - Página 66 - Progreso: 6.7%
+🎴 Cartas: 475 migradas - Página 66 - Progreso: 6.7%
+🎴 Cartas: 490 migradas - Página 66 - Progreso: 6.7%
+🎴 Cartas: 500 migradas - Página 66 - Progreso: 6.7%
+📄 Obteniendo página 67 de cartas...
+🎴 Procesando 250 cartas de la página 67...
+🎴 Cartas: 515 migradas - Página 67 - Progreso: 13.3%
+🎴 Cartas: 530 migradas - Página 67 - Progreso: 13.3%
+🎴 Cartas: 545 migradas - Página 67 - Progreso: 13.3%
+🎴 Cartas: 560 migradas - Página 67 - Progreso: 13.3%
+🎴 Cartas: 575 migradas - Página 67 - Progreso: 13.3%
+🎴 Cartas: 590 migradas - Página 67 - Progreso: 13.3%
+🎴 Cartas: 605 migradas - Página 67 - Progreso: 13.3%
+🎴 Cartas: 620 migradas - Página 67 - Progreso: 13.3%
+🎴 Cartas: 635 migradas - Página 67 - Progreso: 13.3%
+🎴 Cartas: 650 migradas - Página 67 - Progreso: 13.3%
+🎴 Cartas: 665 migradas - Página 67 - Progreso: 13.3%
+🎴 Cartas: 680 migradas - Página 67 - Progreso: 13.3%
+🎴 Cartas: 695 migradas - Página 67 - Progreso: 13.3%
+🎴 Cartas: 710 migradas - Página 67 - Progreso: 13.3%
+🎴 Cartas: 725 migradas - Página 67 - Progreso: 13.3%
+🎴 Cartas: 740 migradas - Página 67 - Progreso: 13.3%
+🎴 Cartas: 750 migradas - Página 67 - Progreso: 13.3%
+📄 Obteniendo página 68 de cartas...
