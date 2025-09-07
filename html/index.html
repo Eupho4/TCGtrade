@@ -1189,7 +1189,7 @@
                 try {
                     // Usar el proxy en lugar de la API directa
                     const encodedQuery = encodeURIComponent(query);
-                    const response = await fetch(`https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=name:${encodedQuery}*&pageSize=10`, {
+                    const response = await fetch(`https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=${encodedQuery}&pageSize=10`, {
                         headers: { 'Content-Type': 'application/json' }
                     });
                     const data = await response.json();
@@ -2668,7 +2668,7 @@
             proposalSearchTimeout = setTimeout(async () => {
                 try {
                     const encodedQuery = encodeURIComponent(query);
-                    const response = await fetch(`https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=name:${encodedQuery}*&pageSize=10`, {
+                    const response = await fetch(`https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=${encodedQuery}&pageSize=10`, {
                         headers: { 'Content-Type': 'application/json' }
                     });
                     const data = await response.json();
@@ -5751,8 +5751,8 @@
             showSearchResults();
 
             try {
-                // Construir URL optimizada con paginación
-                const base = query.length <= 4 ? `name:${query.toLowerCase()}*` : `name:*${query.toLowerCase()}*`;
+                // Construir URL optimizada con paginación - usar sintaxis simple que funciona
+                const base = query.toLowerCase();
                 lastSearchBase = base;
                 searchPage = 1;
                 searchPageSize = 20;
@@ -5901,7 +5901,7 @@
                     
                     try {
                         // Usar búsqueda más simple para el retry
-                        const retryUrl = buildCardsApiUrl(`name:${query.toLowerCase()}`, 1, 20);
+                        const retryUrl = buildCardsApiUrl(query.toLowerCase(), 1, 20);
                         console.log('🔄 Retry URL (búsqueda exacta):', retryUrl);
                         
                         const retryController = new AbortController();
@@ -8862,7 +8862,7 @@
             try {
                 // Intentar con wildcard pero menos resultados
                 const encodedQuery = encodeURIComponent(query.toLowerCase());
-                const moreUrl = `https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=name:*${encodedQuery}*&pageSize=50`;
+                const moreUrl = `https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=${encodedQuery}&pageSize=50`;
                 
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 15000); // Más tiempo
@@ -8966,7 +8966,7 @@
             try {
                 const encodedQuery = encodeURIComponent(query.toLowerCase());
                 // Búsqueda súper específica y rápida
-                const quickUrl = `https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=name:${encodedQuery}&pageSize=10`;
+                const quickUrl = `https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=${encodedQuery}&pageSize=10`;
                 
                 console.log('🚀 Quick URL:', quickUrl);
                 
@@ -13678,7 +13678,7 @@
             
             try {
                 const encodedQuery = encodeURIComponent(query.toLowerCase());
-                const quickUrl = `https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=name:${encodedQuery}&pageSize=10`;
+                const quickUrl = `https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=${encodedQuery}&pageSize=10`;
                 
                 console.log('🚀 Quick URL:', quickUrl);
                 
