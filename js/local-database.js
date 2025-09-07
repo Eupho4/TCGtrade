@@ -177,11 +177,22 @@ class LocalCardDatabase {
                 ${whereClause}
             `, params);
 
-            // Procesar imágenes JSON
+            // Procesar imágenes JSON y formatear para compatibilidad con API externa
             const processedCards = cards.map(card => ({
-                ...card,
+                id: card.id,
+                name: card.name,
+                number: card.number,
+                rarity: card.rarity,
+                types: card.types ? card.types.split(',') : [],
+                subtypes: card.subtypes ? card.subtypes.split(',') : [],
                 images: card.images ? JSON.parse(card.images) : null,
-                types: card.types ? card.types.split(',') : []
+                tcgplayer: card.tcgplayer ? JSON.parse(card.tcgplayer) : null,
+                cardmarket: card.cardmarket ? JSON.parse(card.cardmarket) : null,
+                set: {
+                    id: card.set_id,
+                    name: card.set_name,
+                    series: card.series
+                }
             }));
 
             return {
