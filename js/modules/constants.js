@@ -29,9 +29,9 @@ export const LANGUAGES = {
 
 // API endpoints
 export const API_ENDPOINTS = {
-    POKEMON_TCG: 'https://api.pokemontcg.io/v2',
-    PROXY_CARDS: '/api/pokemontcg/cards',
-    PROXY_SETS: '/api/pokemontcg/sets'
+    POKEMON_TCG: 'https://tcgtrade-production.up.railway.app/api/pokemontcg',
+    PROXY_CARDS: 'https://tcgtrade-production.up.railway.app/api/pokemontcg/cards',
+    PROXY_SETS: 'https://tcgtrade-production.up.railway.app/api/pokemontcg/sets'
 };
 
 // Storage keys

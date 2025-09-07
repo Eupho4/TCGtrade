@@ -65,8 +65,8 @@ async function fetchCards(query, filters = {}, signal) {
     const baseUrl = API_ENDPOINTS.PROXY_CARDS || API_ENDPOINTS.POKEMON_TCG + '/cards';
     const params = new URLSearchParams();
     
-    // Build query
-    let searchQuery = `name:"${query}*"`;
+    // Build query - use simple syntax that works with our API
+    let searchQuery = query;
     
     if (filters.set) {
         searchQuery += ` set.id:${filters.set}`;
@@ -106,7 +106,7 @@ async function fetchCards(query, filters = {}, signal) {
             
             // Retry with simpler query
             const retryParams = new URLSearchParams();
-            retryParams.append('q', `name:${query}`);
+            retryParams.append('q', query);
             retryParams.append('pageSize', '10');
             
             const retryUrl = `${baseUrl}?${retryParams.toString()}`;
@@ -158,7 +158,7 @@ export async function searchCardForTrade(inputElement, type, cardIndex) {
     resultsContainer.classList.remove('hidden');
     
     try {
-        const response = await fetch(`https://api.pokemontcg.io/v2/cards?q=name:"${query}*"&pageSize=10`);
+        const response = await fetch(`https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=${query}&pageSize=10`);
         const data = await response.json();
         
         if (data.data && data.data.length > 0) {
