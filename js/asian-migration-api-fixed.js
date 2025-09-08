@@ -4,7 +4,7 @@ class AsianMigrationAPI {
     constructor() {
         this.db = new LocalCardDatabase();
         this.asianLanguages = ['ja', 'ko', 'zh-cn', 'zh-tw'];
-        this.baseUrl = 'https://api.tcgdx.net';
+        this.baseUrl = 'https://api.tcgdex.net';
         this.totalCards = 0;
         this.totalSets = 0;
         this.batchSize = 10;
@@ -182,7 +182,7 @@ class AsianMigrationAPI {
                 // Construir URL de imagen
                 let imageUrl = card.image;
                 if (imageUrl && !imageUrl.startsWith('http')) {
-                    imageUrl = `https://assets.tcgdx.net${imageUrl}`;
+                    imageUrl = `https://assets.tcgdex.net${imageUrl}`;
                 }
                 
                 await this.db.addCard({
