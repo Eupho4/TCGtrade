@@ -162,12 +162,25 @@ class LocalCardDatabase {
                 whereClause += ' AND types LIKE ?';
                 params.push(`%${filters.type}%`);
             }
+            
+            if (filters.language) {
+                whereClause += ' AND id LIKE ?';
+                params.push(`%-${filters.language}`);
+            }
 
-            // Obtener cartas
+            // Obtener cartas (priorizar cartas asiáticas)
             const cards = await this.all(`
                 SELECT * FROM cards 
                 ${whereClause}
-                ORDER BY name
+                ORDER BY 
+                    CASE 
+                        WHEN id LIKE '%-ja' THEN 1
+                        WHEN id LIKE '%-zh-cn' THEN 2
+                        WHEN id LIKE '%-zh-tw' THEN 3
+                        WHEN id LIKE '%-ko' THEN 4
+                        ELSE 5
+                    END,
+                    name
                 LIMIT ? OFFSET ?
             `, [...params, pageSize, offset]);
 

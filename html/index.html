@@ -1189,7 +1189,7 @@
                 try {
                     // Usar el proxy en lugar de la API directa
                     const encodedQuery = encodeURIComponent(query);
-                    const response = await fetch(`https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=${encodedQuery}&pageSize=10`, {
+                    const response = await fetch(`https://tcgtrade-production.up.railway.app/api/search/combined?q=${encodedQuery}&pageSize=10`, {
                         headers: { 'Content-Type': 'application/json' }
                     });
                     const data = await response.json();
@@ -2668,7 +2668,7 @@
             proposalSearchTimeout = setTimeout(async () => {
                 try {
                     const encodedQuery = encodeURIComponent(query);
-                    const response = await fetch(`https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=${encodedQuery}&pageSize=10`, {
+                    const response = await fetch(`https://tcgtrade-production.up.railway.app/api/search/combined?q=${encodedQuery}&pageSize=10`, {
                         headers: { 'Content-Type': 'application/json' }
                     });
                     const data = await response.json();
@@ -5802,7 +5802,10 @@
 
                 console.log('✅ API Response received:', {
                     totalCount: data.totalCount,
-                    cardsReturned: cards.length
+                    cardsReturned: cards.length,
+                    localResults: data.localResults || 0,
+                    apiResults: data.apiResults || 0,
+                    combinedResults: data.combinedResults || 0
                 });
 
                 // Render paginación
@@ -8966,7 +8969,7 @@
             try {
                 const encodedQuery = encodeURIComponent(query.toLowerCase());
                 // Búsqueda súper específica y rápida
-                const quickUrl = `https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=${encodedQuery}&pageSize=10`;
+                const quickUrl = `https://tcgtrade-production.up.railway.app/api/search/combined?q=${encodedQuery}&pageSize=10`;
                 
                 console.log('🚀 Quick URL:', quickUrl);
                 
@@ -9209,19 +9212,20 @@
         let currentSearchId = null; // ID único para cada búsqueda
 
         function buildCardsQuery(baseQuery) {
-            const filters = [];
-            if (searchFiltersState.set) filters.push(`set.name:"${searchFiltersState.set}"`);
-            if (searchFiltersState.rarity) filters.push(`rarity:"${searchFiltersState.rarity}"`);
-            if (searchFiltersState.type) filters.push(`types:"${searchFiltersState.type}"`);
-            // language no está en API oficial; se aplica client-side si existiera
-            return filters.length ? `${baseQuery} AND ${filters.join(' AND ')}` : baseQuery;
+            // Para nuestro endpoint combinado, solo devolvemos la query base
+            // Los filtros se pasan como parámetros separados
+            return baseQuery;
         }
 
         function buildCardsApiUrl(baseQuery, page, pageSize) {
             const withFilters = buildCardsQuery(baseQuery);
             const qParam = encodeURIComponent(withFilters);
             const pageParam = page ? `&page=${page}` : '';
-            return `https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=${qParam}${pageParam}&pageSize=${pageSize}`;
+            const setParam = searchFiltersState.set ? `&set=${encodeURIComponent(searchFiltersState.set)}` : '';
+            const rarityParam = searchFiltersState.rarity ? `&rarity=${encodeURIComponent(searchFiltersState.rarity)}` : '';
+            const typeParam = searchFiltersState.type ? `&type=${encodeURIComponent(searchFiltersState.type)}` : '';
+            const languageParam = searchFiltersState.language ? `&language=${encodeURIComponent(searchFiltersState.language)}` : '';
+            return `https://tcgtrade-production.up.railway.app/api/search/combined?q=${qParam}${pageParam}&pageSize=${pageSize}${setParam}${rarityParam}${typeParam}${languageParam}`;
         }
 
         function renderPagination(totalCount, page, pageSize) {
@@ -13678,7 +13682,7 @@
             
             try {
                 const encodedQuery = encodeURIComponent(query.toLowerCase());
-                const quickUrl = `https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=${encodedQuery}&pageSize=10`;
+                const quickUrl = `https://tcgtrade-production.up.railway.app/api/search/combined?q=${encodedQuery}&pageSize=10`;
                 
                 console.log('🚀 Quick URL:', quickUrl);
                 

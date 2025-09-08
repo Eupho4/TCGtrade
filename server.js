@@ -395,6 +395,98 @@ async function pokemonProxy(req, res) {
 // Rutas API
 app.get('/api/pokemontcg/*', pokemonProxy);
 
+// Búsqueda combinada (API Pokemon TCG + Base de datos local)
+app.get('/api/search/combined', async (req, res) => {
+  try {
+    const { q, set, rarity, type, language, page = 1, pageSize = 20 } = req.query;
+    
+    // Rate limiting
+    const clientIP = req.ip || req.connection.remoteAddress;
+    if (!checkRateLimit(clientIP)) {
+      return res.status(429).json({ 
+        error: 'Rate limit exceeded',
+        message: 'Demasiadas solicitudes. Por favor espera un momento.' 
+      });
+    }
+
+    if (!q || q.trim().length < 2) {
+      return res.status(400).json({ 
+        error: 'Query required',
+        message: 'Se requiere al menos 2 caracteres para buscar' 
+      });
+    }
+
+    console.log(`🔍 Búsqueda combinada: "${q}" - Página ${page}`);
+
+    // Importar base de datos local
+    const LocalCardDatabase = require('./js/local-database');
+    const db = new LocalCardDatabase();
+    await db.init();
+
+    // Búsqueda en base de datos local
+    const localResults = await db.searchCards(q, parseInt(page), parseInt(pageSize), {
+      set: set || '',
+      rarity: rarity || '',
+      type: type || '',
+      language: language || ''
+    });
+
+    // Búsqueda en API Pokemon TCG (solo si no hay suficientes resultados locales)
+    let apiResults = { data: [], totalCount: 0 };
+    
+    if (localResults.data.length < parseInt(pageSize)) {
+      try {
+        const pokemonApiUrl = `https://api.pokemontcg.io/v2/cards?q=${encodeURIComponent(q)}&page=${page}&pageSize=${pageSize}`;
+        const response = await fetch(pokemonApiUrl);
+        
+        if (response.ok) {
+          const apiData = await response.json();
+          apiResults = {
+            data: apiData.data || [],
+            totalCount: apiData.totalCount || 0
+          };
+        }
+      } catch (error) {
+        console.log('⚠️ Error en API Pokemon TCG:', error.message);
+      }
+    }
+
+    // Combinar resultados (priorizar locales, evitar duplicados)
+    const combinedData = [...localResults.data];
+    const localIds = new Set(localResults.data.map(card => card.id));
+    
+    // Agregar resultados de API que no estén en local
+    apiResults.data.forEach(card => {
+      if (!localIds.has(card.id)) {
+        combinedData.push(card);
+      }
+    });
+
+    // Limitar a pageSize
+    const limitedData = combinedData.slice(0, parseInt(pageSize));
+    const totalCount = localResults.totalCount + apiResults.totalCount;
+
+    await db.close();
+
+    res.json({
+      data: limitedData,
+      totalCount: totalCount,
+      page: parseInt(page),
+      pageSize: parseInt(pageSize),
+      localResults: localResults.data.length,
+      apiResults: apiResults.data.length,
+      combinedResults: limitedData.length
+    });
+
+  } catch (error) {
+    console.error('❌ Error en búsqueda combinada:', error);
+    res.status(500).json({ 
+      error: 'Search error',
+      message: 'Error interno del servidor' 
+    });
+  }
+});
+
 // TCGdex API endpoints
 app.get('/api/tcgdex/cards', async (req, res) => {
   try {
