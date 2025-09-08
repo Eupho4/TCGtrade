@@ -191,22 +191,41 @@ class LocalCardDatabase {
             `, params);
 
             // Procesar imágenes JSON y formatear para compatibilidad con API externa
-            const processedCards = cards.map(card => ({
-                id: card.id,
-                name: card.name,
-                number: card.number,
-                rarity: card.rarity,
-                types: card.types ? card.types.split(',') : [],
-                subtypes: card.subtypes ? card.subtypes.split(',') : [],
-                images: card.images ? JSON.parse(card.images) : null,
-                tcgplayer: card.tcgplayer ? JSON.parse(card.tcgplayer) : null,
-                cardmarket: card.cardmarket ? JSON.parse(card.cardmarket) : null,
-                set: {
-                    id: card.set_id,
-                    name: card.set_name,
-                    series: card.series
+            const processedCards = cards.map(card => {
+                // Procesar imágenes
+                let images = null;
+                try {
+                    images = card.images ? JSON.parse(card.images) : null;
+                } catch (e) {
+                    images = null;
                 }
-            }));
+                
+                // Procesar set_id (evitar "undefined-ja")
+                let setId = card.set_id;
+                if (setId && setId.includes('undefined')) {
+                    setId = card.id.split('-').slice(0, -1).join('-');
+                }
+                
+                return {
+                    id: card.id,
+                    name: card.name || 'Carta sin nombre',
+                    number: card.number || '',
+                    rarity: card.rarity || 'Common',
+                    types: card.types ? card.types.split(',').filter(t => t.trim()) : [],
+                    subtypes: card.subtypes ? card.subtypes.split(',').filter(t => t.trim()) : [],
+                    images: images && images.small ? images : { 
+                        small: '/images/card-placeholder.svg', 
+                        large: '/images/card-placeholder.svg' 
+                    },
+                    tcgplayer: card.tcgplayer ? JSON.parse(card.tcgplayer) : {},
+                    cardmarket: card.cardmarket ? JSON.parse(card.cardmarket) : {},
+                    set: {
+                        id: setId || '',
+                        name: card.set_name || 'Set desconocido',
+                        series: card.series || ''
+                    }
+                };
+            });
 
             return {
                 data: processedCards,
