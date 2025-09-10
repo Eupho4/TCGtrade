@@ -9498,8 +9498,8 @@
             cardsContainer.appendChild(errorIndicator);
         }
 
-        // Función para cargar precios de eBay para múltiples cartas
-        async function loadPricesForCards(cards) {
+        // Función para cargar precios de eBay para múltiples cartas (GLOBAL)
+        window.loadPricesForCards = async function(cards) {
             console.log('💰 Cargando precios para', cards.length, 'cartas...');
             
             // Cargar precios en paralelo con un pequeño delay para no sobrecargar
@@ -9521,8 +9521,8 @@
             console.log('✅ Precios cargados para todas las cartas');
         }
 
-        // Función para cargar precios de una carta específica
-        async function loadCardPrices(cardId, cardName) {
+        // Función para cargar precios de una carta específica (GLOBAL)
+        window.loadCardPrices = async function(cardId, cardName) {
             const priceElement = document.getElementById(`prices-${cardId}`);
             if (!priceElement) return;
 
