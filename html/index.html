@@ -9436,6 +9436,12 @@
                         <div class="truncate">
                             <div class="font-semibold text-gray-900 dark:text-white truncate">${card.name || 'Nombre no disponible'}</div>
                             <div class="text-xs text-gray-600 dark:text-gray-300 truncate">Set: ${card.set?.name || 'N/A'} · Serie: ${card.set?.series || 'N/A'} · Nº: ${card.number || 'N/A'}</div>
+                            <div id="prices-${safeCardId}" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                                <span class="inline-flex items-center">
+                                    <span class="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-500 mr-1"></span>
+                                    Cargando precios...
+                                </span>
+                            </div>
                         </div>
                         <div class="flex gap-2 items-center">
                             <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs"
@@ -9450,6 +9456,9 @@
                 row.appendChild(info);
                 cardsContainer.appendChild(row);
             });
+            
+            // Cargar precios para todas las cartas después de renderizar
+            loadPricesForCards(cards);
         }
 
         // Funciones para mostrar/ocultar loading de página
@@ -9479,6 +9488,81 @@
             errorIndicator.className = 'text-center text-red-500 py-8';
             errorIndicator.innerHTML = '❌ Error al cargar la página. Intenta de nuevo.';
             cardsContainer.appendChild(errorIndicator);
+        }
+
+        // Función para cargar precios de eBay para múltiples cartas
+        async function loadPricesForCards(cards) {
+            console.log('💰 Cargando precios para', cards.length, 'cartas...');
+            
+            // Cargar precios en paralelo con un pequeño delay para no sobrecargar
+            const promises = cards.map((card, index) => {
+                return new Promise(resolve => {
+                    setTimeout(async () => {
+                        try {
+                            await loadCardPrices(card.id, card.name);
+                            resolve();
+                        } catch (error) {
+                            console.error(`Error cargando precios para ${card.name}:`, error);
+                            resolve(); // No fallar si una carta falla
+                        }
+                    }, index * 100); // 100ms de delay entre cada carta
+                });
+            });
+            
+            await Promise.all(promises);
+            console.log('✅ Precios cargados para todas las cartas');
+        }
+
+        // Función para cargar precios de una carta específica
+        async function loadCardPrices(cardId, cardName) {
+            const priceElement = document.getElementById(`prices-${cardId}`);
+            if (!priceElement) return;
+
+            try {
+                const response = await fetch(`/api/prices/${cardId}?condition=Near Mint`);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (data.prices && data.prices.length > 0) {
+                    const prices = data.prices;
+                    const validPrices = prices.filter(p => p.priceUsd > 0);
+                    
+                    if (validPrices.length > 0) {
+                        const avgPrice = validPrices.reduce((sum, p) => sum + p.priceUsd, 0) / validPrices.length;
+                        const minPrice = Math.min(...validPrices.map(p => p.priceUsd));
+                        const maxPrice = Math.max(...validPrices.map(p => p.priceUsd));
+                        
+                        priceElement.innerHTML = `
+                            <span class="inline-flex items-center text-green-600 dark:text-green-400">
+                                💰 $${avgPrice.toFixed(2)} (${minPrice.toFixed(2)} - ${maxPrice.toFixed(2)})
+                                <span class="text-xs text-gray-500 ml-1">(${validPrices.length} vendedores)</span>
+                            </span>
+                        `;
+                    } else {
+                        priceElement.innerHTML = `
+                            <span class="text-gray-500 dark:text-gray-400">
+                                💰 Sin precios disponibles
+                            </span>
+                        `;
+                    }
+                } else {
+                    priceElement.innerHTML = `
+                        <span class="text-gray-500 dark:text-gray-400">
+                            💰 Sin precios disponibles
+                        </span>
+                    `;
+                }
+            } catch (error) {
+                console.error(`Error cargando precios para ${cardName}:`, error);
+                priceElement.innerHTML = `
+                    <span class="text-red-500 dark:text-red-400">
+                        ❌ Error cargando precios
+                    </span>
+                `;
+            }
         }
     </script>
 
