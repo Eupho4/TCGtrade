@@ -141,8 +141,12 @@ class LocalCardDatabase {
     // Búsqueda de cartas optimizada
     async searchCards(query, page = 1, pageSize = 20, filters = {}) {
         try {
-            const queryLower = `%${query.toLowerCase()}%`;
-            const offset = (page - 1) * pageSize;
+            // Asegurar que los parámetros sean del tipo correcto
+            const queryStr = String(query || '').toLowerCase();
+            const queryLower = `%${queryStr}%`;
+            const pageNum = parseInt(page) || 1;
+            const pageSizeNum = parseInt(pageSize) || 20;
+            const offset = (pageNum - 1) * pageSizeNum;
             
             let whereClause = 'WHERE (name LIKE ? OR set_name LIKE ? OR series LIKE ?)';
             let params = [queryLower, queryLower, queryLower];
@@ -150,22 +154,22 @@ class LocalCardDatabase {
             // Aplicar filtros adicionales
             if (filters.set) {
                 whereClause += ' AND set_name = ?';
-                params.push(filters.set);
+                params.push(String(filters.set));
             }
             
             if (filters.rarity) {
                 whereClause += ' AND rarity = ?';
-                params.push(filters.rarity);
+                params.push(String(filters.rarity));
             }
             
             if (filters.type) {
                 whereClause += ' AND types LIKE ?';
-                params.push(`%${filters.type}%`);
+                params.push(`%${String(filters.type)}%`);
             }
             
             if (filters.language) {
                 whereClause += ' AND id LIKE ?';
-                params.push(`%-${filters.language}`);
+                params.push(`%-${String(filters.language)}`);
             }
 
             // Obtener cartas (priorizar cartas asiáticas)
@@ -182,7 +186,7 @@ class LocalCardDatabase {
                     END,
                     name
                 LIMIT ? OFFSET ?
-            `, [...params, pageSize, offset]);
+            `, [...params, pageSizeNum, offset]);
 
             // Obtener total de resultados
             const totalResult = await this.get(`
