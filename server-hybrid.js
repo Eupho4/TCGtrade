@@ -2,7 +2,7 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const path = require('path');
-const fetch = require('node-fetch');
+const https = require('https');
 const LocalSearchEngine = require('./js/local-search-engine');
 const DataMigrator = require('./js/data-migrator');
 
@@ -20,6 +20,32 @@ class HybridAPIServer {
         
         this.setupMiddleware();
         this.setupRoutes();
+    }
+
+    // Función fetch usando https nativo
+    async fetch(url) {
+        return new Promise((resolve, reject) => {
+            https.get(url, (res) => {
+                let data = '';
+                res.on('data', (chunk) => {
+                    data += chunk;
+                });
+                res.on('end', () => {
+                    try {
+                        const jsonData = JSON.parse(data);
+                        resolve({
+                            json: () => Promise.resolve(jsonData),
+                            status: res.statusCode,
+                            ok: res.statusCode >= 200 && res.statusCode < 300
+                        });
+                    } catch (error) {
+                        reject(error);
+                    }
+                });
+            }).on('error', (error) => {
+                reject(error);
+            });
+        });
     }
 
     // Configurar middleware
@@ -136,7 +162,7 @@ class HybridAPIServer {
                 });
 
                 const apiUrl = `https://svcs.ebay.com/services/search/FindingService/v1?${params.toString()}`;
-                const response = await fetch(apiUrl);
+                const response = await this.fetch(apiUrl);
                 const data = await response.json();
 
                 // Guardar en cache
@@ -291,7 +317,7 @@ class HybridAPIServer {
             });
 
             const apiUrl = `https://svcs.ebay.com/services/search/FindingService/v1?${params.toString()}`;
-            const response = await fetch(apiUrl);
+            const response = await this.fetch(apiUrl);
             const data = await response.json();
 
             if (data.findItemsByKeywordsResponse && data.findItemsByKeywordsResponse[0].searchResult) {
