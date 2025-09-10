@@ -5,14 +5,15 @@
   "main": "server.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node js/local-api-server.js",
-    "dev": "node js/local-api-server.js",
+    "start": "node server-hybrid.js",
+    "dev": "node server-hybrid.js",
     "build": "echo 'Build completed for Railway'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
     "@tcgdex/sdk": "^2.7.1",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.2",
     "express": "^4.21.2",
     "node-fetch": "^3.3.2",
     "sqlite3": "^5.1.7"
