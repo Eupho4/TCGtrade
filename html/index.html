@@ -9546,10 +9546,13 @@
                 }
                 
                 const data = await response.json();
+                console.log('🔍 Datos de precios recibidos para', cardName, ':', data);
                 
                 if (data.prices && data.prices.length > 0) {
                     const prices = data.prices;
+                    console.log('💰 Precios recibidos:', prices);
                     const validPrices = prices.filter(p => p.priceUsd > 0);
+                    console.log('✅ Precios válidos:', validPrices);
                     
                     if (validPrices.length > 0) {
                         const avgPrice = validPrices.reduce((sum, p) => sum + p.priceUsd, 0) / validPrices.length;
