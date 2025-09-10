@@ -9385,6 +9385,7 @@
 
         // Función para renderizar cartas desde datos (reutilizable)
         function renderCardsFromData(cards) {
+            console.log('🎴 Renderizando', cards.length, 'cartas...');
             cardsContainer.innerHTML = '';
             cards.forEach((card) => {
                 // Función para escapar caracteres especiales
@@ -9455,6 +9456,7 @@
                 row.appendChild(imgWrapper);
                 row.appendChild(info);
                 cardsContainer.appendChild(row);
+                console.log('✅ Carta renderizada:', card.name, 'con botón de precios');
             });
             
             // NO cargar precios automáticamente para evitar rate limiting
