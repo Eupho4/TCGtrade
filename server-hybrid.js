@@ -320,6 +320,15 @@ class HybridAPIServer {
             const response = await this.fetch(apiUrl);
             const data = await response.json();
 
+            // Verificar si hay errores de eBay
+            if (data.errorMessage) {
+                const errorMsg = data.errorMessage[0]?.error?.[0]?.message?.[0] || 'Error desconocido';
+                if (errorMsg.includes('exceeded') || errorMsg.includes('RateLimiter')) {
+                    throw new Error('Rate limit exceeded - eBay API limit reached');
+                }
+                throw new Error(`eBay API error: ${errorMsg}`);
+            }
+
             if (data.findItemsByKeywordsResponse && data.findItemsByKeywordsResponse[0].searchResult) {
                 const items = data.findItemsByKeywordsResponse[0].searchResult[0].item || [];
                 return items.map(item => ({

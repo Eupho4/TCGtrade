@@ -9557,11 +9557,21 @@
                 }
             } catch (error) {
                 console.error(`Error cargando precios para ${cardName}:`, error);
-                priceElement.innerHTML = `
-                    <span class="text-red-500 dark:text-red-400">
-                        ❌ Error cargando precios
-                    </span>
-                `;
+                
+                // Verificar si es un error de rate limiting
+                if (error.message.includes('429') || error.message.includes('Rate limit')) {
+                    priceElement.innerHTML = `
+                        <span class="text-yellow-600 dark:text-yellow-400">
+                            ⏳ Límite de eBay alcanzado, intenta más tarde
+                        </span>
+                    `;
+                } else {
+                    priceElement.innerHTML = `
+                        <span class="text-red-500 dark:text-red-400">
+                            ❌ Error cargando precios
+                        </span>
+                    `;
+                }
             }
         }
     </script>
