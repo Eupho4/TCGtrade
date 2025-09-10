@@ -9551,6 +9551,7 @@
                 if (data.prices && data.prices.length > 0) {
                     const prices = data.prices;
                     console.log('💰 Precios recibidos:', prices);
+                    console.log('🔍 Detalle del primer precio:', JSON.stringify(prices[0], null, 2));
                     const validPrices = prices.filter(p => p.priceUsd > 0);
                     console.log('✅ Precios válidos:', validPrices);
                     
