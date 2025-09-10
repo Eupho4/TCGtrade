@@ -9546,14 +9546,10 @@
                 }
                 
                 const data = await response.json();
-                console.log('🔍 Datos de precios recibidos para', cardName, ':', data);
                 
                 if (data.prices && data.prices.length > 0) {
                     const prices = data.prices;
-                    console.log('💰 Precios recibidos:', prices);
-                    console.log('🔍 Detalle del primer precio:', JSON.stringify(prices[0], null, 2));
                     const validPrices = prices.filter(p => p.priceUsd > 0);
-                    console.log('✅ Precios válidos:', validPrices);
                     
                     if (validPrices.length > 0) {
                         const avgPrice = validPrices.reduce((sum, p) => sum + p.priceUsd, 0) / validPrices.length;
@@ -9567,11 +9563,21 @@
                             </span>
                         `;
                     } else {
-                        priceElement.innerHTML = `
-                            <span class="text-gray-500 dark:text-gray-400">
-                                💰 Sin precios válidos encontrados
-                            </span>
-                        `;
+                        // Verificar si es rate limit o realmente sin precios
+                        const hasRateLimitError = prices.some(p => p.message && p.message.includes('Rate limit'));
+                        if (hasRateLimitError) {
+                            priceElement.innerHTML = `
+                                <span class="text-yellow-600 dark:text-yellow-400">
+                                    ⏳ Límite de eBay alcanzado, intenta más tarde
+                                </span>
+                            `;
+                        } else {
+                            priceElement.innerHTML = `
+                                <span class="text-gray-500 dark:text-gray-400">
+                                    💰 Sin precios válidos encontrados
+                                </span>
+                            `;
+                        }
                     }
                 } else {
                     priceElement.innerHTML = `
