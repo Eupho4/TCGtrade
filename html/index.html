@@ -5821,6 +5821,9 @@
                         noResultsMessage.classList.remove('hidden');
                     }
                 }
+                
+                // Ocultar spinner de carga
+                hideLoadingSpinner();
 
             } catch (error) {
                 console.error('❌ Error completo en fetchCards:', error);
