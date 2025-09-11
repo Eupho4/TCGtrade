@@ -5741,18 +5741,15 @@
             if (noResultsMessage) noResultsMessage.classList.add('hidden');
             if (errorMessage) errorMessage.classList.add('hidden');
 
-            // Si la query está vacía, mostrar cartas aleatorias
-            if (query.length === 0) {
-                // Buscar cartas aleatorias usando una búsqueda amplia
-                query = 'pokemon'; // Búsqueda amplia para obtener cartas aleatorias
-            }
+            // Si la query está vacía, usar búsqueda aleatoria
+            const searchQuery = query.length === 0 ? 'pokemon' : query;
 
             showLoadingSpinner();
             showSearchResults();
 
             try {
                 // Construir URL optimizada con paginación - usar sintaxis simple que funciona
-                const base = query.toLowerCase();
+                const base = searchQuery.toLowerCase();
                 lastSearchBase = base;
                 searchPage = 1;
                 searchPageSize = 20;
@@ -5818,9 +5815,9 @@
                     
                     console.log('✅ All cards rendered successfully');
                 } else {
-                    console.log('ℹ️ No cards found for query:', query);
+                    console.log('ℹ️ No cards found for query:', searchQuery);
                     if (noResultsMessage) {
-                        noResultsMessage.textContent = `No se encontraron cartas para "${query}". Intenta con otro nombre.`;
+                        noResultsMessage.textContent = `No se encontraron cartas para "${searchQuery}". Intenta con otro nombre.`;
                         noResultsMessage.classList.remove('hidden');
                     }
                 }
@@ -5829,12 +5826,12 @@
                 console.error('❌ Error completo en fetchCards:', error);
 
                 // Si es timeout, intentar con búsqueda más simple y menos resultados
-                if ((error.name === 'AbortError' || error.message.includes('408') || error.message === 'TIMEOUT') && !query.includes('_retry')) {
+                if ((error.name === 'AbortError' || error.message.includes('408') || error.message === 'TIMEOUT') && !searchQuery.includes('_retry')) {
                     console.log('🔄 Timeout detectado, reintentando con búsqueda optimizada...');
                     
                     try {
                         // Usar búsqueda más simple para el retry
-                        const retryUrl = buildCardsApiUrl(query.toLowerCase(), 1, 20);
+                        const retryUrl = buildCardsApiUrl(searchQuery.toLowerCase(), 1, 20);
                         console.log('🔄 Retry URL (búsqueda exacta):', retryUrl);
                         
                         const retryController = new AbortController();
