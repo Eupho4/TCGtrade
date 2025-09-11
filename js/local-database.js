@@ -152,6 +152,11 @@ class LocalCardDatabase {
             let params = [queryLower, queryLower, queryLower];
             
             // Aplicar filtros adicionales
+            if (filters.series) {
+                whereClause += ' AND series = ?';
+                params.push(String(filters.series));
+            }
+            
             if (filters.set) {
                 whereClause += ' AND set_name = ?';
                 params.push(String(filters.set));

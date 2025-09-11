@@ -94,7 +94,16 @@ class HybridAPIServer {
         // Endpoint de búsqueda de cartas (usando base de datos local)
         this.app.get('/api/pokemontcg/cards', async (req, res) => {
             try {
-                const { q: searchTerm, page = 1, pageSize = 20 } = req.query;
+                const { 
+                    q: searchTerm, 
+                    page = 1, 
+                    pageSize = 20,
+                    series,
+                    set,
+                    rarity,
+                    type,
+                    language
+                } = req.query;
                 
                 if (!searchTerm) {
                     return res.status(400).json({
@@ -103,9 +112,20 @@ class HybridAPIServer {
                     });
                 }
 
+                // Construir filtros
+                const filters = {};
+                if (series) filters.series = series;
+                if (set) filters.set = set;
+                if (rarity) filters.rarity = rarity;
+                if (type) filters.type = type;
+                if (language) filters.language = language;
+
+                console.log('🔍 Búsqueda con filtros:', { searchTerm, filters, page, pageSize });
+
                 const results = await this.searchEngine.searchCards(searchTerm, {
                     page: parseInt(page),
-                    pageSize: parseInt(pageSize)
+                    pageSize: parseInt(pageSize),
+                    filters: filters
                 });
 
                 res.json(results);
