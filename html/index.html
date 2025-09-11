@@ -5813,79 +5813,8 @@
                 renderPagination(totalCount, searchPage, searchPageSize);
 
                 if (cards.length > 0) {
-                    cards.forEach((card, index) => {
-                        console.log(`📋 Processing card ${index + 1}:`, card.name);
-                        
-                        const row = document.createElement('div');
-                        row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 h-16 overflow-visible';
-
-                        // Función para escapar caracteres especiales en onclick
-                        const escapeForOnclick = (str) => {
-                            return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
-                        };
-                        
-                        const safeCardId = escapeForOnclick(card.id);
-                        const safeCardName = escapeForOnclick(card.name);
-                        const safeSetName = escapeForOnclick(card.set?.name || 'N/A');
-                        const safeSeries = escapeForOnclick(card.set?.series || 'N/A');
-                        const safeNumber = escapeForOnclick(card.number || 'N/A');
-                        const safeImageUrl = escapeForOnclick(card.images?.small);
-
-                        const imgWrapper = document.createElement('div');
-                        imgWrapper.className = 'w-10 h-10 flex items-center justify-center bg-transparent rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2 z-10';
-                        imgWrapper.title = 'Pasa el mouse para ver imagen';
-                        imgWrapper.innerHTML = '<span class="text-xl">🎴</span>';
-
-                        // Crear contenedor de imagen con hover
-                        const imgContainer = document.createElement('div');
-                        imgContainer.className = 'hidden absolute left-14 top-1/2 -translate-y-1/2 z-30';
-                        imgContainer.style.pointerEvents = 'none';
-                        
-                        const imgEl = document.createElement('img');
-                        imgEl.src = (card.images?.large || card.images?.small) || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen';
-                        imgEl.alt = card.name || 'Carta';
-                        imgEl.className = 'w-64 h-auto object-contain rounded-lg shadow-2xl border-2 border-gray-200';
-                        imgEl.onerror = () => { imgEl.src = 'https://placehold.co/400x550/a0aec0/ffffff?text=Error'; };
-                        
-                        imgContainer.appendChild(imgEl);
-                        row.appendChild(imgContainer);
-                        
-                        // Eventos de hover
-                        imgWrapper.addEventListener('mouseenter', () => { 
-                            imgContainer.classList.remove('hidden');
-                        });
-                        
-                        imgWrapper.addEventListener('mouseleave', () => { 
-                            imgContainer.classList.add('hidden');
-                        });
-
-                        const info = document.createElement('div');
-                        info.className = 'flex-1 min-w-0 pl-16';
-                        info.innerHTML = `
-                            <div class="flex items-center justify-between">
-                                <div class="truncate">
-                                    <div class="font-semibold text-gray-900 dark:text-white truncate">${card.name || 'Nombre no disponible'}</div>
-                                    <div class="text-xs text-gray-600 dark:text-gray-300 truncate">Set: ${card.set?.name || 'N/A'} · Serie: ${card.set?.series || 'N/A'} · Nº: ${card.number || 'N/A'}</div>
-                                </div>
-                                <div class="flex gap-2 items-center">
-                                    <button class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
-                                            onclick="showCardOffers('${safeCardName}', '${safeSetName}', '${safeImageUrl}')">
-                                        <span>🤝</span>
-                                        <span>Ofrecidas: ${getCardOffersCount(card.name, card.set?.name || '')}</span>
-                                    </button>
-                                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-xs"
-                                        onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">Ver Detalles</button>
-                                    <button class="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs"
-                                        onclick="addCardDirectly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">+ Añadir</button>
-                                </div>
-                            </div>
-                        `;
-
-                        row.appendChild(imgWrapper);
-                        row.appendChild(info);
-                        cardsContainer.appendChild(row);
-                        
-                    });
+                    // Usar la función de renderizado estándar para consistencia
+                    renderCardsFromData(cards);
                     
                     console.log('✅ All cards rendered successfully');
                 } else {
