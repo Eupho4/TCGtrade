@@ -16,7 +16,7 @@ class HybridAPIServer {
         
         // Cache para eBay
         this.ebayCache = new Map();
-        this.EBAY_CACHE_TTL_MS = 60 * 1000; // 1 minuto
+        this.EBAY_CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 horas
         
         this.setupMiddleware();
         this.setupRoutes();
@@ -187,6 +187,13 @@ class HybridAPIServer {
                 const { cardId } = req.params;
                 const { condition = 'Near Mint' } = req.query;
                 
+                // Verificar cache primero
+                const cacheKey = `prices:${cardId}:${condition}`;
+                const cached = this.ebayCache.get(cacheKey);
+                if (cached && (Date.now() - cached.timestamp) < this.EBAY_CACHE_TTL_MS) {
+                    return res.json({ ...cached.data, _cached: true });
+                }
+                
                 // Buscar la carta en la base de datos local
                 const card = await this.searchEngine.getCardById(cardId);
                 if (!card) {
@@ -200,13 +207,21 @@ class HybridAPIServer {
                 const searchQuery = `${card.name} pokemon card ${condition}`;
                 const ebayResults = await this.searchEbayPrices(searchQuery);
 
-                res.json({
+                const responseData = {
                     cardId,
                     cardName: card.name,
                     condition,
                     prices: ebayResults,
                     lastUpdated: new Date().toISOString()
+                };
+
+                // Guardar en cache
+                this.ebayCache.set(cacheKey, {
+                    data: responseData,
+                    timestamp: Date.now()
                 });
+
+                res.json(responseData);
             } catch (error) {
                 console.error('Error obteniendo precios:', error);
                 res.status(500).json({
