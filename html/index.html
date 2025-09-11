@@ -5741,6 +5741,17 @@
             if (noResultsMessage) noResultsMessage.classList.add('hidden');
             if (errorMessage) errorMessage.classList.add('hidden');
 
+            // Validar mínimo de caracteres
+            if (query.length > 0 && query.length < 2) {
+                if (noResultsMessage) {
+                    noResultsMessage.textContent = 'Por favor, escribe al menos 2 caracteres para buscar.';
+                    noResultsMessage.classList.remove('hidden');
+                }
+                if (cardsContainer) cardsContainer.innerHTML = '';
+                hideLoadingSpinner();
+                return;
+            }
+            
             // Si la query está vacía, usar búsqueda aleatoria
             const searchQuery = query.length === 0 ? 'pokemon' : query;
 
@@ -9155,11 +9166,10 @@
             const searchInput = document.getElementById('searchInput');
             const query = searchInput.value.trim();
             
-            // Eliminar validación de mínimo de caracteres - permitir búsqueda vacía
-            // if (query.length < 2) {
-            //     alert('Ingresa al menos 2 caracteres');
-            //     return;
-            // }
+            if (query.length > 0 && query.length < 2) {
+                alert('Por favor, escribe al menos 2 caracteres para buscar.');
+                return;
+            }
             
             console.log('🚀 Búsqueda rápida iniciada para:', query);
             
@@ -13944,11 +13954,10 @@
             const searchInput = document.getElementById('searchInput');
             const query = searchInput.value.trim();
             
-            // Eliminar validación de mínimo de caracteres - permitir búsqueda vacía
-            // if (query.length < 2) {
-            //     alert('Ingresa al menos 2 caracteres');
-            //     return;
-            // }
+            if (query.length > 0 && query.length < 2) {
+                alert('Por favor, escribe al menos 2 caracteres para buscar.');
+                return;
+            }
             
             console.log('🚀 Búsqueda rápida iniciada para:', query);
             
