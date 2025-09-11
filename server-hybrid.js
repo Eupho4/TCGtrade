@@ -94,7 +94,7 @@ class HybridAPIServer {
         // Endpoint de búsqueda de cartas (usando base de datos local)
         this.app.get('/api/pokemontcg/cards', async (req, res) => {
             try {
-                const { 
+                let { 
                     q: searchTerm, 
                     page = 1, 
                     pageSize = 20,
