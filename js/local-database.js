@@ -158,8 +158,11 @@ class LocalCardDatabase {
             if (isRandomSearch) {
                 // Búsqueda aleatoria - no usar WHERE clause
                 whereClause = '';
+            } else if (queryStr === 'pokemon' && hasFilters) {
+                // Búsqueda aleatoria con filtros - solo aplicar filtros, no búsqueda de texto
+                whereClause = '';
             } else {
-                // Búsqueda normal - siempre usar WHERE clause para búsquedas específicas
+                // Búsqueda normal - usar WHERE clause para búsquedas específicas
                 whereClause = 'WHERE (name LIKE ? OR set_name LIKE ? OR series LIKE ?)';
                 params = [queryLower, queryLower, queryLower];
             }
