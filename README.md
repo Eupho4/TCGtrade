@@ -63,16 +63,6 @@ Endpoints:
 - `/api/pokemontcg/supertypes` - Supertipos
 - `/api/pokemontcg/subtypes` - Subtipos
 
-### Proxy eBay (`/api/ebay/search`)
-
-- **Variables**: `EBAY_APP_ID` (requerida), `EBAY_VERIFICATION_TOKEN` (para notificaciones)
-- **Search**: `/api/ebay/search?q=pokemon%20charizard&page=1&pageSize=24`
-- **Notificaciones/Verificación**: `/api/ebay/notifications`
-  - En eBay Developers, configura:
-    - Marketplace account deletion notification endpoint: `https://TU_DOMINIO/api/ebay/notifications`
-    - Verification token: usa el valor de `EBAY_VERIFICATION_TOKEN`
-  - Challenge: eBay llamará con `challenge_code`, `verification_token`, `endpoint`; respondemos con `challengeResponse` (SHA-256 de los 3 concatenados)
-- **Respuesta búsqueda**: items normalizados con `id`, `title`, `galleryUrl`, `viewItemUrl`, `price`, `currency`, `condition`, `location`
 
 ## 🐛 Solución de Problemas
 

@@ -5866,12 +5866,6 @@
                                 <div class="truncate">
                                     <div class="font-semibold text-gray-900 dark:text-white truncate">${card.name || 'Nombre no disponible'}</div>
                                     <div class="text-xs text-gray-600 dark:text-gray-300 truncate">Set: ${card.set?.name || 'N/A'} · Serie: ${card.set?.series || 'N/A'} · Nº: ${card.number || 'N/A'}</div>
-                                    <div id="prices-${safeCardId}" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                        <span class="inline-flex items-center">
-                                            <span class="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-500 mr-1"></span>
-                                            Cargando precios...
-                                        </span>
-                                    </div>
                                 </div>
                                 <div class="flex gap-2 items-center">
                                     <button class="bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-1 rounded text-xs font-semibold flex items-center gap-1 hover:bg-orange-200 dark:hover:bg-orange-900/50 transition-colors"
@@ -5891,10 +5885,6 @@
                         row.appendChild(info);
                         cardsContainer.appendChild(row);
                         
-        // Cargar precios automáticamente para esta carta con delay escalonado
-        setTimeout(() => {
-            window.loadCardPrices(card.id, card.name);
-        }, index * 2000 + 1000); // 1s, 3s, 5s, 7s... para evitar rate limiting
                     });
                     
                     console.log('✅ All cards rendered successfully');
@@ -9448,12 +9438,6 @@
                         <div class="truncate">
                             <div class="font-semibold text-gray-900 dark:text-white truncate">${card.name || 'Nombre no disponible'}</div>
                             <div class="text-xs text-gray-600 dark:text-gray-300 truncate">Set: ${card.set?.name || 'N/A'} · Serie: ${card.set?.series || 'N/A'} · Nº: ${card.number || 'N/A'}</div>
-                            <div id="prices-${safeCardId}" class="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                <button onclick="loadCardPrices('${safeCardId}', '${safeCardName}')" 
-                                        class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 underline">
-                                    💰 Ver precios de eBay
-                                </button>
-                            </div>
                         </div>
                         <div class="flex gap-2 items-center">
                             <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs"
@@ -9467,11 +9451,9 @@
                 row.appendChild(imgWrapper);
                 row.appendChild(info);
                 cardsContainer.appendChild(row);
-                console.log('✅ Carta renderizada:', card.name, 'con botón de precios');
+                console.log('✅ Carta renderizada:', card.name);
             });
             
-            // NO cargar precios automáticamente para evitar rate limiting
-            // loadPricesForCards(cards);
         }
 
         // Funciones para mostrar/ocultar loading de página
@@ -9503,108 +9485,7 @@
             cardsContainer.appendChild(errorIndicator);
         }
 
-        // Función para cargar precios de eBay para múltiples cartas (GLOBAL)
-        window.loadPricesForCards = async function(cards) {
-            console.log('💰 Cargando precios para', cards.length, 'cartas...');
-            
-            // Cargar precios en paralelo con un pequeño delay para no sobrecargar
-            const promises = cards.map((card, index) => {
-                return new Promise(resolve => {
-                    setTimeout(async () => {
-                        try {
-                            await loadCardPrices(card.id, card.name);
-                            resolve();
-                        } catch (error) {
-                            console.error(`Error cargando precios para ${card.name}:`, error);
-                            resolve(); // No fallar si una carta falla
-                        }
-                    }, index * 100); // 100ms de delay entre cada carta
-                });
-            });
-            
-            await Promise.all(promises);
-            console.log('✅ Precios cargados para todas las cartas');
-        }
 
-        // Función para cargar precios de una carta específica (GLOBAL)
-        window.loadCardPrices = async function(cardId, cardName) {
-            const priceElement = document.getElementById(`prices-${cardId}`);
-            if (!priceElement) return;
-
-            // Mostrar indicador de carga
-            priceElement.innerHTML = `
-                <span class="inline-flex items-center text-blue-600 dark:text-blue-400">
-                    <span class="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-500 mr-1"></span>
-                    Cargando precios...
-                </span>
-            `;
-
-            try {
-                const response = await fetch(`/api/prices/${cardId}?condition=Near Mint`);
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
-                
-                const data = await response.json();
-                
-                if (data.prices && data.prices.length > 0) {
-                    const prices = data.prices;
-                    const validPrices = prices.filter(p => p.priceUsd > 0);
-                    
-                    if (validPrices.length > 0) {
-                        const avgPrice = validPrices.reduce((sum, p) => sum + p.priceUsd, 0) / validPrices.length;
-                        const minPrice = Math.min(...validPrices.map(p => p.priceUsd));
-                        const maxPrice = Math.max(...validPrices.map(p => p.priceUsd));
-                        
-                        priceElement.innerHTML = `
-                            <span class="inline-flex items-center text-green-600 dark:text-green-400">
-                                💰 $${avgPrice.toFixed(2)} (${minPrice.toFixed(2)} - ${maxPrice.toFixed(2)})
-                                <span class="text-xs text-gray-500 ml-1">(${validPrices.length} vendedores)</span>
-                            </span>
-                        `;
-                    } else {
-                        // Verificar si es rate limit o realmente sin precios
-                        const hasRateLimitError = prices.some(p => p.message && p.message.includes('Rate limit'));
-                        if (hasRateLimitError) {
-                            priceElement.innerHTML = `
-                                <span class="text-yellow-600 dark:text-yellow-400">
-                                    ⏳ Límite de eBay alcanzado, intenta más tarde
-                                </span>
-                            `;
-                        } else {
-                            priceElement.innerHTML = `
-                                <span class="text-gray-500 dark:text-gray-400">
-                                    💰 Sin precios válidos encontrados
-                                </span>
-                            `;
-                        }
-                    }
-                } else {
-                    priceElement.innerHTML = `
-                        <span class="text-gray-500 dark:text-gray-400">
-                            💰 Sin precios en eBay para esta carta
-                        </span>
-                    `;
-                }
-            } catch (error) {
-                console.error(`Error cargando precios para ${cardName}:`, error);
-                
-                // Verificar si es un error de rate limiting
-                if (error.message.includes('429') || error.message.includes('Rate limit')) {
-                    priceElement.innerHTML = `
-                        <span class="text-yellow-600 dark:text-yellow-400">
-                            ⏳ Límite de eBay alcanzado, intenta más tarde
-                        </span>
-                    `;
-                } else {
-                    priceElement.innerHTML = `
-                        <span class="text-red-500 dark:text-red-400">
-                            ❌ Error cargando precios
-                        </span>
-                    `;
-                }
-            }
-        }
     </script>
 
     <style>
