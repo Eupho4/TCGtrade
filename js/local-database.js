@@ -159,7 +159,7 @@ class LocalCardDatabase {
                 // Búsqueda aleatoria - no usar WHERE clause
                 whereClause = '';
             } else {
-                // Búsqueda normal
+                // Búsqueda normal - siempre usar WHERE clause para búsquedas específicas
                 whereClause = 'WHERE (name LIKE ? OR set_name LIKE ? OR series LIKE ?)';
                 params = [queryLower, queryLower, queryLower];
             }

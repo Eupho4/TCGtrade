@@ -6466,6 +6466,7 @@
             if (filterSeriesSelect) {
                 filterSeriesSelect.addEventListener('change', () => {
                     const selectedSeries = filterSeriesSelect.value;
+                    searchFiltersState.series = selectedSeries; // Actualizar estado
                     if (selectedSeries === "") {
                         populateSetFilterForSearch(allSets);
                     } else {
@@ -6473,6 +6474,7 @@
                         populateSetFilterForSearch(setsInSeries);
                     }
                     if (filterSetSelect) filterSetSelect.value = "";
+                    searchFiltersState.set = ""; // Limpiar set cuando cambia serie
                 });
             }
         }
@@ -8411,6 +8413,31 @@
             const filterLanguageSelect = document.getElementById('filterLanguageSelect');
             const applySearchFiltersBtn = document.getElementById('applySearchFiltersBtn');
             const clearSearchFiltersBtn = document.getElementById('clearSearchFiltersBtn');
+
+            // Event listeners para actualizar filtros automáticamente
+            if (filterSetSelect) {
+                filterSetSelect.addEventListener('change', () => {
+                    searchFiltersState.set = filterSetSelect.value;
+                });
+            }
+            
+            if (filterRaritySelect) {
+                filterRaritySelect.addEventListener('change', () => {
+                    searchFiltersState.rarity = filterRaritySelect.value;
+                });
+            }
+            
+            if (filterTypeSelect) {
+                filterTypeSelect.addEventListener('change', () => {
+                    searchFiltersState.type = filterTypeSelect.value;
+                });
+            }
+            
+            if (filterLanguageSelect) {
+                filterLanguageSelect.addEventListener('change', () => {
+                    searchFiltersState.language = filterLanguageSelect.value;
+                });
+            }
 
             if (applySearchFiltersBtn) {
                 applySearchFiltersBtn.addEventListener('click', () => {
