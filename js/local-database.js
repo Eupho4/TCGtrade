@@ -148,12 +148,29 @@ class LocalCardDatabase {
             const pageSizeNum = parseInt(pageSize) || 20;
             const offset = (pageNum - 1) * pageSizeNum;
             
-            let whereClause = 'WHERE (name LIKE ? OR set_name LIKE ? OR series LIKE ?)';
-            let params = [queryLower, queryLower, queryLower];
+            let whereClause = '';
+            let params = [];
+            
+            // Si es búsqueda aleatoria (pokemon sin filtros específicos)
+            const hasFilters = filters.series || filters.set || filters.rarity || filters.type || filters.language;
+            const isRandomSearch = queryStr === 'pokemon' && !hasFilters;
+            
+            if (isRandomSearch) {
+                // Búsqueda aleatoria - no usar WHERE clause
+                whereClause = '';
+            } else {
+                // Búsqueda normal
+                whereClause = 'WHERE (name LIKE ? OR set_name LIKE ? OR series LIKE ?)';
+                params = [queryLower, queryLower, queryLower];
+            }
             
             // Aplicar filtros adicionales
             if (filters.series) {
-                whereClause += ' AND series = ?';
+                if (whereClause) {
+                    whereClause += ' AND series = ?';
+                } else {
+                    whereClause = 'WHERE series = ?';
+                }
                 params.push(String(filters.series));
             }
             
@@ -177,10 +194,8 @@ class LocalCardDatabase {
                 params.push(`%-${String(filters.language)}`);
             }
 
-            // Obtener cartas (priorizar cartas asiáticas)
-            const cards = await this.all(`
-                SELECT * FROM cards 
-                ${whereClause}
+            // Obtener cartas (priorizar cartas asiáticas o aleatorias)
+            const orderClause = isRandomSearch ? 'ORDER BY RANDOM()' : `
                 ORDER BY 
                     CASE 
                         WHEN id LIKE '%-ja' THEN 1
@@ -189,7 +204,12 @@ class LocalCardDatabase {
                         WHEN id LIKE '%-ko' THEN 4
                         ELSE 5
                     END,
-                    name
+                    name`;
+            
+            const cards = await this.all(`
+                SELECT * FROM cards 
+                ${whereClause}
+                ${orderClause}
                 LIMIT ? OFFSET ?
             `, [...params, pageSizeNum, offset]);
 

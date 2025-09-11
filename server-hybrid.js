@@ -105,11 +105,9 @@ class HybridAPIServer {
                     language
                 } = req.query;
                 
+                // Si no hay término de búsqueda, usar búsqueda aleatoria
                 if (!searchTerm) {
-                    return res.status(400).json({
-                        error: 'Parámetro de búsqueda requerido',
-                        message: 'Debes especificar un parámetro de búsqueda ?q='
-                    });
+                    searchTerm = 'pokemon'; // Búsqueda amplia para obtener cartas aleatorias
                 }
 
                 // Construir filtros

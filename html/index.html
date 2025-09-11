@@ -5741,10 +5741,10 @@
             if (noResultsMessage) noResultsMessage.classList.add('hidden');
             if (errorMessage) errorMessage.classList.add('hidden');
 
-            // Si la query es muy corta, mostrar página inicial
-            if (query.length < 3) {
-                showInitialSections();
-                return;
+            // Si la query está vacía, mostrar cartas aleatorias
+            if (query.length === 0) {
+                // Buscar cartas aleatorias usando una búsqueda amplia
+                query = 'pokemon'; // Búsqueda amplia para obtener cartas aleatorias
             }
 
             showLoadingSpinner();
@@ -8447,11 +8447,10 @@
                 searchInput.addEventListener('keyup', (event) => {
                     clearTimeout(searchTimeout);
                     const query = event.target.value.trim();
-                    if (query.length >= 3 || query.length === 0) {
-                        searchTimeout = setTimeout(() => {
-                            fetchCards(query);
-                        }, 500);
-                    }
+                    // Eliminar mínimo de caracteres - buscar siempre
+                    searchTimeout = setTimeout(() => {
+                        fetchCards(query);
+                    }, 500);
                 });
             }
 
