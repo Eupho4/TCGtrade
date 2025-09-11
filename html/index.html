@@ -5891,10 +5891,10 @@
                         row.appendChild(info);
                         cardsContainer.appendChild(row);
                         
-                        // Cargar precios automáticamente para esta carta
-                        setTimeout(() => {
-                            window.loadCardPrices(card.id, card.name);
-                        }, 100); // Pequeño delay para no sobrecargar
+        // Cargar precios automáticamente para esta carta con delay escalonado
+        setTimeout(() => {
+            window.loadCardPrices(card.id, card.name);
+        }, index * 2000 + 1000); // 1s, 3s, 5s, 7s... para evitar rate limiting
                     });
                     
                     console.log('✅ All cards rendered successfully');

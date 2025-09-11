@@ -294,9 +294,6 @@ class HybridAPIServer {
     // Método auxiliar para buscar precios en eBay
     async searchEbayPrices(query) {
         const appId = process.env.EBAY_APP_ID;
-        console.log('🔍 eBay searchEbayPrices called with query:', query);
-        console.log('🔑 EBAY_APP_ID configured:', !!appId);
-        console.log('🔑 EBAY_APP_ID value:', appId ? `${appId.substring(0, 10)}...` : 'NOT SET');
         
         if (!appId) {
             return [{
@@ -321,14 +318,8 @@ class HybridAPIServer {
             });
 
             const apiUrl = `https://svcs.ebay.com/services/search/FindingService/v1?${params.toString()}`;
-            console.log('🌐 eBay API URL:', apiUrl);
-            
-            console.log('⏳ Haciendo llamada a eBay...');
             const response = await this.fetch(apiUrl);
-            console.log('✅ Respuesta recibida, status:', response.status);
-            
             const data = await response.json();
-            console.log('📡 eBay API Response:', JSON.stringify(data, null, 2));
 
             // Verificar si hay errores de eBay
             if (data.errorMessage) {
@@ -353,8 +344,6 @@ class HybridAPIServer {
 
             return [];
         } catch (error) {
-            console.error('❌ Error buscando precios en eBay:', error);
-            console.error('❌ Error stack:', error.stack);
             return [{
                 priceUsd: 0,
                 condition: 'N/A',
