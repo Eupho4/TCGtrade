@@ -6490,7 +6490,17 @@
             const filterSetSelect = document.getElementById('filterSetSelect');
             
             if (filterSeriesSelect) {
-                const uniqueSeries = [...new Set(allSets.map(set => set.series))].filter(Boolean).sort();
+                // Ordenar series de más antiguo a más nuevo basado en la fecha del primer set de cada serie
+                const seriesWithDates = {};
+                allSets.forEach(set => {
+                    if (set.series && !seriesWithDates[set.series]) {
+                        seriesWithDates[set.series] = set.releaseDate;
+                    }
+                });
+                
+                const uniqueSeries = [...new Set(allSets.map(set => set.series))].filter(Boolean)
+                    .sort((a, b) => new Date(seriesWithDates[a]) - new Date(seriesWithDates[b]));
+                
                 filterSeriesSelect.innerHTML = '<option value="">Todas las Series</option>';
                 uniqueSeries.forEach(series => {
                     const option = document.createElement('option');
@@ -6502,7 +6512,9 @@
             
             if (filterSetSelect) {
                 filterSetSelect.innerHTML = '<option value="">Todos los Sets</option>';
-                allSets.forEach(set => {
+                // Ordenar sets de más antiguo a más nuevo
+                const sortedSets = [...allSets].sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate));
+                sortedSets.forEach(set => {
                     const option = document.createElement('option');
                     option.value = set.name;
                     option.textContent = set.name;
@@ -6531,7 +6543,9 @@
             if (!filterSetSelect) return;
 
             filterSetSelect.innerHTML = '<option value="">Todos los Sets</option>';
-            setsToDisplay.forEach(set => {
+            // Ordenar sets de más antiguo a más nuevo
+            const sortedSets = [...setsToDisplay].sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate));
+            sortedSets.forEach(set => {
                 const option = document.createElement('option');
                 option.value = set.name;
                 option.textContent = set.name;
@@ -12257,10 +12271,13 @@
                             <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rareza</label>
                             <select id="filterRaritySelect" class="w-full border rounded px-2 py-2 dark:bg-gray-700 dark:text-white">
                                 <option value="">Todas</option>
+                                <!-- Ordenado de menos raro a más raro -->
                                 <option value="Common">Common</option>
                                 <option value="Uncommon">Uncommon</option>
                                 <option value="Rare">Rare</option>
                                 <option value="Rare Holo">Rare Holo</option>
+                                <option value="Rare Prime">Rare Prime</option>
+                                <option value="Rare BREAK">Rare BREAK</option>
                                 <option value="Rare Holo EX">Rare Holo EX</option>
                                 <option value="Rare Holo GX">Rare Holo GX</option>
                                 <option value="Rare Holo V">Rare Holo V</option>
@@ -12268,10 +12285,7 @@
                                 <option value="Rare Holo VSTAR">Rare Holo VSTAR</option>
                                 <option value="Rare Holo ex">Rare Holo ex</option>
                                 <option value="Rare Holo Tera ex">Rare Holo Tera ex</option>
-                                <option value="Rare Prime">Rare Prime</option>
-                                <option value="Rare Secret">Rare Secret</option>
                                 <option value="Rare Ultra">Rare Ultra</option>
-                                <option value="Rare BREAK">Rare BREAK</option>
                                 <option value="Rare Rainbow">Rare Rainbow</option>
                                 <option value="Rare Shining">Rare Shining</option>
                                 <option value="Rare Shiny">Rare Shiny</option>
@@ -12280,30 +12294,23 @@
                                 <option value="Rare Shiny VMAX">Rare Shiny VMAX</option>
                                 <option value="Rare Shiny ex">Rare Shiny ex</option>
                                 <option value="Rare Shiny Tera ex">Rare Shiny Tera ex</option>
-                                <option value="Rare ACE SPEC">Rare ACE SPEC</option>
                                 <option value="Rare Amazing">Rare Amazing</option>
                                 <option value="Rare Radiant">Rare Radiant</option>
                                 <option value="Rare Special">Rare Special</option>
                                 <option value="Rare Illustration">Rare Illustration</option>
+                                <option value="Rare ACE SPEC">Rare ACE SPEC</option>
                                 <option value="Rare Hyper">Rare Hyper</option>
                                 <option value="Rare Double Rare">Rare Double Rare</option>
                                 <option value="Rare Triple Rare">Rare Triple Rare</option>
                                 <option value="Rare Ultra Rare">Rare Ultra Rare</option>
+                                <option value="Rare Secret">Rare Secret</option>
                                 <option value="Rare Secret Rare">Rare Secret Rare</option>
-                                <option value="Rare Promo">Rare Promo</option>
-                                <option value="Rare LEGEND">Rare LEGEND</option>
-                                <option value="Rare Prime">Rare Prime</option>
-                                <option value="Rare BREAK">Rare BREAK</option>
                                 <option value="Rare Amazing Rare">Rare Amazing Rare</option>
                                 <option value="Rare Radiant Rare">Rare Radiant Rare</option>
                                 <option value="Rare Special Illustration Rare">Rare Special Illustration Rare</option>
                                 <option value="Rare Hyper Rare">Rare Hyper Rare</option>
-                                <option value="Rare Double Rare">Rare Double Rare</option>
-                                <option value="Rare Triple Rare">Rare Triple Rare</option>
-                                <option value="Rare Ultra Rare">Rare Ultra Rare</option>
-                                <option value="Rare Secret Rare">Rare Secret Rare</option>
-                                <option value="Rare Promo">Rare Promo</option>
                                 <option value="Rare LEGEND">Rare LEGEND</option>
+                                <option value="Rare Promo">Rare Promo</option>
                             </select>
                         </div>
                         <div>
