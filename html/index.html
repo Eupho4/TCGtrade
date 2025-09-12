@@ -8447,7 +8447,18 @@
                     searchFiltersState.type = filterTypeSelect?.value || '';
                     searchFiltersState.language = filterLanguageSelect?.value || '';
                     const q = (searchInput?.value || '').trim();
-                    if (q.length >= 3) fetchCards(q);
+                    
+                    // Aplicar filtros incluso sin término de búsqueda específico
+                    if (q.length >= 2) {
+                        fetchCards(q);
+                    } else if (searchFiltersState.series || searchFiltersState.set || 
+                               searchFiltersState.rarity || searchFiltersState.type || 
+                               searchFiltersState.language) {
+                        // Si hay filtros pero no término de búsqueda, usar búsqueda general
+                        fetchCards('pokemon');
+                    } else {
+                        showNotification('Por favor ingresa un término de búsqueda o selecciona filtros', 'warning');
+                    }
                 });
             }
             if (clearSearchFiltersBtn) {
@@ -9389,7 +9400,10 @@
             const rarityParam = searchFiltersState.rarity ? `&rarity=${encodeURIComponent(searchFiltersState.rarity)}` : '';
             const typeParam = searchFiltersState.type ? `&type=${encodeURIComponent(searchFiltersState.type)}` : '';
             const languageParam = searchFiltersState.language ? `&language=${encodeURIComponent(searchFiltersState.language)}` : '';
-            return `https://tcgtrade-production.up.railway.app/api/pokemontcg/cards?q=${qParam}${pageParam}&pageSize=${pageSize}${seriesParam}${setParam}${rarityParam}${typeParam}${languageParam}`;
+            
+            // Usar URL relativa para que funcione tanto en local como en producción
+            const baseUrl = window.location.origin;
+            return `${baseUrl}/api/pokemontcg/cards?q=${qParam}${pageParam}&pageSize=${pageSize}${seriesParam}${setParam}${rarityParam}${typeParam}${languageParam}`;
         }
 
         function renderPagination(totalCount, page, pageSize) {
