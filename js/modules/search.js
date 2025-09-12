@@ -65,20 +65,33 @@ async function fetchCards(query, filters = {}, signal) {
     const baseUrl = API_ENDPOINTS.PROXY_CARDS || API_ENDPOINTS.POKEMON_TCG + '/cards';
     const params = new URLSearchParams();
     
-    // Build query - use simple syntax that works with our API
-    let searchQuery = query;
+    // Add search query
+    params.append('q', query);
     
+    // Add pagination
+    params.append('pageSize', filters.pageSize || '20');
+    params.append('page', filters.page || '1');
+    
+    // Add filters as separate parameters
     if (filters.set) {
-        searchQuery += ` set.id:${filters.set}`;
+        params.append('set', filters.set);
     }
     
     if (filters.series) {
-        searchQuery += ` set.series:"${filters.series}"`;
+        params.append('series', filters.series);
     }
     
-    params.append('q', searchQuery);
-    params.append('pageSize', filters.pageSize || '20');
-    params.append('page', filters.page || '1');
+    if (filters.rarity) {
+        params.append('rarity', filters.rarity);
+    }
+    
+    if (filters.type) {
+        params.append('type', filters.type);
+    }
+    
+    if (filters.language) {
+        params.append('language', filters.language);
+    }
     
     const url = `${baseUrl}?${params.toString()}`;
     
