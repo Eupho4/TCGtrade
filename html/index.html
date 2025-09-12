@@ -6466,15 +6466,36 @@
             
             if (filterSetSelect) {
                 filterSetSelect.innerHTML = '<option value="">Todos los Sets</option>';
-                // Ordenar sets alfabéticamente
-                const sortedSets = [...realSets].sort((a, b) => a.name.localeCompare(b.name));
+                // Ordenar sets de más antiguo a más nuevo (orden cronológico)
+                const sortedSets = [...realSets].sort((a, b) => {
+                    // Mapear nombres de sets a fechas aproximadas para orden cronológico
+                    const setDates = {
+                        'Base': '1996-10-20',
+                        'Jungle': '1999-06-16', 
+                        'Fossil': '1999-10-10',
+                        'Base Set 2': '2000-02-24',
+                        'Team Rocket': '2000-04-24',
+                        'Gym Heroes': '2000-08-14',
+                        'Gym Challenge': '2000-10-16',
+                        'Neo Genesis': '2000-12-16',
+                        'Neo Discovery': '2001-06-01',
+                        'Neo Revelation': '2001-09-21',
+                        'Neo Destiny': '2002-02-28',
+                        'Legendary Collection': '2002-05-24'
+                    };
+                    
+                    const dateA = setDates[a.name] || '2020-01-01';
+                    const dateB = setDates[b.name] || '2020-01-01';
+                    return new Date(dateA) - new Date(dateB);
+                });
+                
                 sortedSets.forEach(set => {
                     const option = document.createElement('option');
                     option.value = set.name; // Usar el nombre real de la base de datos
                     option.textContent = set.name;
                     filterSetSelect.appendChild(option);
                 });
-                console.log('✅ Filtro de sets poblado con', sortedSets.length, 'sets reales');
+                console.log('✅ Filtro de sets poblado con', sortedSets.length, 'sets reales (orden cronológico)');
             }
             
             // Agregar event listener para el filtro de serie
