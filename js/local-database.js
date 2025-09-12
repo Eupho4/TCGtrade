@@ -178,22 +178,38 @@ class LocalCardDatabase {
             }
             
             if (filters.set) {
-                whereClause += ' AND set_name = ?';
+                if (whereClause) {
+                    whereClause += ' AND set_name = ?';
+                } else {
+                    whereClause = 'WHERE set_name = ?';
+                }
                 params.push(String(filters.set));
             }
             
             if (filters.rarity) {
-                whereClause += ' AND rarity = ?';
+                if (whereClause) {
+                    whereClause += ' AND rarity = ?';
+                } else {
+                    whereClause = 'WHERE rarity = ?';
+                }
                 params.push(String(filters.rarity));
             }
             
             if (filters.type) {
-                whereClause += ' AND types LIKE ?';
+                if (whereClause) {
+                    whereClause += ' AND types LIKE ?';
+                } else {
+                    whereClause = 'WHERE types LIKE ?';
+                }
                 params.push(`%${String(filters.type)}%`);
             }
             
             if (filters.language) {
-                whereClause += ' AND id LIKE ?';
+                if (whereClause) {
+                    whereClause += ' AND id LIKE ?';
+                } else {
+                    whereClause = 'WHERE id LIKE ?';
+                }
                 params.push(`%-${String(filters.language)}`);
             }
 
