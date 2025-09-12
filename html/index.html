@@ -8551,41 +8551,222 @@
 
         });
 
-        // Función para mostrar detalles de carta (solo información)
-        window.showCardDetailsOnly = (cardId, cardName, imageUrl, setName, series, number) => {
+        // Función para mostrar detalles de carta (mejorada)
+        window.showCardDetailsOnly = async (cardId, cardName, imageUrl, setName, series, number) => {
             // Crear modal de detalles
             const modal = document.createElement('div');
-            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+            
+            // Mostrar modal con loading
             modal.innerHTML = `
-                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-md w-full mx-4">
+                <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
                     <div class="flex justify-between items-center mb-4">
                         <h3 class="text-xl font-bold text-gray-900 dark:text-white">Detalles de la Carta</h3>
                         <button onclick="this.parentElement.parentElement.parentElement.remove()" 
                                 class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
                     </div>
-                    <div class="text-center mb-4">
-                        <img src="${imageUrl}" alt="${cardName}" 
-                             class="w-48 h-auto mx-auto rounded-lg shadow-lg"
-                             onerror="this.src='https://placehold.co/400x550/a0aec0/ffffff?text=Error+imagen'">
+                    
+                    <!-- Loading spinner -->
+                    <div id="cardDetailsLoading" class="flex justify-center items-center py-8">
+                        <div class="pokeball-spinner"></div>
+                        <span class="ml-3 text-gray-600 dark:text-gray-400">Cargando detalles...</span>
                     </div>
-                    <div class="space-y-2 text-sm">
-                        <p><strong>Nombre:</strong> ${cardName}</p>
-                        <p><strong>Set:</strong> ${setName}</p>
-                        <p><strong>Serie:</strong> ${series}</p>
-                        <p><strong>Número:</strong> ${number}</p>
-                        <p><strong>ID:</strong> ${cardId}</p>
-                    </div>
-                    <div class="mt-6 flex justify-end">
-                        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
-                                class="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
-                            Cerrar
-                        </button>
+                    
+                    <!-- Contenido de detalles (se llenará dinámicamente) -->
+                    <div id="cardDetailsContent" class="hidden">
+                        <!-- Se llenará con datos de la API -->
                     </div>
                 </div>
             `;
             
             document.body.appendChild(modal);
+            
+            try {
+                // Obtener datos completos de la carta desde la API
+                const response = await fetch(`/api/pokemontcg/cards?q=${encodeURIComponent(cardName)}&pageSize=50`);
+                const data = await response.json();
+                const card = data.data?.find(c => c.id === cardId) || data.data?.[0];
+                
+                if (card) {
+                    // Ocultar loading y mostrar contenido
+                    document.getElementById('cardDetailsLoading').classList.add('hidden');
+                    document.getElementById('cardDetailsContent').classList.remove('hidden');
+                    
+                    // Generar contenido detallado
+                    document.getElementById('cardDetailsContent').innerHTML = generateCardDetailsHTML(card);
+                } else {
+                    // Fallback si no se encuentra la carta
+                    document.getElementById('cardDetailsLoading').innerHTML = `
+                        <div class="text-center py-8">
+                            <p class="text-gray-600 dark:text-gray-400">No se pudieron cargar los detalles completos</p>
+                            <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                                    class="mt-4 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                                Cerrar
+                            </button>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error('Error cargando detalles de carta:', error);
+                // Mostrar error
+                document.getElementById('cardDetailsLoading').innerHTML = `
+                    <div class="text-center py-8">
+                        <p class="text-red-600 dark:text-red-400">Error al cargar los detalles</p>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                                class="mt-4 px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600">
+                            Cerrar
+                        </button>
+                    </div>
+                `;
+            }
         };
+
+        // Función para generar HTML detallado de la carta
+        function generateCardDetailsHTML(card) {
+            const safeCardName = (card.name || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+            const safeImageUrl = (card.images?.large || card.images?.small || '/images/card-placeholder.svg').replace(/'/g, "\\'").replace(/"/g, '\\"');
+            const safeSetName = (card.set?.name || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+            const safeSeries = (card.set?.series || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+            const safeNumber = (card.number || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+            const safeCardId = (card.id || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+            
+            // Obtener precios si están disponibles
+            const tcgplayerPrices = card.tcgplayer?.prices || {};
+            const cardmarketPrices = card.cardmarket?.prices || {};
+            
+            // Función para formatear precios
+            const formatPrice = (price) => price ? `$${parseFloat(price).toFixed(2)}` : 'N/A';
+            
+            return `
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Imagen de la carta -->
+                    <div class="text-center">
+                        <img src="${safeImageUrl}" alt="${safeCardName}" 
+                             class="w-full max-w-sm mx-auto rounded-lg shadow-lg"
+                             onerror="this.src='/images/card-placeholder.svg'">
+                    </div>
+                    
+                    <!-- Información detallada -->
+                    <div class="space-y-4">
+                        <!-- Información básica -->
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <h4 class="font-bold text-lg text-gray-900 dark:text-white mb-3">📋 Información Básica</h4>
+                            <div class="space-y-2 text-sm">
+                                <div class="flex justify-between">
+                                    <span class="font-medium text-gray-600 dark:text-gray-400">Nombre:</span>
+                                    <span class="text-gray-900 dark:text-white">${safeCardName}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="font-medium text-gray-600 dark:text-gray-400">Set:</span>
+                                    <span class="text-gray-900 dark:text-white">${safeSetName}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="font-medium text-gray-600 dark:text-gray-400">Serie:</span>
+                                    <span class="text-gray-900 dark:text-white">${safeSeries}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="font-medium text-gray-600 dark:text-gray-400">Número:</span>
+                                    <span class="text-gray-900 dark:text-white">${safeNumber}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="font-medium text-gray-600 dark:text-gray-400">Rareza:</span>
+                                    <span class="text-gray-900 dark:text-white">${card.rarity || 'N/A'}</span>
+                                </div>
+                                <div class="flex justify-between">
+                                    <span class="font-medium text-gray-600 dark:text-gray-400">ID:</span>
+                                    <span class="text-gray-900 dark:text-white font-mono text-xs">${safeCardId}</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Tipos y subtipos -->
+                        ${(card.types?.length > 0 || card.subtypes?.length > 0) ? `
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <h4 class="font-bold text-lg text-gray-900 dark:text-white mb-3">⚡ Tipos</h4>
+                            <div class="space-y-2">
+                                ${card.types?.length > 0 ? `
+                                <div>
+                                    <span class="font-medium text-gray-600 dark:text-gray-400">Tipos:</span>
+                                    <div class="flex flex-wrap gap-1 mt-1">
+                                        ${card.types.map(type => `
+                                            <span class="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs">
+                                                ${type}
+                                            </span>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                                ` : ''}
+                                ${card.subtypes?.length > 0 ? `
+                                <div>
+                                    <span class="font-medium text-gray-600 dark:text-gray-400">Subtipos:</span>
+                                    <div class="flex flex-wrap gap-1 mt-1">
+                                        ${card.subtypes.map(subtype => `
+                                            <span class="px-2 py-1 bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 rounded text-xs">
+                                                ${subtype}
+                                            </span>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        ` : ''}
+                        
+                        <!-- Precios -->
+                        ${(Object.keys(tcgplayerPrices).length > 0 || Object.keys(cardmarketPrices).length > 0) ? `
+                        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4">
+                            <h4 class="font-bold text-lg text-gray-900 dark:text-white mb-3">💰 Precios</h4>
+                            <div class="space-y-3">
+                                ${Object.keys(tcgplayerPrices).length > 0 ? `
+                                <div>
+                                    <h5 class="font-medium text-gray-700 dark:text-gray-300 mb-2">TCGPlayer</h5>
+                                    <div class="grid grid-cols-2 gap-2 text-sm">
+                                        ${Object.entries(tcgplayerPrices).map(([condition, prices]) => `
+                                            <div class="bg-white dark:bg-gray-600 rounded p-2">
+                                                <div class="font-medium text-gray-600 dark:text-gray-400">${condition}</div>
+                                                ${prices.low ? `<div>Bajo: ${formatPrice(prices.low)}</div>` : ''}
+                                                ${prices.mid ? `<div>Medio: ${formatPrice(prices.mid)}</div>` : ''}
+                                                ${prices.high ? `<div>Alto: ${formatPrice(prices.high)}</div>` : ''}
+                                                ${prices.market ? `<div>Mercado: ${formatPrice(prices.market)}</div>` : ''}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                                ` : ''}
+                                
+                                ${Object.keys(cardmarketPrices).length > 0 ? `
+                                <div>
+                                    <h5 class="font-medium text-gray-700 dark:text-gray-300 mb-2">Cardmarket</h5>
+                                    <div class="bg-white dark:bg-gray-600 rounded p-2 text-sm">
+                                        ${cardmarketPrices.averageSellPrice ? `<div>Precio Promedio: ${formatPrice(cardmarketPrices.averageSellPrice)}</div>` : ''}
+                                        ${cardmarketPrices.lowPrice ? `<div>Precio Bajo: ${formatPrice(cardmarketPrices.lowPrice)}</div>` : ''}
+                                        ${cardmarketPrices.trendPrice ? `<div>Precio Tendencia: ${formatPrice(cardmarketPrices.trendPrice)}</div>` : ''}
+                                    </div>
+                                </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        ` : ''}
+                    </div>
+                </div>
+                
+                <!-- Botones de acción -->
+                <div class="mt-6 flex flex-wrap gap-3 justify-center">
+                    <button onclick="addCardDirectly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')" 
+                            class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-semibold">
+                        + Añadir a Colección
+                    </button>
+                    <button onclick="showCardOffers('${safeCardName}', '${safeSetName}', '${safeImageUrl}')" 
+                            class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-semibold">
+                        🤝 Ver Intercambios
+                    </button>
+                    <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                            class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-semibold">
+                        Cerrar
+                    </button>
+                </div>
+            `;
+        }
 
         // Función para mostrar modal de confirmación personalizado
         window.showAddCardModal = (cardId, cardName, imageUrl, setName, series, number) => {
