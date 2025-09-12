@@ -6249,7 +6249,7 @@
         // Función para poblar filtros de búsqueda
         async function fetchSetsAndPopulateSearchFilters() {
             if (allSets.length > 0) {
-                populateSearchFilters();
+                await populateSearchFilters();
                 return;
             }
 
@@ -6267,7 +6267,7 @@
                 console.log('✅ Sets cargados para filtros:', allSets.length);
                 allSets.sort((a, b) => new Date(b.releaseDate) - new Date(a.releaseDate));
                 
-                populateSearchFilters();
+                await populateSearchFilters();
 
             } catch (error) {
                 console.error('Error al cargar sets para filtros:', error);
@@ -6440,46 +6440,41 @@
                 ];
                 
                 console.log('✅ Sets locales cargados para filtros:', allSets.length);
-                populateSearchFilters();
+                await populateSearchFilters();
             }
         }
 
-        // Función para poblar los filtros de búsqueda
-        function populateSearchFilters() {
+        // Función para poblar los filtros de búsqueda con datos reales
+        async function populateSearchFilters() {
             const filterSeriesSelect = document.getElementById('filterSeriesSelect');
             const filterSetSelect = document.getElementById('filterSetSelect');
             
+            // Obtener sets reales de la base de datos
+            const realSets = await fetchRealSetsFromDatabase();
+            
             if (filterSeriesSelect) {
-                // Ordenar series de más antiguo a más nuevo basado en la fecha del primer set de cada serie
-                const seriesWithDates = {};
-                allSets.forEach(set => {
-                    if (set.series && !seriesWithDates[set.series]) {
-                        seriesWithDates[set.series] = set.releaseDate;
-                    }
-                });
-                
-                const uniqueSeries = [...new Set(allSets.map(set => set.series))].filter(Boolean)
-                    .sort((a, b) => new Date(seriesWithDates[a]) - new Date(seriesWithDates[b]));
-                
                 filterSeriesSelect.innerHTML = '<option value="">Todas las Series</option>';
+                const uniqueSeries = [...new Set(realSets.map(set => set.series))].filter(Boolean).sort();
                 uniqueSeries.forEach(series => {
                     const option = document.createElement('option');
                     option.value = series;
                     option.textContent = series;
                     filterSeriesSelect.appendChild(option);
                 });
+                console.log('✅ Filtro de series poblado con', uniqueSeries.length, 'series reales');
             }
             
             if (filterSetSelect) {
                 filterSetSelect.innerHTML = '<option value="">Todos los Sets</option>';
-                // Ordenar sets de más antiguo a más nuevo
-                const sortedSets = [...allSets].sort((a, b) => new Date(a.releaseDate) - new Date(b.releaseDate));
+                // Ordenar sets alfabéticamente
+                const sortedSets = [...realSets].sort((a, b) => a.name.localeCompare(b.name));
                 sortedSets.forEach(set => {
                     const option = document.createElement('option');
-                    option.value = set.name;
+                    option.value = set.name; // Usar el nombre real de la base de datos
                     option.textContent = set.name;
                     filterSetSelect.appendChild(option);
                 });
+                console.log('✅ Filtro de sets poblado con', sortedSets.length, 'sets reales');
             }
             
             // Agregar event listener para el filtro de serie
@@ -6513,6 +6508,39 @@
                 option.textContent = set.name;
                 filterSetSelect.appendChild(option);
             });
+        }
+
+        // Función para obtener sets reales de la base de datos
+        async function fetchRealSetsFromDatabase() {
+            console.log('🔄 Obteniendo sets reales de la base de datos...');
+            
+            try {
+                const response = await fetch('/api/pokemontcg/cards?q=pokemon&pageSize=1000');
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                
+                const data = await response.json();
+                const cards = data.data || [];
+                
+                // Extraer sets únicos de las cartas
+                const uniqueSets = new Map();
+                cards.forEach(card => {
+                    if (card.set && card.set.name && card.set.id) {
+                        uniqueSets.set(card.set.id, {
+                            id: card.set.id,
+                            name: card.set.name,
+                            series: card.set.series || 'Unknown'
+                        });
+                    }
+                });
+                
+                const realSets = Array.from(uniqueSets.values()).sort((a, b) => a.name.localeCompare(b.name));
+                console.log('✅ Sets reales obtenidos:', realSets.length);
+                return realSets;
+                
+            } catch (error) {
+                console.error('❌ Error obteniendo sets reales:', error);
+                return [];
+            }
         }
 
         // Función para obtener sets de la API (MEJORADA)
