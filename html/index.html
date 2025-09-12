@@ -5828,7 +5828,27 @@
                 } else {
                     console.log('ℹ️ No cards found for query:', searchQuery);
                     if (noResultsMessage) {
-                        noResultsMessage.textContent = `No se encontraron cartas para "${searchQuery}". Intenta con otro nombre.`;
+                        // Crear mensaje más específico basado en los filtros aplicados
+                        let message = `No se encontraron cartas para "${searchQuery}".`;
+                        
+                        const activeFilters = [];
+                        if (searchFiltersState.series) activeFilters.push(`Serie: ${searchFiltersState.series}`);
+                        if (searchFiltersState.set) activeFilters.push(`Set: ${searchFiltersState.set}`);
+                        if (searchFiltersState.rarity) activeFilters.push(`Rareza: ${searchFiltersState.rarity}`);
+                        if (searchFiltersState.type) activeFilters.push(`Tipo: ${searchFiltersState.type}`);
+                        if (searchFiltersState.language) activeFilters.push(`Idioma: ${searchFiltersState.language}`);
+                        
+                        if (activeFilters.length > 0) {
+                            message += `\n\nFiltros aplicados: ${activeFilters.join(', ')}`;
+                            message += `\n\n💡 Sugerencias:`;
+                            message += `\n• Verifica que el set "${searchFiltersState.set}" exista en la base de datos`;
+                            message += `\n• Prueba con filtros menos específicos`;
+                            message += `\n• Usa el botón "Limpiar" para quitar todos los filtros`;
+                        } else {
+                            message += ` Intenta con otro nombre.`;
+                        }
+                        
+                        noResultsMessage.textContent = message;
                         noResultsMessage.classList.remove('hidden');
                     }
                 }
@@ -8455,6 +8475,7 @@
                                searchFiltersState.rarity || searchFiltersState.type || 
                                searchFiltersState.language) {
                         // Si hay filtros pero no término de búsqueda, usar búsqueda general
+                        console.log('🔍 Aplicando filtros sin término de búsqueda:', searchFiltersState);
                         fetchCards('pokemon');
                     } else {
                         showNotification('Por favor ingresa un término de búsqueda o selecciona filtros', 'warning');
