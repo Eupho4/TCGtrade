@@ -120,11 +120,12 @@ class HybridAPIServer {
 
                 console.log('🔍 Búsqueda con filtros:', { searchTerm, filters, page, pageSize });
 
-                const results = await this.searchEngine.searchCards(searchTerm, {
-                    page: parseInt(page),
-                    pageSize: parseInt(pageSize),
-                    filters: filters
-                });
+                const results = await this.searchEngine.searchCards(
+                    searchTerm, 
+                    parseInt(page), 
+                    parseInt(pageSize), 
+                    filters
+                );
 
                 res.json(results);
             } catch (error) {
