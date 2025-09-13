@@ -54,6 +54,9 @@ class HybridAPIServer {
         // Servir archivos JavaScript desde la raíz
         this.app.use('/js', express.static('js'));
         
+        // Servir archivos exportados
+        this.app.use('/exports', express.static('exported_data'));
+        
         // Middleware de logging
         this.app.use((req, res, next) => {
             console.log(`🌐 ${req.method} ${req.path} - ${new Date().toISOString()}`);
@@ -140,9 +143,79 @@ class HybridAPIServer {
             }
         });
 
+        // Endpoint para listar archivos exportados
+        this.app.get('/api/exports', (req, res) => {
+            const fs = require('fs');
+            const path = require('path');
+            
+            try {
+                const exportsDir = path.join(__dirname, 'exported_data');
+                const files = fs.readdirSync(exportsDir);
+                
+                const fileInfo = files.map(file => {
+                    const filePath = path.join(exportsDir, file);
+                    const stats = fs.statSync(filePath);
+                    return {
+                        name: file,
+                        size: stats.size,
+                        sizeFormatted: this.formatFileSize(stats.size),
+                        lastModified: stats.mtime,
+                        downloadUrl: `/exports/${file}`
+                    };
+                });
+                
+                res.json({
+                    message: 'Archivos exportados disponibles',
+                    totalFiles: files.length,
+                    files: fileInfo
+                });
+            } catch (error) {
+                res.status(500).json({
+                    error: 'Error al listar archivos exportados',
+                    message: error.message
+                });
+            }
+        });
 
+        // Endpoint para descargar archivos específicos
+        this.app.get('/api/exports/:filename', (req, res) => {
+            const fs = require('fs');
+            const path = require('path');
+            
+            try {
+                const filename = req.params.filename;
+                const filePath = path.join(__dirname, 'exported_data', filename);
+                
+                if (!fs.existsSync(filePath)) {
+                    return res.status(404).json({
+                        error: 'Archivo no encontrado',
+                        message: `El archivo ${filename} no existe`
+                    });
+                }
+                
+                // Configurar headers para descarga
+                res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+                res.setHeader('Content-Type', 'application/octet-stream');
+                
+                // Enviar archivo
+                res.sendFile(filePath);
+            } catch (error) {
+                res.status(500).json({
+                    error: 'Error al descargar archivo',
+                    message: error.message
+                });
+            }
+        });
 
+    }
 
+    // Función para formatear tamaño de archivo
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
     }
 
 
