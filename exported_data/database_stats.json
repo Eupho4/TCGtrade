@@ -1,0 +1,298 @@
+{
+  "totalCards": 21555,
+  "bySeries": [
+    {
+      "series": "Sword & Shield",
+      "count": 3667
+    },
+    {
+      "series": "Scarlet & Violet",
+      "count": 3630
+    },
+    {
+      "series": "Sun & Moon",
+      "count": 2973
+    },
+    {
+      "series": "XY",
+      "count": 1926
+    },
+    {
+      "series": "EX",
+      "count": 1766
+    },
+    {
+      "series": "Black & White",
+      "count": 1437
+    },
+    {
+      "series": "Diamond & Pearl",
+      "count": 900
+    },
+    {
+      "series": "HeartGold & SoulSilver",
+      "count": 545
+    },
+    {
+      "series": "E-Card",
+      "count": 529
+    },
+    {
+      "series": "Platinum",
+      "count": 517
+    },
+    {
+      "series": "Base",
+      "count": 494
+    },
+    {
+      "series": "Neo",
+      "count": 365
+    },
+    {
+      "series": "Other",
+      "count": 294
+    },
+    {
+      "series": "Gym",
+      "count": 264
+    },
+    {
+      "series": "POP",
+      "count": 153
+    },
+    {
+      "series": "NP",
+      "count": 40
+    }
+  ],
+  "byRarity": [
+    {
+      "rarity": "Common",
+      "count": 5013
+    },
+    {
+      "rarity": "Uncommon",
+      "count": 4669
+    },
+    {
+      "rarity": "Rare",
+      "count": 2481
+    },
+    {
+      "rarity": "Rare Holo",
+      "count": 1617
+    },
+    {
+      "rarity": "Promo",
+      "count": 1255
+    },
+    {
+      "rarity": "Rare Ultra",
+      "count": 798
+    },
+    {
+      "rarity": "Illustration Rare",
+      "count": 391
+    },
+    {
+      "rarity": "Rare Secret",
+      "count": 325
+    },
+    {
+      "rarity": "Rare Rainbow",
+      "count": 324
+    },
+    {
+      "rarity": "Rare Holo EX",
+      "count": 318
+    },
+    {
+      "rarity": "Rare Holo V",
+      "count": 281
+    },
+    {
+      "rarity": "Ultra Rare",
+      "count": 249
+    },
+    {
+      "rarity": "Double Rare",
+      "count": 229
+    },
+    {
+      "rarity": "Special Illustration Rare",
+      "count": 167
+    },
+    {
+      "rarity": "Rare Holo GX",
+      "count": 165
+    },
+    {
+      "rarity": "Rare Shiny",
+      "count": 149
+    },
+    {
+      "rarity": "Shiny Rare",
+      "count": 120
+    },
+    {
+      "rarity": "Rare Holo VMAX",
+      "count": 110
+    },
+    {
+      "rarity": "Trainer Gallery Rare Holo",
+      "count": 80
+    },
+    {
+      "rarity": "Hyper Rare",
+      "count": 74
+    },
+    {
+      "rarity": "Rare Holo LV.X",
+      "count": 56
+    },
+    {
+      "rarity": "Rare Holo VSTAR",
+      "count": 43
+    },
+    {
+      "rarity": "Rare Shiny GX",
+      "count": 35
+    },
+    {
+      "rarity": "ACE SPEC Rare",
+      "count": 33
+    },
+    {
+      "rarity": "Rare BREAK",
+      "count": 27
+    },
+    {
+      "rarity": "Rare Prism Star",
+      "count": 27
+    },
+    {
+      "rarity": "Rare Prime",
+      "count": 26
+    },
+    {
+      "rarity": "Classic Collection",
+      "count": 25
+    },
+    {
+      "rarity": "Rare Holo Star",
+      "count": 25
+    },
+    {
+      "rarity": "LEGEND",
+      "count": 18
+    },
+    {
+      "rarity": "Rare Shining",
+      "count": 16
+    },
+    {
+      "rarity": "Radiant Rare",
+      "count": 15
+    },
+    {
+      "rarity": "Rare ACE",
+      "count": 13
+    },
+    {
+      "rarity": "Shiny Ultra Rare",
+      "count": 12
+    },
+    {
+      "rarity": "Amazing Rare",
+      "count": 9
+    },
+    {
+      "rarity": "Black White Rare",
+      "count": 2
+    }
+  ],
+  "bySubtypes": [
+    {
+      "subtypes": "Basic",
+      "count": 7616
+    },
+    {
+      "subtypes": "Stage 1",
+      "count": 4374
+    },
+    {
+      "subtypes": "Stage 2",
+      "count": 1297
+    },
+    {
+      "subtypes": "Supporter",
+      "count": 1023
+    },
+    {
+      "subtypes": "Item",
+      "count": 713
+    },
+    {
+      "subtypes": "Basic,V",
+      "count": 518
+    },
+    {
+      "subtypes": "Basic,EX",
+      "count": 322
+    },
+    {
+      "subtypes": "Pokémon Tool",
+      "count": 264
+    },
+    {
+      "subtypes": "Stadium",
+      "count": 232
+    },
+    {
+      "subtypes": "Basic,ex",
+      "count": 229
+    },
+    {
+      "subtypes": "Special",
+      "count": 185
+    },
+    {
+      "subtypes": "Basic,GX",
+      "count": 176
+    },
+    {
+      "subtypes": "Stage 1,ex",
+      "count": 169
+    },
+    {
+      "subtypes": "Stage 2,ex",
+      "count": 158
+    },
+    {
+      "subtypes": "VMAX",
+      "count": 153
+    },
+    {
+      "subtypes": "Stage 1,GX",
+      "count": 148
+    },
+    {
+      "subtypes": "Basic,TAG TEAM,GX",
+      "count": 111
+    },
+    {
+      "subtypes": "Stage 2,GX",
+      "count": 99
+    },
+    {
+      "subtypes": "VSTAR",
+      "count": 94
+    },
+    {
+      "subtypes": "MEGA,EX",
+      "count": 92
+    }
+  ],
+  "exportDate": "2025-09-13T16:03:40.673Z"
+}
