@@ -74,6 +74,10 @@
         import ChatManager from '/js/modules/chat.js?v=33';
         import ChatUI from '/js/modules/chat-ui.js?v=33';
         import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
+        
+        // Importar módulos de migración y sincronización
+        import DataMigration from '/js/modules/data-migration.js?v=34';
+        import DataSync from '/js/modules/data-sync.js?v=34';
 
         // CONFIGURACIÓN DE FIREBASE - REEMPLAZA CON TUS DATOS
         const firebaseConfig = {
@@ -98,6 +102,10 @@
         let currentUser = null;
         let allSets = []; // Cache para todos los sets de la API
         let userCardsCache = []; // Cache para las cartas del usuario
+        
+        // Variables para migración y sincronización
+        let dataMigration = null;
+        let dataSync = null;
         let chatManager = null; // Gestor de chat
         let chatUI = null; // UI del chat
 
@@ -6044,13 +6052,20 @@
             showLoadingSpinner();
 
             try {
-                const myCardsCollectionRef = collection(db, `users/${userId}/my_cards`);
-                const querySnapshot = await getDocs(myCardsCollectionRef);
-                userCardsCache = [];
+                // Si tenemos sincronización activa, usar los datos del cache
+                if (dataSync && userCardsCache.length > 0) {
+                    console.log('📦 Usando datos sincronizados de la colección');
+                } else {
+                    // Fallback: cargar desde Firestore directamente
+                    console.log('📦 Cargando colección desde Firestore...');
+                    const myCardsCollectionRef = collection(db, `users/${userId}/my_cards`);
+                    const querySnapshot = await getDocs(myCardsCollectionRef);
+                    userCardsCache = [];
 
-                querySnapshot.forEach(doc => {
-                    userCardsCache.push(doc.data());
-                });
+                    querySnapshot.forEach(doc => {
+                        userCardsCache.push(doc.data());
+                    });
+                }
 
                 // Aplicar filtros
                 const selectedSeries = seriesFilter?.value || '';
@@ -8261,6 +8276,35 @@
                         console.error('❌ Error al inicializar chat:', error);
                     }
                     
+                    // Inicializar sistema de migración y sincronización
+                    try {
+                        console.log('🔄 Inicializando sistema de migración y sincronización...');
+                        dataMigration = new DataMigration(auth, db);
+                        dataSync = new DataSync(auth, db);
+                        
+                        window.dataMigration = dataMigration; // Hacer disponible globalmente
+                        window.dataSync = dataSync; // Hacer disponible globalmente
+                        
+                        console.log('✅ Sistema de migración y sincronización inicializado');
+                        
+                        // Ejecutar migración automática
+                        setTimeout(async () => {
+                            console.log('🚀 Iniciando migración automática...');
+                            const migrationSuccess = await dataMigration.migrateAllData();
+                            if (migrationSuccess) {
+                                console.log('🎉 Migración completada exitosamente');
+                                
+                                // Iniciar sincronización en tiempo real
+                                await startDataSync();
+                            } else {
+                                console.log('⚠️ Migración parcial o fallida');
+                            }
+                        }, 2000);
+                        
+                    } catch (error) {
+                        console.error('❌ Error al inicializar migración/sincronización:', error);
+                    }
+                    
                     // Escuchar actualizaciones de mensajes no leídos
                     window.addEventListener('unreadCountUpdated', (event) => {
                         // Contar CHATS con mensajes sin leer (no mensajes totales)
@@ -8331,6 +8375,14 @@
                     chatManager.disconnectAll();
                     chatManager = null;
                     chatUI = null;
+                    
+                    // Limpiar sistema de migración y sincronización
+                    if (dataSync) {
+                        console.log('🔄 Desconectando sincronización...');
+                        dataSync.disconnectAll();
+                        dataSync = null;
+                    }
+                    dataMigration = null;
                 }
 
                 // Obtener referencias a los elementos de navegación
@@ -14035,6 +14087,49 @@
 
     <!-- Scripts globales fuera del módulo ES6 -->
     <script>
+        // Función para iniciar sincronización de datos
+        async function startDataSync() {
+            if (!dataSync || !currentUser) {
+                console.log('⚠️ No se puede iniciar sincronización: dataSync o usuario no disponible');
+                return;
+            }
+
+            try {
+                console.log('🔄 Iniciando sincronización en tiempo real...');
+                
+                // Sincronizar colección personal
+                await dataSync.syncUserCollection((cards) => {
+                    console.log('📦 Colección sincronizada:', cards.length, 'cartas');
+                    userCardsCache = cards;
+                    
+                    // Actualizar UI si está abierta la sección de colección
+                    if (document.getElementById('myCardsSection') && !document.getElementById('myCardsSection').classList.contains('hidden')) {
+                        loadMyCollection(currentUser.uid);
+                    }
+                });
+                
+                // Sincronizar intercambios
+                await dataSync.syncUserTrades((trades) => {
+                    console.log('🔄 Intercambios sincronizados:', trades.length, 'intercambios');
+                    
+                    // Actualizar UI si está abierta la sección de intercambios
+                    if (document.getElementById('interchangesSection') && !document.getElementById('interchangesSection').classList.contains('hidden')) {
+                        loadAvailableTrades();
+                    }
+                });
+                
+                // Sincronizar valoraciones
+                await dataSync.syncUserRatings((ratings) => {
+                    console.log('⭐ Valoraciones sincronizadas:', ratings.length, 'valoraciones');
+                });
+                
+                console.log('✅ Sincronización en tiempo real iniciada');
+                
+            } catch (error) {
+                console.error('❌ Error al iniciar sincronización:', error);
+            }
+        }
+
         console.log('🚀 Script principal iniciado correctamente');
         
         // Función de prueba de API (removida - ya no se necesita)
