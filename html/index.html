@@ -70,10 +70,10 @@
         import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
         import { getDatabase } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
         
-        // Importar módulos de chat (comentado - archivos no existen)
-        // import ChatManager from '/js/modules/chat.js?v=33';
-        // import ChatUI from '/js/modules/chat-ui.js?v=33';
-        // import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
+        // Importar módulos de chat
+        import ChatManager from '/js/modules/chat.js?v=33';
+        import ChatUI from '/js/modules/chat-ui.js?v=33';
+        import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
 
         // CONFIGURACIÓN DE FIREBASE - REEMPLAZA CON TUS DATOS
         const firebaseConfig = {
@@ -8244,19 +8244,24 @@
                 currentUser = user;
                 console.log('🔐 onAuthStateChanged ejecutado. Usuario:', !!user);
 
-                // Inicializar sistema de chat si el usuario está autenticado (comentado - módulos no disponibles)
+                // Inicializar sistema de chat si el usuario está autenticado
                 if (user && !chatManager) {
-                    console.log('💬 Chat deshabilitado - módulos no disponibles');
-                    // chatManager = new ChatManager(auth, db);
-                    // chatUI = new ChatUI(chatManager);
-                    // const chatDebugger = new ChatDebugger(chatManager);
+                    console.log('💬 Inicializando sistema de chat...');
+                    try {
+                        chatManager = new ChatManager(auth, db);
+                        chatUI = new ChatUI(chatManager);
+                        const chatDebugger = new ChatDebugger(chatManager);
+                        
+                        window.chatManager = chatManager; // Hacer disponible globalmente
+                        window.chatUI = chatUI; // Hacer disponible globalmente
+                        window.chatDebugger = chatDebugger; // Hacer disponible globalmente
+                        
+                        console.log('✅ Sistema de chat inicializado correctamente');
+                    } catch (error) {
+                        console.error('❌ Error al inicializar chat:', error);
+                    }
                     
-                    // window.chatManager = chatManager; // Hacer disponible globalmente
-                    // window.chatUI = chatUI; // Hacer disponible globalmente
-                    // window.chatDebugger = chatDebugger; // Hacer disponible globalmente
-                    
-                    // Escuchar actualizaciones de mensajes no leídos (comentado - chat deshabilitado)
-                    /*
+                    // Escuchar actualizaciones de mensajes no leídos
                     window.addEventListener('unreadCountUpdated', (event) => {
                         // Contar CHATS con mensajes sin leer (no mensajes totales)
                         let chatsWithUnread = 0;
@@ -8319,14 +8324,13 @@
                             await chatUI.updateChatBadge();
                         }
                     }, 10000);
-                    */
                     
                 } else if (!user && chatManager) {
-                    // Limpiar chat si el usuario cierra sesión (comentado - chat deshabilitado)
-                    console.log('💬 Chat deshabilitado - limpieza omitida');
-                    // chatManager.disconnectAll();
-                    // chatManager = null;
-                    // chatUI = null;
+                    // Limpiar chat si el usuario cierra sesión
+                    console.log('💬 Limpiando sistema de chat...');
+                    chatManager.disconnectAll();
+                    chatManager = null;
+                    chatUI = null;
                 }
 
                 // Obtener referencias a los elementos de navegación
