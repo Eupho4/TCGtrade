@@ -8640,24 +8640,24 @@
             // Función para obtener color del tipo
             const getTypeColor = (type) => {
                 const colors = {
-                    'Fire': 'from-red-500 to-orange-500',
-                    'Water': 'from-blue-500 to-cyan-500',
-                    'Grass': 'from-green-500 to-emerald-500',
-                    'Electric': 'from-yellow-500 to-amber-500',
-                    'Psychic': 'from-purple-500 to-pink-500',
-                    'Fighting': 'from-orange-600 to-red-600',
-                    'Darkness': 'from-gray-700 to-gray-900',
-                    'Metal': 'from-gray-400 to-gray-600',
-                    'Dragon': 'from-indigo-500 to-purple-600',
-                    'Fairy': 'from-pink-400 to-rose-400',
-                    'Colorless': 'from-gray-300 to-gray-500'
+                    'Fire': 'bg-red-500',
+                    'Water': 'bg-blue-500',
+                    'Grass': 'bg-green-500',
+                    'Electric': 'bg-yellow-500',
+                    'Psychic': 'bg-purple-500',
+                    'Fighting': 'bg-orange-600',
+                    'Darkness': 'bg-gray-700',
+                    'Metal': 'bg-gray-400',
+                    'Dragon': 'bg-indigo-500',
+                    'Fairy': 'bg-pink-400',
+                    'Colorless': 'bg-gray-300'
                 };
-                return colors[type] || 'from-gray-400 to-gray-600';
+                return colors[type] || 'bg-gray-400';
             };
             
             return `
                 <!-- Header con gradiente -->
-                <div class="relative bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-t-xl -m-6 mb-6 p-6 text-white">
+                <div class="bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 rounded-lg p-6 text-white mb-6">
                     <div class="flex items-center justify-between">
                         <div>
                             <h2 class="text-2xl font-bold mb-1">${safeCardName}</h2>
@@ -8670,85 +8670,87 @@
                     </div>
                 </div>
                 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Imagen de la carta con efecto hover -->
-                    <div class="lg:col-span-1">
-                        <div class="relative group">
-                            <div class="absolute -inset-1 bg-gradient-to-r from-pink-600 to-purple-600 rounded-xl blur opacity-25 group-hover:opacity-75 transition duration-1000 group-hover:duration-200"></div>
-                            <div class="relative bg-white dark:bg-gray-800 rounded-xl p-4">
-                                <img src="${safeImageUrl}" alt="${safeCardName}" 
-                                     class="w-full rounded-lg shadow-2xl transform group-hover:scale-105 transition-transform duration-300"
-                                     onerror="this.src='/images/card-placeholder.svg'">
-                            </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Imagen de la carta -->
+                    <div class="text-center">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg">
+                            <img src="${safeImageUrl}" alt="${safeCardName}" 
+                                 class="w-full max-w-sm mx-auto rounded-lg"
+                                 onerror="this.src='/images/card-placeholder.svg'">
                         </div>
                     </div>
                     
                     <!-- Información detallada -->
-                    <div class="lg:col-span-2 space-y-6">
-                        <!-- Información básica con iconos -->
-                        <div class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-                            <div class="flex items-center mb-4">
-                                <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center mr-3">
-                                    <span class="text-white text-sm">📋</span>
-                                </div>
-                                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Información</h3>
-                            </div>
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="space-y-4">
+                        <!-- Información básica -->
+                        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg border border-gray-200 dark:border-gray-700">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center">
+                                <span class="mr-2">📋</span>
+                                Información Básica
+                            </h3>
+                            <div class="space-y-3">
                                 <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
-                                        <span class="text-blue-600 dark:text-blue-400 text-lg">🏷️</span>
+                                    <div class="w-8 h-8 bg-blue-100 dark:bg-blue-900 rounded-lg flex items-center justify-center">
+                                        <span class="text-blue-600 dark:text-blue-400 text-sm">🏷️</span>
                                     </div>
                                     <div>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">Nombre</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Nombre</p>
                                         <p class="font-semibold text-gray-900 dark:text-white">${safeCardName}</p>
                                     </div>
                                 </div>
                                 <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
-                                        <span class="text-green-600 dark:text-green-400 text-lg">📦</span>
+                                    <div class="w-8 h-8 bg-green-100 dark:bg-green-900 rounded-lg flex items-center justify-center">
+                                        <span class="text-green-600 dark:text-green-400 text-sm">📦</span>
                                     </div>
                                     <div>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">Set</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Set</p>
                                         <p class="font-semibold text-gray-900 dark:text-white">${safeSetName}</p>
                                     </div>
                                 </div>
                                 <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
-                                        <span class="text-purple-600 dark:text-purple-400 text-lg">🎯</span>
+                                    <div class="w-8 h-8 bg-purple-100 dark:bg-purple-900 rounded-lg flex items-center justify-center">
+                                        <span class="text-purple-600 dark:text-purple-400 text-sm">🎯</span>
                                     </div>
                                     <div>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">Serie</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Serie</p>
                                         <p class="font-semibold text-gray-900 dark:text-white">${safeSeries}</p>
                                     </div>
                                 </div>
                                 <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
-                                        <span class="text-orange-600 dark:text-orange-400 text-lg">⭐</span>
+                                    <div class="w-8 h-8 bg-orange-100 dark:bg-orange-900 rounded-lg flex items-center justify-center">
+                                        <span class="text-orange-600 dark:text-orange-400 text-sm">⭐</span>
                                     </div>
                                     <div>
-                                        <p class="text-sm text-gray-500 dark:text-gray-400">Rareza</p>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">Rareza</p>
                                         <p class="font-semibold text-gray-900 dark:text-white">${card.rarity || 'Common'}</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-8 h-8 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center">
+                                        <span class="text-gray-600 dark:text-gray-400 text-sm">🔢</span>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs text-gray-500 dark:text-gray-400">ID</p>
+                                        <p class="font-mono text-xs text-gray-900 dark:text-white">${safeCardId}</p>
                                     </div>
                                 </div>
                             </div>
                         </div>
                         
-                        <!-- Tipos y subtipos con gradientes -->
+                        <!-- Tipos y subtipos -->
                         ${(card.types?.length > 0 || card.subtypes?.length > 0) ? `
-                        <div class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-                            <div class="flex items-center mb-4">
-                                <div class="w-8 h-8 bg-gradient-to-r from-yellow-500 to-orange-500 rounded-lg flex items-center justify-center mr-3">
-                                    <span class="text-white text-sm">⚡</span>
-                                </div>
-                                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Tipos</h3>
-                            </div>
-                            <div class="space-y-4">
+                        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg border border-gray-200 dark:border-gray-700">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center">
+                                <span class="mr-2">⚡</span>
+                                Tipos
+                            </h3>
+                            <div class="space-y-3">
                                 ${card.types?.length > 0 ? `
                                 <div>
                                     <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Tipos de Energía</p>
                                     <div class="flex flex-wrap gap-2">
                                         ${card.types.map(type => `
-                                            <span class="px-4 py-2 bg-gradient-to-r ${getTypeColor(type)} text-white rounded-full text-sm font-semibold shadow-lg transform hover:scale-105 transition-transform duration-200">
+                                            <span class="px-3 py-1 ${getTypeColor(type)} text-white rounded-full text-sm font-semibold">
                                                 ${type}
                                             </span>
                                         `).join('')}
@@ -8760,7 +8762,7 @@
                                     <p class="text-sm font-medium text-gray-600 dark:text-gray-400 mb-2">Subtipos</p>
                                     <div class="flex flex-wrap gap-2">
                                         ${card.subtypes.map(subtype => `
-                                            <span class="px-3 py-1 bg-gradient-to-r from-emerald-400 to-teal-500 text-white rounded-full text-xs font-medium shadow-md">
+                                            <span class="px-2 py-1 bg-emerald-500 text-white rounded-full text-xs font-medium">
                                                 ${subtype}
                                             </span>
                                         `).join('')}
@@ -8771,29 +8773,27 @@
                         </div>
                         ` : ''}
                         
-                        <!-- Precios con diseño mejorado -->
+                        <!-- Precios -->
                         ${(Object.keys(tcgplayerPrices).length > 0 || Object.keys(cardmarketPrices).length > 0) ? `
-                        <div class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 rounded-xl p-6 shadow-lg border border-gray-200 dark:border-gray-700">
-                            <div class="flex items-center mb-4">
-                                <div class="w-8 h-8 bg-gradient-to-r from-green-500 to-emerald-500 rounded-lg flex items-center justify-center mr-3">
-                                    <span class="text-white text-sm">💰</span>
-                                </div>
-                                <h3 class="text-xl font-bold text-gray-900 dark:text-white">Precios de Mercado</h3>
-                            </div>
+                        <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg border border-gray-200 dark:border-gray-700">
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center">
+                                <span class="mr-2">💰</span>
+                                Precios de Mercado
+                            </h3>
                             <div class="space-y-4">
                                 ${Object.keys(tcgplayerPrices).length > 0 ? `
                                 <div>
-                                    <div class="flex items-center mb-3">
-                                        <div class="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center mr-2">
+                                    <div class="flex items-center mb-2">
+                                        <div class="w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center mr-2">
                                             <span class="text-white text-xs font-bold">T</span>
                                         </div>
                                         <h4 class="font-semibold text-gray-800 dark:text-gray-200">TCGPlayer</h4>
                                     </div>
-                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    <div class="grid grid-cols-1 gap-2">
                                         ${Object.entries(tcgplayerPrices).map(([condition, prices]) => `
-                                            <div class="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 shadow-sm">
-                                                <div class="font-semibold text-gray-700 dark:text-gray-300 mb-2 capitalize">${condition}</div>
-                                                <div class="space-y-1 text-sm">
+                                            <div class="bg-gray-50 dark:bg-gray-700 rounded p-3">
+                                                <div class="font-semibold text-gray-700 dark:text-gray-300 mb-1 capitalize text-sm">${condition}</div>
+                                                <div class="space-y-1 text-xs">
                                                     ${prices.low ? `<div class="flex justify-between"><span class="text-gray-500">Bajo:</span><span class="font-semibold text-green-600">${formatPrice(prices.low)}</span></div>` : ''}
                                                     ${prices.mid ? `<div class="flex justify-between"><span class="text-gray-500">Medio:</span><span class="font-semibold text-blue-600">${formatPrice(prices.mid)}</span></div>` : ''}
                                                     ${prices.high ? `<div class="flex justify-between"><span class="text-gray-500">Alto:</span><span class="font-semibold text-red-600">${formatPrice(prices.high)}</span></div>` : ''}
@@ -8807,17 +8807,17 @@
                                 
                                 ${Object.keys(cardmarketPrices).length > 0 ? `
                                 <div>
-                                    <div class="flex items-center mb-3">
-                                        <div class="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center mr-2">
+                                    <div class="flex items-center mb-2">
+                                        <div class="w-5 h-5 bg-orange-500 rounded-full flex items-center justify-center mr-2">
                                             <span class="text-white text-xs font-bold">C</span>
                                         </div>
                                         <h4 class="font-semibold text-gray-800 dark:text-gray-200">Cardmarket</h4>
                                     </div>
-                                    <div class="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-200 dark:border-gray-600 shadow-sm">
-                                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-sm">
-                                            ${cardmarketPrices.averageSellPrice ? `<div class="text-center"><div class="text-gray-500 text-xs">Promedio</div><div class="font-semibold text-green-600">${formatPrice(cardmarketPrices.averageSellPrice)}</div></div>` : ''}
-                                            ${cardmarketPrices.lowPrice ? `<div class="text-center"><div class="text-gray-500 text-xs">Bajo</div><div class="font-semibold text-blue-600">${formatPrice(cardmarketPrices.lowPrice)}</div></div>` : ''}
-                                            ${cardmarketPrices.trendPrice ? `<div class="text-center"><div class="text-gray-500 text-xs">Tendencia</div><div class="font-semibold text-purple-600">${formatPrice(cardmarketPrices.trendPrice)}</div></div>` : ''}
+                                    <div class="bg-gray-50 dark:bg-gray-700 rounded p-3">
+                                        <div class="grid grid-cols-3 gap-2 text-xs">
+                                            ${cardmarketPrices.averageSellPrice ? `<div class="text-center"><div class="text-gray-500">Promedio</div><div class="font-semibold text-green-600">${formatPrice(cardmarketPrices.averageSellPrice)}</div></div>` : ''}
+                                            ${cardmarketPrices.lowPrice ? `<div class="text-center"><div class="text-gray-500">Bajo</div><div class="font-semibold text-blue-600">${formatPrice(cardmarketPrices.lowPrice)}</div></div>` : ''}
+                                            ${cardmarketPrices.trendPrice ? `<div class="text-center"><div class="text-gray-500">Tendencia</div><div class="font-semibold text-purple-600">${formatPrice(cardmarketPrices.trendPrice)}</div></div>` : ''}
                                         </div>
                                     </div>
                                 </div>
@@ -8828,28 +8828,19 @@
                     </div>
                 </div>
                 
-                <!-- Botones de acción con gradientes -->
-                <div class="mt-8 flex flex-wrap gap-4 justify-center">
+                <!-- Botones de acción -->
+                <div class="mt-6 flex flex-wrap gap-3 justify-center">
                     <button onclick="addCardDirectly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')" 
-                            class="group relative px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
-                        <span class="relative z-10 flex items-center">
-                            <span class="mr-2">+</span>
-                            Añadir a Colección
-                        </span>
-                        <div class="absolute inset-0 bg-gradient-to-r from-green-600 to-emerald-700 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                            class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 font-semibold transition-colors">
+                        + Añadir a Colección
                     </button>
                     <button onclick="showCardOffers('${safeCardName}', '${safeSetName}', '${safeImageUrl}')" 
-                            class="group relative px-8 py-3 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
-                        <span class="relative z-10 flex items-center">
-                            <span class="mr-2">🤝</span>
-                            Ver Intercambios
-                        </span>
-                        <div class="absolute inset-0 bg-gradient-to-r from-orange-600 to-red-600 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                            class="px-6 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 font-semibold transition-colors">
+                        🤝 Ver Intercambios
                     </button>
                     <button onclick="this.parentElement.parentElement.parentElement.remove()" 
-                            class="group relative px-8 py-3 bg-gradient-to-r from-gray-500 to-gray-600 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 transition-all duration-200">
-                        <span class="relative z-10">Cerrar</span>
-                        <div class="absolute inset-0 bg-gradient-to-r from-gray-600 to-gray-700 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
+                            class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 font-semibold transition-colors">
+                        Cerrar
                     </button>
                 </div>
             `;
