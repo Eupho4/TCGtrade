@@ -8568,7 +8568,7 @@
                     
                     <!-- Loading spinner -->
                     <div id="cardDetailsLoading" class="flex justify-center items-center py-8">
-                        <div class="pokeball-spinner"></div>
+                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
                         <span class="ml-3 text-gray-600 dark:text-gray-400">Cargando detalles...</span>
                     </div>
                     
@@ -9969,7 +9969,7 @@
             loadingIndicator.className = 'absolute inset-0 bg-white dark:bg-gray-800 bg-opacity-90 flex items-center justify-center z-10';
             loadingIndicator.innerHTML = `
                 <div class="flex flex-col items-center">
-                    <div class="pokeball-spinner mb-3"></div>
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
                     <p class="text-sm text-gray-600 dark:text-gray-400">Cambiando página...</p>
                 </div>
             `;
@@ -12585,9 +12585,9 @@
                 </aside>
                 <!-- Lista de resultados -->
                 <div class="flex-1 bg-white dark:bg-gray-800 rounded-xl shadow p-2">
-                    <!-- Loading spinner con Pokéball -->
+                    <!-- Loading spinner -->
                     <div id="loadingSpinner" class="hidden flex flex-col items-center justify-center py-20">
-                        <div class="pokeball-spinner-large mb-8"></div>
+                        <div class="animate-spin rounded-full h-16 w-16 border-b-4 border-blue-600 mb-8"></div>
                         <div class="text-center">
                             <h3 class="text-2xl font-bold text-gray-800 dark:text-white mb-2">🔍 Buscando cartas...</h3>
                             <p class="text-gray-600 dark:text-gray-400 text-lg">Espera un momento mientras encontramos las mejores cartas para ti</p>
@@ -12608,10 +12608,8 @@
                 <div class="flex items-center justify-between">
                     <div class="flex items-center gap-4">
                         <div class="collection-icon">
-                            <div class="pokeball-mini">
-                                <div class="pokeball-top-mini"></div>
-                                <div class="pokeball-center-mini"></div>
-                                <div class="pokeball-bottom-mini"></div>
+                            <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                                <span class="text-white text-xl">📚</span>
                             </div>
                         </div>
                         <div>
