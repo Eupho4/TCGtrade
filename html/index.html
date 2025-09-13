@@ -78,6 +78,9 @@
         // Importar módulos de migración y sincronización
         import DataMigration from '/js/modules/data-migration.js?v=34';
         import DataSync from '/js/modules/data-sync.js?v=34';
+        
+        // Importar módulo de búsqueda avanzada
+        import AdvancedSearch from '/js/modules/advanced-search.js?v=35';
 
         // CONFIGURACIÓN DE FIREBASE - REEMPLAZA CON TUS DATOS
         const firebaseConfig = {
@@ -107,11 +110,15 @@
         let dataMigration = null;
         let dataSync = null;
         
+        // Variable para búsqueda avanzada
+        let advancedSearch = null;
+        
         // Hacer variables disponibles globalmente
         window.currentUser = currentUser;
         window.userCardsCache = userCardsCache;
         window.dataMigration = dataMigration;
         window.dataSync = dataSync;
+        window.advancedSearch = advancedSearch;
         let chatManager = null; // Gestor de chat
         let chatUI = null; // UI del chat
 
@@ -7591,6 +7598,9 @@
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🚀 DOM cargado, configurando eventos...');
             
+            // Inicializar búsqueda avanzada
+            initAdvancedSearch();
+            
             // Prueba de conectividad API
             console.log('🔍 Probando conectividad API...');
             fetch('https://tcgtrade-production.up.railway.app/api/status')
@@ -10669,6 +10679,92 @@
             position: relative;
         }
         
+        /* Botón de búsqueda avanzada */
+        .advanced-search-toggle-btn {
+            @apply ml-2 p-2 rounded-lg bg-white/10 hover:bg-white/20 transition-all duration-200 text-white/80 hover:text-white;
+        }
+        
+        /* Panel de búsqueda avanzada */
+        .advanced-search-panel {
+            @apply fixed top-16 left-0 right-0 z-50 bg-white/95 backdrop-blur-lg border-b border-gray-200 shadow-lg;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .advanced-search-content {
+            @apply max-w-7xl mx-auto p-6;
+        }
+        
+        .advanced-search-header {
+            @apply flex items-center justify-between mb-6;
+        }
+        
+        .advanced-search-title {
+            @apply text-2xl font-bold text-gray-800;
+        }
+        
+        .close-advanced-btn {
+            @apply p-2 rounded-lg bg-gray-100 hover:bg-gray-200 transition-colors text-gray-600 hover:text-gray-800;
+        }
+        
+        /* Grid de filtros */
+        .filters-grid {
+            @apply grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6;
+        }
+        
+        .filter-group {
+            @apply space-y-2;
+        }
+        
+        .filter-group label {
+            @apply block text-sm font-medium text-gray-700;
+        }
+        
+        .filter-select {
+            @apply w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white;
+        }
+        
+        /* Opciones de ordenamiento */
+        .sort-options {
+            @apply flex flex-wrap gap-4 mb-6 p-4 bg-gray-50 rounded-lg;
+        }
+        
+        .sort-group {
+            @apply flex items-center space-x-2;
+        }
+        
+        .sort-group label {
+            @apply text-sm font-medium text-gray-700 whitespace-nowrap;
+        }
+        
+        /* Botones de acción */
+        .advanced-search-actions {
+            @apply flex flex-wrap gap-3 justify-center;
+        }
+        
+        .search-advanced-btn {
+            @apply px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium;
+        }
+        
+        .clear-filters-btn {
+            @apply px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors font-medium;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .filters-grid {
+                @apply grid-cols-1;
+            }
+            
+            .sort-options {
+                @apply flex-col items-start;
+            }
+            
+            .advanced-search-actions {
+                @apply flex-col;
+            }
+        }
+        
         .search-suggestions {
             position: absolute;
             top: 100%;
@@ -12015,6 +12111,14 @@
                                 </span>
                                 <span class="search-btn-text">Buscar</span>
                             </button>
+                            <button type="button" 
+                                    onclick="toggleAdvancedSearch()" 
+                                    class="advanced-search-toggle-btn"
+                                    title="Búsqueda avanzada">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"></path>
+                                </svg>
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -12061,6 +12165,121 @@
             </div>
         </div>
     </header>
+    
+    <!-- Panel de Búsqueda Avanzada -->
+    <div id="advancedSearchPanel" class="advanced-search-panel hidden">
+        <div class="advanced-search-content">
+            <div class="advanced-search-header">
+                <h3 class="advanced-search-title">🔍 Búsqueda Avanzada</h3>
+                <button onclick="toggleAdvancedSearch()" class="close-advanced-btn">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="filters-grid">
+                <!-- Filtro por Serie -->
+                <div class="filter-group">
+                    <label for="filterSeries">📚 Serie</label>
+                    <select id="filterSeries" class="filter-select">
+                        <option value="">Todas las series</option>
+                    </select>
+                </div>
+                
+                <!-- Filtro por Set -->
+                <div class="filter-group">
+                    <label for="filterSet">🎴 Set</label>
+                    <select id="filterSet" class="filter-select">
+                        <option value="">Todos los sets</option>
+                    </select>
+                </div>
+                
+                <!-- Filtro por Rareza -->
+                <div class="filter-group">
+                    <label for="filterRarity">💎 Rareza</label>
+                    <select id="filterRarity" class="filter-select">
+                        <option value="">Todas las rarezas</option>
+                    </select>
+                </div>
+                
+                <!-- Filtro por Tipo -->
+                <div class="filter-group">
+                    <label for="filterType">⚡ Tipo</label>
+                    <select id="filterType" class="filter-select">
+                        <option value="">Todos los tipos</option>
+                    </select>
+                </div>
+                
+                <!-- Filtro por Subtipo -->
+                <div class="filter-group">
+                    <label for="filterSubtype">🏷️ Subtipo</label>
+                    <select id="filterSubtype" class="filter-select">
+                        <option value="">Todos los subtipos</option>
+                    </select>
+                </div>
+                
+                <!-- Filtro por Idioma -->
+                <div class="filter-group">
+                    <label for="filterLanguage">🌍 Idioma</label>
+                    <select id="filterLanguage" class="filter-select">
+                        <option value="">Todos los idiomas</option>
+                    </select>
+                </div>
+                
+                <!-- Filtro por Disponibilidad de Imagen -->
+                <div class="filter-group">
+                    <label for="filterHasImage">🖼️ Con Imagen</label>
+                    <select id="filterHasImage" class="filter-select">
+                        <option value="">Cualquiera</option>
+                        <option value="true">Solo con imagen</option>
+                        <option value="false">Solo sin imagen</option>
+                    </select>
+                </div>
+                
+                <!-- Filtro por Disponibilidad de Precio -->
+                <div class="filter-group">
+                    <label for="filterHasPrice">💰 Con Precio</label>
+                    <select id="filterHasPrice" class="filter-select">
+                        <option value="">Cualquiera</option>
+                        <option value="true">Solo con precio</option>
+                        <option value="false">Solo sin precio</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Opciones de ordenamiento -->
+            <div class="sort-options">
+                <div class="sort-group">
+                    <label for="sortBy">📊 Ordenar por</label>
+                    <select id="sortBy" class="filter-select">
+                        <option value="name">Nombre</option>
+                        <option value="rarity">Rareza</option>
+                        <option value="number">Número</option>
+                        <option value="random">Aleatorio</option>
+                    </select>
+                </div>
+                
+                <div class="sort-group">
+                    <label for="sortDirection">🔄 Dirección</label>
+                    <select id="sortDirection" class="filter-select">
+                        <option value="asc">Ascendente</option>
+                        <option value="desc">Descendente</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Botones de acción -->
+            <div class="advanced-search-actions">
+                <button onclick="performAdvancedSearch()" class="search-advanced-btn">
+                    🔍 Buscar
+                </button>
+                <button onclick="clearAdvancedFilters()" class="clear-filters-btn">
+                    🗑️ Limpiar Filtros
+                </button>
+            </div>
+        </div>
+    </div>
     
     <!-- Espaciador para el header fijo -->
     <div class="header-spacer h-16 md:h-20"></div>
@@ -14136,6 +14355,194 @@
                 console.error('❌ Error al iniciar sincronización:', error);
             }
         }
+
+        // Inicializar búsqueda avanzada
+        async function initAdvancedSearch() {
+            try {
+                console.log('🔍 Inicializando búsqueda avanzada...');
+                advancedSearch = new AdvancedSearch();
+                window.advancedSearch = advancedSearch;
+                
+                // Cargar opciones de filtros
+                await loadFilterOptions();
+                
+                console.log('✅ Búsqueda avanzada inicializada');
+            } catch (error) {
+                console.error('❌ Error inicializando búsqueda avanzada:', error);
+            }
+        }
+
+        // Cargar opciones de filtros
+        async function loadFilterOptions() {
+            if (!advancedSearch) return;
+            
+            try {
+                const options = await advancedSearch.getFilterOptions();
+                
+                // Cargar series
+                const seriesSelect = document.getElementById('filterSeries');
+                if (seriesSelect) {
+                    seriesSelect.innerHTML = '<option value="">Todas las series</option>';
+                    options.series.forEach(series => {
+                        const option = document.createElement('option');
+                        option.value = series.value;
+                        option.textContent = `${series.label} (${series.count})`;
+                        seriesSelect.appendChild(option);
+                    });
+                }
+                
+                // Cargar sets
+                const setSelect = document.getElementById('filterSet');
+                if (setSelect) {
+                    setSelect.innerHTML = '<option value="">Todos los sets</option>';
+                    options.sets.forEach(set => {
+                        const option = document.createElement('option');
+                        option.value = set.value;
+                        option.textContent = `${set.label} (${set.count})`;
+                        setSelect.appendChild(option);
+                    });
+                }
+                
+                // Cargar rarezas
+                const raritySelect = document.getElementById('filterRarity');
+                if (raritySelect) {
+                    raritySelect.innerHTML = '<option value="">Todas las rarezas</option>';
+                    options.rarities.forEach(rarity => {
+                        const option = document.createElement('option');
+                        option.value = rarity.value;
+                        option.textContent = `${rarity.label} (${rarity.count})`;
+                        raritySelect.appendChild(option);
+                    });
+                }
+                
+                // Cargar tipos
+                const typeSelect = document.getElementById('filterType');
+                if (typeSelect) {
+                    typeSelect.innerHTML = '<option value="">Todos los tipos</option>';
+                    options.types.forEach(type => {
+                        const option = document.createElement('option');
+                        option.value = type.value;
+                        option.textContent = `${type.label} (${type.count})`;
+                        typeSelect.appendChild(option);
+                    });
+                }
+                
+                // Cargar subtipos
+                const subtypeSelect = document.getElementById('filterSubtype');
+                if (subtypeSelect) {
+                    subtypeSelect.innerHTML = '<option value="">Todos los subtipos</option>';
+                    options.subtypes.forEach(subtype => {
+                        const option = document.createElement('option');
+                        option.value = subtype.value;
+                        option.textContent = `${subtype.label} (${subtype.count})`;
+                        subtypeSelect.appendChild(option);
+                    });
+                }
+                
+                // Cargar idiomas
+                const languageSelect = document.getElementById('filterLanguage');
+                if (languageSelect) {
+                    languageSelect.innerHTML = '<option value="">Todos los idiomas</option>';
+                    options.languages.forEach(language => {
+                        const option = document.createElement('option');
+                        option.value = language.value;
+                        option.textContent = `${language.label} (${language.count})`;
+                        languageSelect.appendChild(option);
+                    });
+                }
+                
+                console.log('✅ Opciones de filtros cargadas');
+            } catch (error) {
+                console.error('❌ Error cargando opciones de filtros:', error);
+            }
+        }
+
+        // Alternar panel de búsqueda avanzada
+        function toggleAdvancedSearch() {
+            const panel = document.getElementById('advancedSearchPanel');
+            if (panel) {
+                panel.classList.toggle('hidden');
+                
+                // Ajustar espaciador del header
+                const spacer = document.querySelector('.header-spacer');
+                if (spacer) {
+                    if (panel.classList.contains('hidden')) {
+                        spacer.classList.remove('mt-64');
+                    } else {
+                        spacer.classList.add('mt-64');
+                    }
+                }
+            }
+        }
+
+        // Realizar búsqueda avanzada
+        async function performAdvancedSearch() {
+            if (!advancedSearch) {
+                console.error('❌ Búsqueda avanzada no inicializada');
+                return;
+            }
+            
+            try {
+                // Obtener valores de los filtros
+                const filters = {
+                    series: document.getElementById('filterSeries')?.value || null,
+                    set: document.getElementById('filterSet')?.value || null,
+                    rarity: document.getElementById('filterRarity')?.value || null,
+                    type: document.getElementById('filterType')?.value || null,
+                    subtype: document.getElementById('filterSubtype')?.value || null,
+                    language: document.getElementById('filterLanguage')?.value || null,
+                    hasImage: document.getElementById('filterHasImage')?.value || null,
+                    hasPrice: document.getElementById('filterHasPrice')?.value || null
+                };
+                
+                // Obtener opciones de ordenamiento
+                const sort = document.getElementById('sortBy')?.value || 'name';
+                const direction = document.getElementById('sortDirection')?.value || 'asc';
+                
+                // Obtener query de búsqueda
+                const query = document.getElementById('searchInput')?.value || '';
+                
+                console.log('🔍 Ejecutando búsqueda avanzada...', { query, filters, sort, direction });
+                
+                // Mostrar loading
+                showLoadingSpinner();
+                
+                // Ejecutar búsqueda
+                const results = await advancedSearch.advancedSearch(query, filters, sort, direction, 1, 20);
+                
+                // Mostrar resultados
+                displaySearchResults(results.data, results.totalCount);
+                
+                // Cerrar panel
+                toggleAdvancedSearch();
+                
+                console.log('✅ Búsqueda avanzada completada:', results);
+            } catch (error) {
+                console.error('❌ Error en búsqueda avanzada:', error);
+                showNotification('Error en la búsqueda avanzada', 'error');
+            }
+        }
+
+        // Limpiar filtros avanzados
+        function clearAdvancedFilters() {
+            const selects = document.querySelectorAll('#advancedSearchPanel .filter-select');
+            selects.forEach(select => {
+                select.selectedIndex = 0;
+            });
+            
+            // Limpiar también el input de búsqueda
+            const searchInput = document.getElementById('searchInput');
+            if (searchInput) {
+                searchInput.value = '';
+            }
+            
+            showNotification('Filtros limpiados', 'success');
+        }
+
+        // Hacer funciones disponibles globalmente
+        window.toggleAdvancedSearch = toggleAdvancedSearch;
+        window.performAdvancedSearch = performAdvancedSearch;
+        window.clearAdvancedFilters = clearAdvancedFilters;
 
         console.log('🚀 Script principal iniciado correctamente');
         
