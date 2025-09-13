@@ -249,6 +249,40 @@
             }
         }
 
+        function showInterchangesSection() {
+            // Ocultar otras secciones
+            hideHomeSections();
+            if (searchResultsSection) searchResultsSection.classList.add('hidden');
+            if (myCardsSection) myCardsSection.classList.add('hidden');
+            if (profileSection) profileSection.classList.add('hidden');
+            if (helpSection) helpSection.classList.add('hidden');
+            
+            // Ocultar también el buzón
+            const inboxSection = document.getElementById('inboxSection');
+            if (inboxSection) inboxSection.classList.add('hidden');
+
+            // Mostrar sección de intercambios
+            if (interchangesSection) interchangesSection.classList.remove('hidden');
+
+            // Cargar intercambios si hay usuario autenticado
+            if (currentUser) {
+                loadAvailableTrades();
+            } else {
+                // Mostrar mensaje de login si no está autenticado
+                const interchangesContainer = document.getElementById('interchangesContainer');
+                if (interchangesContainer) {
+                    interchangesContainer.innerHTML = `
+                        <div class="text-center text-gray-500 dark:text-gray-400 py-8">
+                            <p>Debes iniciar sesión para ver intercambios disponibles</p>
+                            <button class="btn-primary mt-4 px-4 py-2 rounded-lg text-sm font-semibold" onclick="showAuthModal('login')">
+                                Iniciar Sesión
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+        }
+
         function showHelpSection(tabToShow = null) {
             // Ocultar otras secciones
             hideHomeSections();
