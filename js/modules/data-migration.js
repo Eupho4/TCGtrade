@@ -77,19 +77,26 @@ class DataMigration {
 
             console.log(`📦 Migrando ${localTrades.length} intercambios a Firestore...`);
 
-            // Migrar cada intercambio individualmente
+            // Migrar cada intercambio individualmente usando la estructura de subcolección
             for (const trade of localTrades) {
-                const tradeRef = doc(this.db, 'trades', trade.id);
-                const tradeData = {
-                    ...trade,
-                    userId: user.uid,
-                    userEmail: user.email,
-                    lastUpdated: serverTimestamp(),
-                    migratedAt: serverTimestamp(),
-                    migrationVersion: '1.0'
-                };
+                try {
+                    // Usar subcolección del usuario para evitar problemas de permisos
+                    const tradeRef = doc(this.db, 'users', user.uid, 'trades', trade.id);
+                    const tradeData = {
+                        ...trade,
+                        userId: user.uid,
+                        userEmail: user.email,
+                        lastUpdated: serverTimestamp(),
+                        migratedAt: serverTimestamp(),
+                        migrationVersion: '1.0'
+                    };
 
-                await setDoc(tradeRef, tradeData);
+                    await setDoc(tradeRef, tradeData);
+                    console.log(`✅ Intercambio ${trade.id} migrado`);
+                } catch (tradeError) {
+                    console.error(`❌ Error al migrar intercambio ${trade.id}:`, tradeError);
+                    // Continuar con el siguiente intercambio
+                }
             }
 
             console.log('✅ Intercambios migrados exitosamente a Firestore');
@@ -139,17 +146,24 @@ class DataMigration {
 
             console.log(`📦 Migrando ${ratings.length} valoraciones a Firestore...`);
 
-            // Migrar cada valoración individualmente
+            // Migrar cada valoración individualmente usando subcolección
             for (const rating of ratings) {
-                const ratingRef = doc(this.db, 'ratings', `${rating.ratedUserId}_${rating.raterUserId}_${rating.tradeId}`);
-                const ratingData = {
-                    ...rating,
-                    lastUpdated: serverTimestamp(),
-                    migratedAt: serverTimestamp(),
-                    migrationVersion: '1.0'
-                };
+                try {
+                    // Usar subcolección del usuario para evitar problemas de permisos
+                    const ratingRef = doc(this.db, 'users', user.uid, 'ratings', `${rating.ratedUserId}_${rating.tradeId}`);
+                    const ratingData = {
+                        ...rating,
+                        lastUpdated: serverTimestamp(),
+                        migratedAt: serverTimestamp(),
+                        migrationVersion: '1.0'
+                    };
 
-                await setDoc(ratingRef, ratingData);
+                    await setDoc(ratingRef, ratingData);
+                    console.log(`✅ Valoración ${rating.ratedUserId}_${rating.tradeId} migrada`);
+                } catch (ratingError) {
+                    console.error(`❌ Error al migrar valoración ${rating.ratedUserId}_${rating.tradeId}:`, ratingError);
+                    // Continuar con la siguiente valoración
+                }
             }
 
             console.log('✅ Valoraciones migradas exitosamente a Firestore');
@@ -259,9 +273,8 @@ class DataMigration {
         if (!user) return [];
 
         try {
-            const tradesRef = collection(this.db, 'trades');
-            const q = query(tradesRef, where('userId', '==', user.uid), orderBy('createdAt', 'desc'));
-            const querySnapshot = await getDocs(q);
+            const tradesRef = collection(this.db, 'users', user.uid, 'trades');
+            const querySnapshot = await getDocs(tradesRef);
             
             const trades = [];
             querySnapshot.forEach((doc) => {
@@ -280,9 +293,8 @@ class DataMigration {
         if (!user) return [];
 
         try {
-            const ratingsRef = collection(this.db, 'ratings');
-            const q = query(ratingsRef, where('raterUserId', '==', user.uid));
-            const querySnapshot = await getDocs(q);
+            const ratingsRef = collection(this.db, 'users', user.uid, 'ratings');
+            const querySnapshot = await getDocs(ratingsRef);
             
             const ratings = [];
             querySnapshot.forEach((doc) => {
@@ -324,7 +336,7 @@ class DataMigration {
         if (!user) return false;
 
         try {
-            const tradeRef = doc(this.db, 'trades', trade.id);
+            const tradeRef = doc(this.db, 'users', user.uid, 'trades', trade.id);
             const tradeData = {
                 ...trade,
                 userId: user.uid,
@@ -345,7 +357,7 @@ class DataMigration {
         if (!user) return false;
 
         try {
-            const ratingRef = doc(this.db, 'ratings', `${rating.ratedUserId}_${user.uid}_${rating.tradeId}`);
+            const ratingRef = doc(this.db, 'users', user.uid, 'ratings', `${rating.ratedUserId}_${rating.tradeId}`);
             const ratingData = {
                 ...rating,
                 raterUserId: user.uid,

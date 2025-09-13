@@ -55,11 +55,10 @@ class DataSync {
         if (!user) return;
 
         try {
-            const tradesRef = collection(this.db, 'trades');
-            const q = query(tradesRef, where('userId', '==', user.uid), orderBy('createdAt', 'desc'));
+            const tradesRef = collection(this.db, 'users', user.uid, 'trades');
             
             // Listener en tiempo real
-            const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const unsubscribe = onSnapshot(tradesRef, (querySnapshot) => {
                 const trades = [];
                 querySnapshot.forEach((doc) => {
                     trades.push({ id: doc.id, ...doc.data() });
@@ -85,11 +84,10 @@ class DataSync {
         if (!user) return;
 
         try {
-            const ratingsRef = collection(this.db, 'ratings');
-            const q = query(ratingsRef, where('raterUserId', '==', user.uid));
+            const ratingsRef = collection(this.db, 'users', user.uid, 'ratings');
             
             // Listener en tiempo real
-            const unsubscribe = onSnapshot(q, (querySnapshot) => {
+            const unsubscribe = onSnapshot(ratingsRef, (querySnapshot) => {
                 const ratings = [];
                 querySnapshot.forEach((doc) => {
                     ratings.push({ id: doc.id, ...doc.data() });
@@ -158,7 +156,7 @@ class DataSync {
             const user = this.auth.currentUser;
             if (!user) return false;
 
-            const tradeRef = doc(this.db, 'trades', trade.id);
+            const tradeRef = doc(this.db, 'users', user.uid, 'trades', trade.id);
             const tradeData = {
                 ...trade,
                 userId: user.uid,
@@ -190,7 +188,7 @@ class DataSync {
             const user = this.auth.currentUser;
             if (!user) return false;
 
-            const ratingRef = doc(this.db, 'ratings', `${rating.ratedUserId}_${user.uid}_${rating.tradeId}`);
+            const ratingRef = doc(this.db, 'users', user.uid, 'ratings', `${rating.ratedUserId}_${rating.tradeId}`);
             const ratingData = {
                 ...rating,
                 raterUserId: user.uid,
