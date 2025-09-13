@@ -7452,7 +7452,7 @@
         // Configurar botones modernos
         function setupModernButtons() {
             // Botones de navegación
-            const navButtons = document.querySelectorAll('.modern-nav-btn, .modern-login-btn, .modern-admin-btn');
+            const navButtons = document.querySelectorAll('.modern-nav-btn, .modern-login-btn');
             
             navButtons.forEach(button => {
                 button.addEventListener('mouseenter', () => {
@@ -10888,53 +10888,6 @@
             opacity: 1;
         }
         
-        /* Botón de administración moderno */
-        .modern-admin-btn {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 8px 12px;
-            background: linear-gradient(135deg, #a855f7, #9333ea);
-            border: none;
-            border-radius: 10px;
-            color: white;
-            font-weight: 600;
-            font-size: 0.85rem;
-            text-decoration: none;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .modern-admin-btn::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -100%;
-            width: 100%;
-            height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
-            transition: left 0.5s ease;
-        }
-        
-        .modern-admin-btn:hover::before {
-            left: 100%;
-        }
-        
-        .modern-admin-btn:hover {
-            background: linear-gradient(135deg, #9333ea, #7e22ce);
-            transform: translateY(-1px);
-            box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
-        }
-        
-        .admin-icon {
-            font-size: 1rem;
-        }
-        
-        .admin-text {
-            white-space: nowrap;
-        }
         
         
         /* Responsive */
@@ -10953,9 +10906,6 @@
             
             .search-btn-text,
             .login-text,
-            .admin-text {
-                display: none;
-            }
             
             .modern-search-container {
                 margin: 0 8px;
@@ -10972,8 +10922,7 @@
             }
             
             .modern-nav-btn,
-            .modern-login-btn,
-            .modern-admin-btn {
+            .modern-login-btn {
                 width: 40px;
                 height: 40px;
                 padding: 8px;
@@ -12049,11 +11998,6 @@
                         </div>
                     </button>
                     
-                    <!-- Panel de administración -->
-                    <a href="admin-panel.html" class="modern-admin-btn group" title="Panel de administración">
-                        <span class="admin-icon">⚙️</span>
-                        <span class="admin-text hidden md:inline">Admin</span>
-                    </a>
                 </div>
             </div>
         </div>
