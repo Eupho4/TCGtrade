@@ -795,8 +795,27 @@ class ChatUI {
                 if (container) {
                     container.innerHTML = '<div class="text-center py-4"><div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-orange-500"></div></div>';
                 }
-                await new Promise(resolve => setTimeout(resolve, 500));
-                location.reload();
+                
+                try {
+                    // Actualizar solo la lista de chats sin recargar la página
+                    await updateChatList(true);
+                    
+                    // Actualizar badge de navegación
+                    if (this.updateChatBadge) {
+                        await this.updateChatBadge();
+                    }
+                    
+                    // Mostrar notificación de éxito
+                    this.showNotification('Lista de chats actualizada', 'success');
+                    
+                } catch (error) {
+                    console.error('Error al actualizar chats:', error);
+                    this.showNotification('Error al actualizar chats', 'error');
+                } finally {
+                    // Restaurar botón
+                    refreshBtn.disabled = false;
+                    refreshBtn.textContent = '🔄 Actualizar';
+                }
             });
         }
         

@@ -465,10 +465,10 @@ class ChatManager {
                         const hiddenChats = JSON.parse(localStorage.getItem(hiddenChatsKey) || '[]');
                         isHidden = hiddenChats.includes(chatId);
                         
-                        // Debug log desactivado para evitar spam
-                        // if (hiddenChats.length > 0) {
-                        //     console.log(`🔍 Chat ${chatId} - Oculto: ${isHidden}, Lista ocultos:`, hiddenChats);
-                        // }
+                        // Debug log temporal para verificar eliminación
+                        if (hiddenChats.length > 0) {
+                            console.log(`🔍 Chat ${chatId} - Oculto: ${isHidden}, Lista ocultos:`, hiddenChats);
+                        }
                     } catch (e) {
                         console.error('Error al leer chats ocultos:', e);
                     }
@@ -476,8 +476,8 @@ class ChatManager {
                     // Solo incluir chats que estén en userChats
                     const isInUserChats = userChatIds[chatId] || userChatIds[originalId];
                     
-                    // CAMBIO: Solo mostrar chats que estén explícitamente en userChats
-                    if (isInUserChats) {
+                    // CAMBIO: Solo mostrar chats que estén explícitamente en userChats Y no estén ocultos
+                    if (isInUserChats && !isHidden) {
                         // Si el usuario no está registrado como participante pero ha enviado mensajes,
                         // añadirlo automáticamente
                         if (!isParticipant && hasUserMessages) {
