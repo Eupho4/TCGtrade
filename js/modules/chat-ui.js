@@ -1781,6 +1781,21 @@ window.deleteUserChat = async function(chatId) {
         const userChatRef = ref(db, `userChats/${currentUser.uid}/${chatId}`);
         await remove(userChatRef);
         
+        // También agregar a la lista de chats ocultos en localStorage para evitar que vuelva a aparecer
+        const hiddenChatsKey = `hiddenChats_${currentUser.uid}`;
+        let hiddenChats = [];
+        try {
+            hiddenChats = JSON.parse(localStorage.getItem(hiddenChatsKey) || '[]');
+        } catch (e) {
+            console.error('Error al leer chats ocultos:', e);
+        }
+        
+        if (!hiddenChats.includes(chatId)) {
+            hiddenChats.push(chatId);
+            localStorage.setItem(hiddenChatsKey, JSON.stringify(hiddenChats));
+            console.log('✅ Chat agregado a lista de chats ocultos');
+        }
+        
         console.log('✅ Chat eliminado para el usuario actual');
         
         // Cerrar ventana si está abierta
