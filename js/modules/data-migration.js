@@ -55,6 +55,32 @@ class DataMigration {
         }
     }
 
+    // Limpiar y validar datos de intercambios
+    cleanTradeData(trades) {
+        return trades.filter(trade => {
+            // Verificar que tenga los campos mínimos necesarios
+            if (!trade.id || !trade.name) {
+                console.warn('⚠️ Intercambio inválido (falta ID o nombre):', trade);
+                return false;
+            }
+            
+            // Limpiar campos que puedan causar problemas
+            if (trade.id.includes('undefined') || trade.id.includes('null')) {
+                console.warn('⚠️ Intercambio con ID inválido:', trade);
+                return false;
+            }
+            
+            return true;
+        }).map(trade => ({
+            ...trade,
+            // Asegurar que los campos requeridos estén presentes
+            id: trade.id.toString(),
+            name: trade.name || 'Intercambio sin nombre',
+            createdAt: trade.createdAt || new Date(),
+            status: trade.status || 'pending'
+        }));
+    }
+
     // Migrar intercambios del usuario
     async migrateUserTrades() {
         const user = this.auth.currentUser;
@@ -75,11 +101,23 @@ class DataMigration {
                 return true;
             }
 
-            console.log(`📦 Migrando ${localTrades.length} intercambios a Firestore...`);
+            // Limpiar y validar datos
+            const cleanTrades = this.cleanTradeData(localTrades);
+            console.log(`📦 Migrando ${cleanTrades.length} intercambios válidos a Firestore (${localTrades.length - cleanTrades.length} inválidos filtrados)...`);
 
             // Migrar cada intercambio individualmente usando la estructura de subcolección
-            for (const trade of localTrades) {
+            let successCount = 0;
+            let errorCount = 0;
+            
+            for (const trade of cleanTrades) {
                 try {
+                    // Verificar que el trade tenga un ID válido
+                    if (!trade.id) {
+                        console.warn(`⚠️ Intercambio sin ID válido, saltando:`, trade);
+                        errorCount++;
+                        continue;
+                    }
+                    
                     // Usar subcolección del usuario para evitar problemas de permisos
                     const tradeRef = doc(this.db, 'users', user.uid, 'trades', trade.id);
                     const tradeData = {
@@ -93,11 +131,16 @@ class DataMigration {
 
                     await setDoc(tradeRef, tradeData);
                     console.log(`✅ Intercambio ${trade.id} migrado`);
+                    successCount++;
                 } catch (tradeError) {
                     console.error(`❌ Error al migrar intercambio ${trade.id}:`, tradeError);
+                    console.error(`   Detalles del intercambio:`, trade);
+                    errorCount++;
                     // Continuar con el siguiente intercambio
                 }
             }
+            
+            console.log(`📊 Migración de intercambios completada: ${successCount} exitosos, ${errorCount} errores`);
 
             console.log('✅ Intercambios migrados exitosamente a Firestore');
 

@@ -106,6 +106,12 @@
         // Variables para migración y sincronización
         let dataMigration = null;
         let dataSync = null;
+        
+        // Hacer variables disponibles globalmente
+        window.currentUser = currentUser;
+        window.userCardsCache = userCardsCache;
+        window.dataMigration = dataMigration;
+        window.dataSync = dataSync;
         let chatManager = null; // Gestor de chat
         let chatUI = null; // UI del chat
 
@@ -8257,6 +8263,7 @@
             // Escuchar cambios de autenticación
             onAuthStateChanged(auth, async (user) => {
                 currentUser = user;
+                window.currentUser = user; // Actualizar referencia global
                 console.log('🔐 onAuthStateChanged ejecutado. Usuario:', !!user);
 
                 // Inicializar sistema de chat si el usuario está autenticado
@@ -14089,7 +14096,7 @@
     <script>
         // Función para iniciar sincronización de datos
         async function startDataSync() {
-            if (!dataSync || !currentUser) {
+            if (!dataSync || !window.currentUser) {
                 console.log('⚠️ No se puede iniciar sincronización: dataSync o usuario no disponible');
                 return;
             }
@@ -14100,11 +14107,11 @@
                 // Sincronizar colección personal
                 await dataSync.syncUserCollection((cards) => {
                     console.log('📦 Colección sincronizada:', cards.length, 'cartas');
-                    userCardsCache = cards;
+                    window.userCardsCache = cards;
                     
                     // Actualizar UI si está abierta la sección de colección
                     if (document.getElementById('myCardsSection') && !document.getElementById('myCardsSection').classList.contains('hidden')) {
-                        loadMyCollection(currentUser.uid);
+                        loadMyCollection(window.currentUser.uid);
                     }
                 });
                 
