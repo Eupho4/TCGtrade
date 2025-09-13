@@ -51,6 +51,9 @@ class HybridAPIServer {
         this.app.use(express.json());
         this.app.use(express.static('html'));
         
+        // Servir archivos JavaScript desde la raíz
+        this.app.use('/js', express.static('js'));
+        
         // Middleware de logging
         this.app.use((req, res, next) => {
             console.log(`🌐 ${req.method} ${req.path} - ${new Date().toISOString()}`);
