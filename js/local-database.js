@@ -138,7 +138,7 @@ class LocalCardDatabase {
         });
     }
 
-    // Búsqueda de cartas optimizada
+    // Búsqueda de cartas optimizada con soporte para categorías especiales
     async searchCards(query, page = 1, pageSize = 20, filters = {}) {
         try {
             // Asegurar que los parámetros sean del tipo correcto
@@ -151,9 +151,22 @@ class LocalCardDatabase {
             let whereClause = '';
             let params = [];
             
+            // Mapeo de categorías especiales a subtipos
+            const categoryMapping = {
+                'trainer': ['Item', 'Supporter', 'Stadium', 'Pokémon Tool', 'Technical Machine'],
+                'trainers': ['Item', 'Supporter', 'Stadium', 'Pokémon Tool', 'Technical Machine'],
+                'energy': ['Special'],
+                'energies': ['Special'],
+                'energia': ['Special'],
+                'energias': ['Special']
+            };
+            
             // Si es búsqueda aleatoria (pokemon sin filtros específicos)
             const hasFilters = filters.series || filters.set || filters.rarity || filters.type || filters.language;
             const isRandomSearch = queryStr === 'pokemon' && !hasFilters;
+            
+            // Verificar si es una búsqueda por categoría especial
+            const isCategorySearch = categoryMapping[queryStr];
             
             if (isRandomSearch) {
                 // Búsqueda aleatoria - no usar WHERE clause
@@ -161,10 +174,16 @@ class LocalCardDatabase {
             } else if (queryStr === 'pokemon' && hasFilters) {
                 // Búsqueda aleatoria con filtros - solo aplicar filtros, no búsqueda de texto
                 whereClause = '';
+            } else if (isCategorySearch) {
+                // Búsqueda por categoría especial (trainers, energies, etc.)
+                const subtypes = categoryMapping[queryStr];
+                const subtypeConditions = subtypes.map(() => 'subtypes LIKE ?').join(' OR ');
+                whereClause = `WHERE (${subtypeConditions})`;
+                params = subtypes.map(subtype => `%${subtype}%`);
             } else {
                 // Búsqueda normal - usar WHERE clause para búsquedas específicas
-                whereClause = 'WHERE (name LIKE ? OR set_name LIKE ? OR series LIKE ?)';
-                params = [queryLower, queryLower, queryLower];
+                whereClause = 'WHERE (name LIKE ? OR set_name LIKE ? OR series LIKE ? OR subtypes LIKE ?)';
+                params = [queryLower, queryLower, queryLower, queryLower];
             }
             
             // Aplicar filtros adicionales
