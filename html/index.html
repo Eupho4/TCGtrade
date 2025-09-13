@@ -12007,13 +12007,6 @@
                                 </span>
                                 <span class="search-btn-text">Buscar</span>
                             </button>
-                            <button type="button" 
-                                    onclick="testAPI()" 
-                                    class="modern-search-btn group ml-2"
-                                    title="Probar API"
-                                    style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
-                                <span class="search-btn-text">Test</span>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -14100,19 +14093,7 @@
     <script>
         console.log('🚀 Script principal iniciado correctamente');
         
-        // Función de prueba de API
-        window.testAPI = async () => {
-            console.log('🧪 Probando API...');
-            try {
-                const response = await fetch('https://tcgtrade-production.up.railway.app/api/status');
-                const data = await response.json();
-                console.log('✅ API funciona:', data);
-                alert(`✅ API funciona!\nCartas: ${data.totalCards}\nSets: ${data.totalSets}`);
-            } catch (error) {
-                console.error('❌ Error API:', error);
-                alert(`❌ Error API: ${error.message}`);
-            }
-        };
+        // Función de prueba de API (removida - ya no se necesita)
 
         // Función de búsqueda rápida
         window.quickSearch = async () => {
