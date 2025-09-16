@@ -9599,7 +9599,7 @@
 
         // Estado de filtros de búsqueda
         const searchFiltersState = {
-            series: '', set: '', rarity: '', type: '', language: ''
+            series: '', set: '', rarity: '', type: '', language: '', subtype: '', hasImage: '', hasPrice: ''
         };
 
         // Estado de paginación de búsqueda
@@ -9625,10 +9625,13 @@
             const rarityParam = searchFiltersState.rarity ? `&rarity=${encodeURIComponent(searchFiltersState.rarity)}` : '';
             const typeParam = searchFiltersState.type ? `&type=${encodeURIComponent(searchFiltersState.type)}` : '';
             const languageParam = searchFiltersState.language ? `&language=${encodeURIComponent(searchFiltersState.language)}` : '';
+            const subtypeParam = searchFiltersState.subtype ? `&subtype=${encodeURIComponent(searchFiltersState.subtype)}` : '';
+            const hasImageParam = searchFiltersState.hasImage ? `&hasImage=${searchFiltersState.hasImage}` : '';
+            const hasPriceParam = searchFiltersState.hasPrice ? `&hasPrice=${searchFiltersState.hasPrice}` : '';
             
             // Usar URL relativa para que funcione tanto en local como en producción
             const baseUrl = window.location.origin;
-            return `${baseUrl}/api/pokemontcg/cards?q=${qParam}${pageParam}&pageSize=${pageSize}${seriesParam}${setParam}${rarityParam}${typeParam}${languageParam}`;
+            return `${baseUrl}/api/pokemontcg/cards?q=${qParam}${pageParam}&pageSize=${pageSize}${seriesParam}${setParam}${rarityParam}${typeParam}${languageParam}${subtypeParam}${hasImageParam}${hasPriceParam}`;
         }
 
         function renderPagination(totalCount, page, pageSize) {
@@ -14659,14 +14662,14 @@
             try {
                 // Obtener valores de los filtros
                 const filters = {
-                    series: document.getElementById('filterSeries')?.value || null,
-                    set: document.getElementById('filterSet')?.value || null,
-                    rarity: document.getElementById('filterRarity')?.value || null,
-                    type: document.getElementById('filterType')?.value || null,
-                    subtype: document.getElementById('filterSubtype')?.value || null,
-                    language: document.getElementById('filterLanguage')?.value || null,
-                    hasImage: document.getElementById('filterHasImage')?.value || null,
-                    hasPrice: document.getElementById('filterHasPrice')?.value || null
+                    series: document.getElementById('filterSeries')?.value || '',
+                    set: document.getElementById('filterSet')?.value || '',
+                    rarity: document.getElementById('filterRarity')?.value || '',
+                    type: document.getElementById('filterType')?.value || '',
+                    subtype: document.getElementById('filterSubtype')?.value || '',
+                    language: document.getElementById('filterLanguage')?.value || '',
+                    hasImage: document.getElementById('filterHasImage')?.value || '',
+                    hasPrice: document.getElementById('filterHasPrice')?.value || ''
                 };
                 
                 // Obtener query de búsqueda
@@ -14674,7 +14677,19 @@
                 
                 console.log('🔍 Ejecutando búsqueda avanzada...', { query, filters });
                 
-                // Construir query descriptiva con filtros
+                // Actualizar el estado de filtros global
+                searchFiltersState.series = filters.series;
+                searchFiltersState.set = filters.set;
+                searchFiltersState.rarity = filters.rarity;
+                searchFiltersState.type = filters.type;
+                searchFiltersState.language = filters.language;
+                searchFiltersState.subtype = filters.subtype;
+                searchFiltersState.hasImage = filters.hasImage;
+                searchFiltersState.hasPrice = filters.hasPrice;
+                
+                console.log('📋 Estado de filtros actualizado:', searchFiltersState);
+                
+                // Construir query descriptiva para mostrar en el input
                 let searchQuery = query;
                 const filterDescriptions = [];
                 
@@ -14708,6 +14723,7 @@
                 toggleAdvancedSearch();
                 
                 // Ejecutar búsqueda normal con la query construida
+                // Los filtros ya están en searchFiltersState y se aplicarán automáticamente
                 await fetchCards(searchQuery);
                 
                 console.log('✅ Búsqueda avanzada redirigida a búsqueda normal');
@@ -14730,6 +14746,16 @@
             if (searchInput) {
                 searchInput.value = '';
             }
+            
+            // Limpiar el estado de filtros global
+            searchFiltersState.series = '';
+            searchFiltersState.set = '';
+            searchFiltersState.rarity = '';
+            searchFiltersState.type = '';
+            searchFiltersState.language = '';
+            searchFiltersState.subtype = '';
+            searchFiltersState.hasImage = '';
+            searchFiltersState.hasPrice = '';
             
             showNotification('Filtros limpiados', 'success');
         }
