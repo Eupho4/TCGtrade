@@ -9631,7 +9631,15 @@
             
             // Usar URL relativa para que funcione tanto en local como en producción
             const baseUrl = window.location.origin;
-            return `${baseUrl}/api/pokemontcg/cards?q=${qParam}${pageParam}&pageSize=${pageSize}${seriesParam}${setParam}${rarityParam}${typeParam}${languageParam}${subtypeParam}${hasImageParam}${hasPriceParam}`;
+            const finalUrl = `${baseUrl}/api/pokemontcg/cards?q=${qParam}${pageParam}&pageSize=${pageSize}${seriesParam}${setParam}${rarityParam}${typeParam}${languageParam}${subtypeParam}${hasImageParam}${hasPriceParam}`;
+            
+            console.log('🔗 buildCardsApiUrl generando URL:');
+            console.log('  - Base query:', baseQuery);
+            console.log('  - With filters:', withFilters);
+            console.log('  - searchFiltersState:', searchFiltersState);
+            console.log('  - URL final:', finalUrl);
+            
+            return finalUrl;
         }
 
         function renderPagination(totalCount, page, pageSize) {
@@ -14688,6 +14696,17 @@
                 searchFiltersState.hasPrice = filters.hasPrice;
                 
                 console.log('📋 Estado de filtros actualizado:', searchFiltersState);
+                
+                // Verificar que los filtros se aplicaron correctamente
+                console.log('🔍 Verificando filtros antes de búsqueda:');
+                console.log('  - Serie:', searchFiltersState.series);
+                console.log('  - Set:', searchFiltersState.set);
+                console.log('  - Rareza:', searchFiltersState.rarity);
+                console.log('  - Tipo:', searchFiltersState.type);
+                console.log('  - Idioma:', searchFiltersState.language);
+                console.log('  - Subtipo:', searchFiltersState.subtype);
+                console.log('  - Con imagen:', searchFiltersState.hasImage);
+                console.log('  - Con precio:', searchFiltersState.hasPrice);
                 
                 // Construir query descriptiva para mostrar en el input
                 let searchQuery = query;
