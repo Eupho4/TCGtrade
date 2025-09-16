@@ -1,4 +1,4 @@
-import LocalCardDatabase from '../local-database.js';
+const LocalCardDatabase = require('../local-database.js');
 
 class AdvancedSearch {
     constructor() {
@@ -496,4 +496,4 @@ class AdvancedSearch {
     }
 }
 
-export default AdvancedSearch;
+module.exports = AdvancedSearch;
