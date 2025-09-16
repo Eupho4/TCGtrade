@@ -143,6 +143,71 @@ class HybridAPIServer {
             }
         });
 
+        // Endpoint para obtener sets/expansiones
+        this.app.get('/api/pokemontcg/sets', async (req, res) => {
+            try {
+                const sets = await this.searchEngine.getAllSets();
+                res.json({
+                    data: sets,
+                    totalCount: sets.length
+                });
+            } catch (error) {
+                console.error('Error obteniendo sets:', error);
+                res.status(500).json({
+                    error: 'Error obteniendo sets',
+                    message: error.message
+                });
+            }
+        });
+
+        // Endpoint para obtener tipos de cartas
+        this.app.get('/api/pokemontcg/types', async (req, res) => {
+            try {
+                const types = await this.searchEngine.getAllTypes();
+                res.json({
+                    data: types,
+                    totalCount: types.length
+                });
+            } catch (error) {
+                console.error('Error obteniendo tipos:', error);
+                res.status(500).json({
+                    error: 'Error obteniendo tipos',
+                    message: error.message
+                });
+            }
+        });
+
+        // Endpoint para obtener rarezas
+        this.app.get('/api/pokemontcg/rarities', async (req, res) => {
+            try {
+                const rarities = await this.searchEngine.getAllRarities();
+                res.json({
+                    data: rarities,
+                    totalCount: rarities.length
+                });
+            } catch (error) {
+                console.error('Error obteniendo rarezas:', error);
+                res.status(500).json({
+                    error: 'Error obteniendo rarezas',
+                    message: error.message
+                });
+            }
+        });
+
+        // Endpoint para obtener estadísticas de la base de datos
+        this.app.get('/api/stats', async (req, res) => {
+            try {
+                const stats = await this.searchEngine.getSearchStats();
+                res.json(stats);
+            } catch (error) {
+                console.error('Error obteniendo estadísticas:', error);
+                res.status(500).json({
+                    error: 'Error obteniendo estadísticas',
+                    message: error.message
+                });
+            }
+        });
+
         // Endpoint para listar archivos exportados
         this.app.get('/api/exports', (req, res) => {
             const fs = require('fs');
