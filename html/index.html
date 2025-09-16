@@ -14655,11 +14655,6 @@
 
         // Realizar búsqueda avanzada
         async function performAdvancedSearch() {
-            if (!advancedSearch) {
-                console.error('❌ Búsqueda avanzada no inicializada');
-                return;
-            }
-            
             try {
                 // Obtener valores de los filtros
                 const filters = {
@@ -14685,19 +14680,46 @@
                 // Mostrar loading
                 showLoadingSpinner();
                 
-                // Ejecutar búsqueda
-                const results = await advancedSearch.advancedSearch(query, filters, sort, direction, 1, 20);
+                // Construir URL de búsqueda con filtros
+                const searchParams = new URLSearchParams();
                 
-                // Mostrar resultados
-                displaySearchResults(results.data, results.totalCount);
+                if (query) searchParams.append('q', query);
+                if (filters.series) searchParams.append('series', filters.series);
+                if (filters.set) searchParams.append('set', filters.set);
+                if (filters.rarity) searchParams.append('rarity', filters.rarity);
+                if (filters.type) searchParams.append('type', filters.type);
+                if (filters.subtype) searchParams.append('subtype', filters.subtype);
+                if (filters.language) searchParams.append('language', filters.language);
+                if (filters.hasImage) searchParams.append('hasImage', filters.hasImage);
+                if (filters.hasPrice) searchParams.append('hasPrice', filters.hasPrice);
                 
-                // Cerrar panel
-                toggleAdvancedSearch();
+                searchParams.append('sort', sort);
+                searchParams.append('direction', direction);
+                searchParams.append('page', '1');
+                searchParams.append('pageSize', '20');
                 
-                console.log('✅ Búsqueda avanzada completada:', results);
+                // Hacer petición a la API
+                const response = await fetch(`/api/pokemontcg/cards?${searchParams.toString()}`);
+                const results = await response.json();
+                
+                if (results.success) {
+                    // Mostrar resultados
+                    displaySearchResults(results.data, results.totalCount);
+                    
+                    // Cerrar panel
+                    toggleAdvancedSearch();
+                    
+                    console.log('✅ Búsqueda avanzada completada:', results);
+                } else {
+                    throw new Error(results.error || 'Error en la búsqueda');
+                }
+                
             } catch (error) {
                 console.error('❌ Error en búsqueda avanzada:', error);
-                showNotification('Error en la búsqueda avanzada', 'error');
+                showNotification('Error en la búsqueda avanzada: ' + error.message, 'error');
+            } finally {
+                // Ocultar loading
+                hideLoadingSpinner();
             }
         }
 

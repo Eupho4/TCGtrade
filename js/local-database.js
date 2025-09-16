@@ -139,7 +139,7 @@ class LocalCardDatabase {
     }
 
     // Búsqueda de cartas optimizada con soporte para categorías especiales
-    async searchCards(query, page = 1, pageSize = 20, filters = {}) {
+    async searchCards(query, page = 1, pageSize = 20, filters = {}, sort = 'name', direction = 'asc') {
         try {
             // Asegurar que los parámetros sean del tipo correcto
             const queryStr = String(query || '').toLowerCase();
@@ -162,7 +162,7 @@ class LocalCardDatabase {
             };
             
             // Si es búsqueda aleatoria (pokemon sin filtros específicos)
-            const hasFilters = filters.series || filters.set || filters.rarity || filters.type || filters.language;
+            const hasFilters = filters.series || filters.set || filters.rarity || filters.type || filters.subtype || filters.language || filters.hasImage || filters.hasPrice;
             const isRandomSearch = queryStr === 'pokemon' && !hasFilters;
             
             // Verificar si es una búsqueda por categoría especial
@@ -231,18 +231,53 @@ class LocalCardDatabase {
                 }
                 params.push(`%-${String(filters.language)}`);
             }
+            
+            if (filters.subtype) {
+                if (whereClause) {
+                    whereClause += ' AND subtypes LIKE ?';
+                } else {
+                    whereClause = 'WHERE subtypes LIKE ?';
+                }
+                params.push(`%${String(filters.subtype)}%`);
+            }
+            
+            if (filters.hasImage !== undefined) {
+                if (whereClause) {
+                    whereClause += filters.hasImage ? ' AND images IS NOT NULL AND images != "null" AND images != ""' : ' AND (images IS NULL OR images = "null" OR images = "")';
+                } else {
+                    whereClause = filters.hasImage ? 'WHERE images IS NOT NULL AND images != "null" AND images != ""' : 'WHERE (images IS NULL OR images = "null" OR images = "")';
+                }
+            }
+            
+            if (filters.hasPrice !== undefined) {
+                if (whereClause) {
+                    whereClause += filters.hasPrice ? ' AND tcgplayer IS NOT NULL AND tcgplayer != "null" AND tcgplayer != "{}"' : ' AND (tcgplayer IS NULL OR tcgplayer = "null" OR tcgplayer = "{}")';
+                } else {
+                    whereClause = filters.hasPrice ? 'WHERE tcgplayer IS NOT NULL AND tcgplayer != "null" AND tcgplayer != "{}"' : 'WHERE (tcgplayer IS NULL OR tcgplayer = "null" OR tcgplayer = "{}")';
+                }
+            }
 
-            // Obtener cartas (priorizar cartas asiáticas o aleatorias)
-            const orderClause = isRandomSearch ? 'ORDER BY RANDOM()' : `
-                ORDER BY 
-                    CASE 
-                        WHEN id LIKE '%-ja' THEN 1
-                        WHEN id LIKE '%-zh-cn' THEN 2
-                        WHEN id LIKE '%-zh-tw' THEN 3
-                        WHEN id LIKE '%-ko' THEN 4
-                        ELSE 5
-                    END,
-                    name`;
+            // Construir cláusula de ordenamiento
+            let orderClause = '';
+            if (isRandomSearch) {
+                orderClause = 'ORDER BY RANDOM()';
+            } else {
+                // Mapear campos de ordenamiento
+                const sortField = {
+                    'name': 'name',
+                    'rarity': 'rarity',
+                    'number': 'number',
+                    'random': 'RANDOM()'
+                }[sort] || 'name';
+                
+                const sortDirection = direction === 'desc' ? 'DESC' : 'ASC';
+                
+                if (sort === 'random') {
+                    orderClause = 'ORDER BY RANDOM()';
+                } else {
+                    orderClause = `ORDER BY ${sortField} ${sortDirection}`;
+                }
+            }
             
             const cards = await this.all(`
                 SELECT * FROM cards 

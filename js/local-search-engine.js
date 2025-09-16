@@ -23,12 +23,12 @@ class LocalSearchEngine {
     }
 
     // Búsqueda principal de cartas
-    async searchCards(query, page = 1, pageSize = 20, filters = {}) {
+    async searchCards(query, page = 1, pageSize = 20, filters = {}, sort = 'name', direction = 'asc') {
         try {
             await this.ensureInitialized();
             
             // Verificar cache primero
-            const cacheKey = this.generateCacheKey(query, page, pageSize, filters);
+            const cacheKey = this.generateCacheKey(query, page, pageSize, filters, sort, direction);
             const cachedResult = this.getFromCache(cacheKey);
             
             if (cachedResult) {
@@ -37,10 +37,10 @@ class LocalSearchEngine {
             }
 
             // Realizar búsqueda en base de datos local
-            console.log(`🔍 Búsqueda local: "${query}" - Página ${page}`);
+            console.log(`🔍 Búsqueda local: "${query}" - Página ${page} - Orden: ${sort} ${direction}`);
             const startTime = Date.now();
             
-            const result = await this.db.searchCards(query, page, pageSize, filters);
+            const result = await this.db.searchCards(query, page, pageSize, filters, sort, direction);
             
             const searchTime = Date.now() - startTime;
             console.log(`✅ Búsqueda completada en ${searchTime}ms - ${result.data.length} resultados`);
@@ -327,9 +327,9 @@ class LocalSearchEngine {
     }
 
     // Generar clave de cache
-    generateCacheKey(query, page, pageSize, filters) {
+    generateCacheKey(query, page, pageSize, filters, sort = 'name', direction = 'asc') {
         const filterString = JSON.stringify(filters);
-        return `search_${query}_${page}_${pageSize}_${filterString}`;
+        return `search_${query}_${page}_${pageSize}_${sort}_${direction}_${filterString}`;
     }
 
     // Obtener resultado desde cache

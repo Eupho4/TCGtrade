@@ -108,12 +108,17 @@ class HybridAPIServer {
                     set,
                     rarity,
                     type,
-                    language
+                    subtype,
+                    language,
+                    hasImage,
+                    hasPrice,
+                    sort = 'name',
+                    direction = 'asc'
                 } = req.query;
                 
-                // Si no hay término de búsqueda, usar búsqueda aleatoria
+                // Si no hay término de búsqueda, usar búsqueda amplia
                 if (!searchTerm) {
-                    searchTerm = 'pokemon'; // Búsqueda amplia para obtener cartas aleatorias
+                    searchTerm = ''; // Búsqueda sin término para obtener todas las cartas
                 }
 
                 // Construir filtros
@@ -122,21 +127,27 @@ class HybridAPIServer {
                 if (set) filters.set = set;
                 if (rarity) filters.rarity = rarity;
                 if (type) filters.type = type;
+                if (subtype) filters.subtype = subtype;
                 if (language) filters.language = language;
+                if (hasImage) filters.hasImage = hasImage === 'true';
+                if (hasPrice) filters.hasPrice = hasPrice === 'true';
 
-                console.log('🔍 Búsqueda con filtros:', { searchTerm, filters, page, pageSize });
+                console.log('🔍 Búsqueda con filtros:', { searchTerm, filters, page, pageSize, sort, direction });
 
                 const results = await this.searchEngine.searchCards(
                     searchTerm, 
                     parseInt(page), 
                     parseInt(pageSize), 
-                    filters
+                    filters,
+                    sort,
+                    direction
                 );
 
                 res.json(results);
             } catch (error) {
                 console.error('Error en búsqueda de cartas:', error);
                 res.status(500).json({
+                    success: false,
                     error: 'Error en búsqueda',
                     message: error.message
                 });
