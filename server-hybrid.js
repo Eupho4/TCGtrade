@@ -238,6 +238,25 @@ class HybridAPIServer {
             }
         });
 
+        // Endpoint para obtener series únicas
+        this.app.get('/api/pokemontcg/series', async (req, res) => {
+            try {
+                const series = await this.searchEngine.getAllSeries();
+                res.json({
+                    success: true,
+                    data: series,
+                    count: series.length
+                });
+            } catch (error) {
+                console.error('❌ Error obteniendo series:', error);
+                res.status(500).json({
+                    success: false,
+                    error: 'Error obteniendo series',
+                    message: error.message
+                });
+            }
+        });
+
         // Endpoint para listar archivos exportados
         this.app.get('/api/exports', (req, res) => {
             const fs = require('fs');

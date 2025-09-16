@@ -404,107 +404,122 @@ class LocalCardDatabase {
 
     // Obtener todas las series únicas
     async getAllSets() {
-        return new Promise((resolve, reject) => {
-            const query = `
-                SELECT DISTINCT set_name 
-                FROM cards 
-                WHERE set_name IS NOT NULL AND set_name != ''
-                ORDER BY set_name
-            `;
+        try {
+            const fs = require('fs');
+            const path = require('path');
+            const jsonPath = path.join(__dirname, '../exported_data/cards.json');
+            const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
             
-            this.db.all(query, [], (err, rows) => {
-                if (err) {
-                    console.error('❌ Error obteniendo sets:', err);
-                    reject(err);
-                } else {
-                    resolve(rows.map(row => row.set_name));
-                }
-            });
-        });
+            const sets = [...new Set(data.cards
+                .map(card => card.set_name)
+                .filter(set => set && set.trim() !== '')
+            )].sort();
+            
+            return sets;
+        } catch (error) {
+            console.error('❌ Error obteniendo sets:', error);
+            return [];
+        }
     }
 
     // Obtener todos los tipos únicos
     async getAllTypes() {
-        return new Promise((resolve, reject) => {
-            const query = `
-                SELECT DISTINCT type 
-                FROM cards 
-                WHERE type IS NOT NULL AND type != ''
-                ORDER BY type
-            `;
+        try {
+            const fs = require('fs');
+            const path = require('path');
+            const jsonPath = path.join(__dirname, '../exported_data/cards.json');
+            const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
             
-            this.db.all(query, [], (err, rows) => {
-                if (err) {
-                    console.error('❌ Error obteniendo tipos:', err);
-                    reject(err);
-                } else {
-                    resolve(rows.map(row => row.type));
-                }
-            });
-        });
+            const types = [...new Set(data.cards
+                .map(card => card.types)
+                .filter(type => type && type.trim() !== '')
+            )].sort();
+            
+            return types;
+        } catch (error) {
+            console.error('❌ Error obteniendo tipos:', error);
+            return [];
+        }
     }
 
     // Obtener todas las rarezas únicas
     async getAllRarities() {
-        return new Promise((resolve, reject) => {
-            const query = `
-                SELECT DISTINCT rarity 
-                FROM cards 
-                WHERE rarity IS NOT NULL AND rarity != ''
-                ORDER BY rarity
-            `;
+        try {
+            const fs = require('fs');
+            const path = require('path');
+            const jsonPath = path.join(__dirname, '../exported_data/cards.json');
+            const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
             
-            this.db.all(query, [], (err, rows) => {
-                if (err) {
-                    console.error('❌ Error obteniendo rarezas:', err);
-                    reject(err);
-                } else {
-                    resolve(rows.map(row => row.rarity));
-                }
-            });
-        });
+            const rarities = [...new Set(data.cards
+                .map(card => card.rarity)
+                .filter(rarity => rarity && rarity.trim() !== '')
+            )].sort();
+            
+            return rarities;
+        } catch (error) {
+            console.error('❌ Error obteniendo rarezas:', error);
+            return [];
+        }
     }
 
     // Obtener todos los subtipos únicos
     async getAllSubtypes() {
-        return new Promise((resolve, reject) => {
-            const query = `
-                SELECT DISTINCT subtype 
-                FROM cards 
-                WHERE subtype IS NOT NULL AND subtype != ''
-                ORDER BY subtype
-            `;
+        try {
+            const fs = require('fs');
+            const path = require('path');
+            const jsonPath = path.join(__dirname, '../exported_data/cards.json');
+            const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
             
-            this.db.all(query, [], (err, rows) => {
-                if (err) {
-                    console.error('❌ Error obteniendo subtipos:', err);
-                    reject(err);
-                } else {
-                    resolve(rows.map(row => row.subtype));
-                }
-            });
-        });
+            const subtypes = [...new Set(data.cards
+                .map(card => card.subtypes)
+                .filter(subtype => subtype && subtype.trim() !== '')
+            )].sort();
+            
+            return subtypes;
+        } catch (error) {
+            console.error('❌ Error obteniendo subtipos:', error);
+            return [];
+        }
     }
 
     // Obtener todos los idiomas únicos
     async getAllLanguages() {
-        return new Promise((resolve, reject) => {
-            const query = `
-                SELECT DISTINCT language 
-                FROM cards 
-                WHERE language IS NOT NULL AND language != ''
-                ORDER BY language
-            `;
+        try {
+            const fs = require('fs');
+            const path = require('path');
+            const jsonPath = path.join(__dirname, '../exported_data/cards.json');
+            const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
             
-            this.db.all(query, [], (err, rows) => {
-                if (err) {
-                    console.error('❌ Error obteniendo idiomas:', err);
-                    reject(err);
-                } else {
-                    resolve(rows.map(row => row.language));
-                }
-            });
-        });
+            const languages = [...new Set(data.cards
+                .map(card => card.images?.language)
+                .filter(language => language && language.trim() !== '')
+            )].sort();
+            
+            return languages;
+        } catch (error) {
+            console.error('❌ Error obteniendo idiomas:', error);
+            return [];
+        }
+    }
+
+    // Obtener todas las series únicas
+    async getAllSeries() {
+        try {
+            const fs = require('fs');
+            const path = require('path');
+            const jsonPath = path.join(__dirname, '../exported_data/cards.json');
+            const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+            
+            const series = [...new Set(data.cards
+                .map(card => card.series)
+                .filter(series => series && series.trim() !== '')
+            )].sort();
+            
+            return series;
+        } catch (error) {
+            console.error('❌ Error obteniendo series:', error);
+            return [];
+        }
     }
 
     // Cerrar conexión

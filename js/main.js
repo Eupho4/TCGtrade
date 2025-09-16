@@ -4235,12 +4235,13 @@ async function loadAdvancedFilters() {
         console.log('🔄 Cargando datos para filtros avanzados...');
         
         // Hacer peticiones a la API para obtener los datos
-        const [setsResponse, typesResponse, raritiesResponse, subtypesResponse, languagesResponse] = await Promise.all([
+        const [setsResponse, typesResponse, raritiesResponse, subtypesResponse, languagesResponse, seriesResponse] = await Promise.all([
             fetch('/api/pokemontcg/sets'),
             fetch('/api/pokemontcg/types'),
             fetch('/api/pokemontcg/rarities'),
             fetch('/api/pokemontcg/subtypes'),
-            fetch('/api/pokemontcg/languages')
+            fetch('/api/pokemontcg/languages'),
+            fetch('/api/pokemontcg/series')
         ]);
 
         const sets = await setsResponse.json();
@@ -4248,6 +4249,7 @@ async function loadAdvancedFilters() {
         const rarities = await raritiesResponse.json();
         const subtypes = await subtypesResponse.json();
         const languages = await languagesResponse.json();
+        const series = await seriesResponse.json();
 
         // Cargar sets
         const filterSet = document.getElementById('filterSet');
@@ -4301,6 +4303,17 @@ async function loadAdvancedFilters() {
                 option.value = language;
                 option.textContent = language;
                 filterLanguage.appendChild(option);
+            });
+        }
+
+        // Cargar series
+        const filterSeries = document.getElementById('filterSeries');
+        if (filterSeries && series.data) {
+            series.data.forEach(serie => {
+                const option = document.createElement('option');
+                option.value = serie;
+                option.textContent = serie;
+                filterSeries.appendChild(option);
             });
         }
 

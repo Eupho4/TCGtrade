@@ -432,6 +432,17 @@ class LocalSearchEngine {
         }
     }
 
+    // Obtener todas las series únicas
+    async getAllSeries() {
+        try {
+            await this.ensureInitialized();
+            return await this.db.getAllSeries();
+        } catch (error) {
+            console.error('❌ Error obteniendo series:', error);
+            return [];
+        }
+    }
+
     async close() {
         this.clearCache();
         await this.db.close();
