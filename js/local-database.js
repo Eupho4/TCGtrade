@@ -504,16 +504,18 @@ class LocalCardDatabase {
                 { code: 'de', name: 'Deutsch', category: 'western' },
                 { code: 'it', name: 'Italiano', category: 'western' },
                 { code: 'pt', name: 'Português', category: 'western' },
-                { code: 'ja', name: '日本語', category: 'asian' },
-                { code: 'ko', name: '한국어', category: 'asian' },
-                { code: 'zh-cn', name: '中文 (简体)', category: 'asian' },
-                { code: 'zh-tw', name: '中文 (繁體)', category: 'asian' }
+                { code: 'ja', name: 'Japonés', category: 'asian' },
+                { code: 'ko', name: 'Coreano', category: 'asian' },
+                { code: 'zh-cn', name: 'Chino (Simplificado)', category: 'asian' },
+                { code: 'zh-tw', name: 'Chino (Tradicional)', category: 'asian' }
             ];
             
-            // Marcar qué idiomas están disponibles en los datos
+            // Marcar qué idiomas están disponibles
+            // Los occidentales están disponibles (son los más comunes)
+            // Los asiáticos solo si están en los datos
             const languagesWithAvailability = allLanguages.map(lang => ({
                 ...lang,
-                available: dataLanguages.includes(lang.code)
+                available: lang.category === 'western' || dataLanguages.includes(lang.code)
             }));
             
             return languagesWithAvailability;
