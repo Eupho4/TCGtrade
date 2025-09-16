@@ -490,12 +490,33 @@ class LocalCardDatabase {
             const jsonPath = path.join(__dirname, '../exported_data/cards.json');
             const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
             
-            const languages = [...new Set(data.cards
+            // Idiomas disponibles en los datos
+            const dataLanguages = [...new Set(data.cards
                 .map(card => card.images?.language)
                 .filter(language => language && language.trim() !== '')
-            )].sort();
+            )];
             
-            return languages;
+            // Lista completa de idiomas de Pokémon TCG
+            const allLanguages = [
+                { code: 'en', name: 'English', category: 'western' },
+                { code: 'es', name: 'Español', category: 'western' },
+                { code: 'fr', name: 'Français', category: 'western' },
+                { code: 'de', name: 'Deutsch', category: 'western' },
+                { code: 'it', name: 'Italiano', category: 'western' },
+                { code: 'pt', name: 'Português', category: 'western' },
+                { code: 'ja', name: '日本語', category: 'asian' },
+                { code: 'ko', name: '한국어', category: 'asian' },
+                { code: 'zh-cn', name: '中文 (简体)', category: 'asian' },
+                { code: 'zh-tw', name: '中文 (繁體)', category: 'asian' }
+            ];
+            
+            // Marcar qué idiomas están disponibles en los datos
+            const languagesWithAvailability = allLanguages.map(lang => ({
+                ...lang,
+                available: dataLanguages.includes(lang.code)
+            }));
+            
+            return languagesWithAvailability;
         } catch (error) {
             console.error('❌ Error obteniendo idiomas:', error);
             return [];

@@ -4298,12 +4298,37 @@ async function loadAdvancedFilters() {
         // Cargar idiomas
         const filterLanguage = document.getElementById('filterLanguage');
         if (filterLanguage && languages.data) {
-            languages.data.forEach(language => {
-                const option = document.createElement('option');
-                option.value = language;
-                option.textContent = language;
-                filterLanguage.appendChild(option);
-            });
+            // Agrupar idiomas por categoría
+            const westernLanguages = languages.data.filter(lang => lang.category === 'western');
+            const asianLanguages = languages.data.filter(lang => lang.category === 'asian');
+            
+            // Agregar idiomas occidentales
+            if (westernLanguages.length > 0) {
+                const westernGroup = document.createElement('optgroup');
+                westernGroup.label = '🌍 Idiomas Occidentales';
+                westernLanguages.forEach(language => {
+                    const option = document.createElement('option');
+                    option.value = language.code;
+                    option.textContent = `${language.name} ${language.available ? '✅' : '⏳'}`;
+                    option.disabled = !language.available;
+                    westernGroup.appendChild(option);
+                });
+                filterLanguage.appendChild(westernGroup);
+            }
+            
+            // Agregar idiomas asiáticos
+            if (asianLanguages.length > 0) {
+                const asianGroup = document.createElement('optgroup');
+                asianGroup.label = '🌏 Idiomas Asiáticos';
+                asianLanguages.forEach(language => {
+                    const option = document.createElement('option');
+                    option.value = language.code;
+                    option.textContent = `${language.name} ${language.available ? '✅' : '⏳'}`;
+                    option.disabled = !language.available;
+                    asianGroup.appendChild(option);
+                });
+                filterLanguage.appendChild(asianGroup);
+            }
         }
 
         // Cargar series
