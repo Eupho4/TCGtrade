@@ -14729,7 +14729,24 @@
                     // Forzar la remoción de la clase hidden
                     if (searchSection) {
                         searchSection.classList.remove('hidden');
+                        searchSection.style.display = 'block';
+                        searchSection.style.visibility = 'visible';
+                        searchSection.style.opacity = '1';
                         console.log('📍 Clases DESPUÉS:', searchSection?.className);
+                        console.log('📍 Estilos aplicados:', {
+                            display: searchSection.style.display,
+                            visibility: searchSection.style.visibility,
+                            opacity: searchSection.style.opacity
+                        });
+                        
+                        // Verificar elementos padre
+                        let parent = searchSection.parentElement;
+                        let level = 0;
+                        while (parent && level < 5) {
+                            console.log(`📍 Padre nivel ${level}:`, parent.tagName, parent.className, parent.style.display);
+                            parent = parent.parentElement;
+                            level++;
+                        }
                     }
                     
                     // Renderizar cartas directamente
@@ -14811,10 +14828,32 @@
             showNotification('Filtros limpiados', 'success');
         }
 
+        // Función de prueba para mostrar resultados manualmente
+        function testShowResults() {
+            console.log('🧪 Función de prueba ejecutándose...');
+            const searchSection = document.getElementById('searchResults');
+            if (searchSection) {
+                searchSection.classList.remove('hidden');
+                searchSection.style.display = 'block';
+                searchSection.style.visibility = 'visible';
+                searchSection.style.opacity = '1';
+                console.log('✅ Sección forzada a ser visible');
+                
+                // Ocultar hero section
+                if (heroSection) {
+                    heroSection.classList.add('hidden');
+                    console.log('✅ Hero section ocultado');
+                }
+            } else {
+                console.error('❌ No se encontró la sección searchResults');
+            }
+        }
+
         // Hacer funciones disponibles globalmente
         window.toggleAdvancedSearch = toggleAdvancedSearch;
         window.performAdvancedSearch = performAdvancedSearch;
         window.clearAdvancedFilters = clearAdvancedFilters;
+        window.testShowResults = testShowResults;
 
         console.log('🚀 Script principal iniciado correctamente');
         
