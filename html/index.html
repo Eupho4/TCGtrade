@@ -14699,10 +14699,15 @@
                 searchParams.append('pageSize', '20');
                 
                 // Hacer petición a la API
-                const response = await fetch(`/api/pokemontcg/cards?${searchParams.toString()}`);
+                const url = `/api/pokemontcg/cards?${searchParams.toString()}`;
+                console.log('🌐 URL de búsqueda:', url);
+                
+                const response = await fetch(url);
                 const results = await response.json();
                 
-                if (results.success) {
+                console.log('📊 Respuesta de la API:', results);
+                
+                if (results.success !== false) {
                     // Mostrar resultados
                     displaySearchResults(results.data, results.totalCount);
                     
