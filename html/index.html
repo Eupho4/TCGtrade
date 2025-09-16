@@ -14708,15 +14708,22 @@
                 console.log('  - Con imagen:', searchFiltersState.hasImage);
                 console.log('  - Con precio:', searchFiltersState.hasPrice);
                 
-                // Construir query de texto (sin descripciones de filtros)
-                let searchQuery = query;
+                // Verificar si hay filtros activos
+                const hasActiveFilters = filters.series || filters.set || filters.rarity || filters.type || filters.subtype || filters.language || filters.hasImage || filters.hasPrice;
                 
-                // Si no hay query de texto, usar búsqueda general
-                if (!searchQuery) {
-                    searchQuery = 'pokemon';
+                // Construir query de texto
+                let searchQuery = '';
+                if (hasActiveFilters) {
+                    // Si hay filtros, no buscar texto, solo usar filtros
+                    searchQuery = '';
+                    console.log('🔍 Búsqueda solo con filtros (sin texto)');
+                } else {
+                    // Si no hay filtros, usar el texto de búsqueda
+                    searchQuery = query || 'pokemon';
+                    console.log('🔍 Búsqueda solo con texto:', searchQuery);
                 }
                 
-                console.log('🔤 Query de texto:', searchQuery);
+                console.log('🔤 Query de texto final:', searchQuery);
                 
                 // Construir descripción para mostrar en el input (solo para visualización)
                 const filterDescriptions = [];
@@ -14729,10 +14736,14 @@
                 if (filters.hasImage === 'true') filterDescriptions.push('Con imagen');
                 if (filters.hasPrice === 'true') filterDescriptions.push('Con precio');
                 
-                // Mostrar descripción en el input solo si hay filtros
-                let displayText = searchQuery;
-                if (filterDescriptions.length > 0) {
-                    displayText = searchQuery ? `${searchQuery} (${filterDescriptions.join(', ')})` : filterDescriptions.join(', ');
+                // Mostrar descripción en el input
+                let displayText = '';
+                if (hasActiveFilters) {
+                    // Si hay filtros, mostrar solo los filtros
+                    displayText = filterDescriptions.join(', ');
+                } else {
+                    // Si no hay filtros, mostrar el texto de búsqueda
+                    displayText = searchQuery;
                 }
                 
                 console.log('📱 Texto a mostrar en input:', displayText);
