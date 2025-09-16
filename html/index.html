@@ -14710,7 +14710,51 @@
                 if (results.success !== false) {
                     // Mostrar resultados
                     showSearchResults();
-                    renderCardsFromData(results.data);
+                    
+                    // Renderizar cartas directamente
+                    console.log('🎴 Renderizando', results.data.length, 'cartas...');
+                    if (cardsContainer) {
+                        cardsContainer.innerHTML = '';
+                        results.data.forEach((card) => {
+                            // Función para escapar caracteres especiales
+                            const escapeForOnclick = (str) => {
+                                return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+                            };
+                            
+                            const safeCardId = escapeForOnclick(card.id);
+                            const safeCardName = escapeForOnclick(card.name);
+                            const safeSetName = escapeForOnclick(card.set?.name || 'N/A');
+                            const safeSeries = escapeForOnclick(card.set?.series || 'N/A');
+                            const safeNumber = escapeForOnclick(card.number || 'N/A');
+                            const safeRarity = escapeForOnclick(card.rarity || 'N/A');
+                            const safeTypes = escapeForOnclick(card.types?.join(', ') || 'N/A');
+                            
+                            const cardElement = document.createElement('div');
+                            cardElement.className = 'card-item bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer';
+                            cardElement.innerHTML = `
+                                <div class="relative">
+                                    <img src="${card.images?.small || '/images/card-placeholder.svg'}" 
+                                         alt="${card.name}" 
+                                         class="w-full h-64 object-contain rounded-t-lg"
+                                         onerror="this.src='/images/card-placeholder.svg'">
+                                    <div class="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
+                                        ${card.rarity || 'N/A'}
+                                    </div>
+                                </div>
+                                <div class="p-4">
+                                    <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-2">${card.name}</h3>
+                                    <div class="text-sm text-gray-600 dark:text-gray-300 space-y-1">
+                                        <p><span class="font-medium">Set:</span> ${card.set?.name || 'N/A'}</p>
+                                        <p><span class="font-medium">Serie:</span> ${card.set?.series || 'N/A'}</p>
+                                        <p><span class="font-medium">Número:</span> ${card.number || 'N/A'}</p>
+                                        <p><span class="font-medium">Tipo:</span> ${card.types?.join(', ') || 'N/A'}</p>
+                                    </div>
+                                </div>
+                            `;
+                            
+                            cardsContainer.appendChild(cardElement);
+                        });
+                    }
                     
                     // Cerrar panel
                     toggleAdvancedSearch();
