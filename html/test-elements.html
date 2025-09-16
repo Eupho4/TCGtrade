@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Elements</title>
+</head>
+<body>
+    <h1>Test de Elementos</h1>
+    <div id="results"></div>
+    
+    <script>
+        // Cargar el HTML principal
+        fetch('/')
+            .then(response => response.text())
+            .then(html => {
+                // Crear un elemento temporal para parsear el HTML
+                const temp = document.createElement('div');
+                temp.innerHTML = html;
+                
+                // Buscar elementos
+                const elements = {
+                    homeLink: temp.querySelector('#homeLink'),
+                    startTradingBtn: temp.querySelector('#startTradingBtn'),
+                    loginLink: temp.querySelector('#loginLink'),
+                    registerLink: temp.querySelector('#registerLink'),
+                    profileLink: temp.querySelector('#profileLink')
+                };
+                
+                const results = document.getElementById('results');
+                results.innerHTML = '<h2>Elementos encontrados:</h2>';
+                
+                Object.entries(elements).forEach(([name, element]) => {
+                    if (element) {
+                        results.innerHTML += `<p>✅ ${name}: ${element.tagName} - ${element.className}</p>`;
+                    } else {
+                        results.innerHTML += `<p>❌ ${name}: NO ENCONTRADO</p>`;
+                    }
+                });
+            })
+            .catch(error => {
+                document.getElementById('results').innerHTML = `<p>Error: ${error.message}</p>`;
+            });
+    </script>
+</body>
+</html>
