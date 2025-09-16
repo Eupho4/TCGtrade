@@ -14655,6 +14655,7 @@
 
         // Realizar búsqueda avanzada
         async function performAdvancedSearch() {
+            console.log('🚀 performAdvancedSearch() ejecutándose...');
             try {
                 // Obtener valores de los filtros
                 const filters = {
@@ -14676,6 +14677,8 @@
                 const query = document.getElementById('searchInput')?.value || '';
                 
                 console.log('🔍 Ejecutando búsqueda avanzada...', { query, filters, sort, direction });
+                console.log('📋 Filtros obtenidos:', filters);
+                console.log('🔤 Query:', query);
                 
                 // Mostrar loading
                 showLoadingSpinner();
@@ -14683,6 +14686,12 @@
                 // Construir URL de búsqueda con filtros
                 const searchParams = new URLSearchParams();
                 
+                // Búsqueda simple para testing
+                searchParams.append('q', 'pikachu');
+                searchParams.append('page', '1');
+                searchParams.append('pageSize', '5');
+                
+                // Agregar filtros solo si tienen valor
                 if (query) searchParams.append('q', query);
                 if (filters.series) searchParams.append('series', filters.series);
                 if (filters.set) searchParams.append('set', filters.set);
@@ -14695,8 +14704,6 @@
                 
                 searchParams.append('sort', sort);
                 searchParams.append('direction', direction);
-                searchParams.append('page', '1');
-                searchParams.append('pageSize', '20');
                 
                 // Hacer petición a la API
                 const url = `/api/pokemontcg/cards?${searchParams.toString()}`;
