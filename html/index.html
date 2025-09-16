@@ -14708,10 +14708,18 @@
                 console.log('  - Con imagen:', searchFiltersState.hasImage);
                 console.log('  - Con precio:', searchFiltersState.hasPrice);
                 
-                // Construir query descriptiva para mostrar en el input
+                // Construir query de texto (sin descripciones de filtros)
                 let searchQuery = query;
-                const filterDescriptions = [];
                 
+                // Si no hay query de texto, usar búsqueda general
+                if (!searchQuery) {
+                    searchQuery = 'pokemon';
+                }
+                
+                console.log('🔤 Query de texto:', searchQuery);
+                
+                // Construir descripción para mostrar en el input (solo para visualización)
+                const filterDescriptions = [];
                 if (filters.series) filterDescriptions.push(`Serie: ${filters.series}`);
                 if (filters.set) filterDescriptions.push(`Set: ${filters.set}`);
                 if (filters.rarity) filterDescriptions.push(`Rareza: ${filters.rarity}`);
@@ -14721,21 +14729,17 @@
                 if (filters.hasImage === 'true') filterDescriptions.push('Con imagen');
                 if (filters.hasPrice === 'true') filterDescriptions.push('Con precio');
                 
-                // Si hay filtros, agregar descripción
+                // Mostrar descripción en el input solo si hay filtros
+                let displayText = searchQuery;
                 if (filterDescriptions.length > 0) {
-                    searchQuery = searchQuery ? `${searchQuery} (${filterDescriptions.join(', ')})` : filterDescriptions.join(', ');
+                    displayText = searchQuery ? `${searchQuery} (${filterDescriptions.join(', ')})` : filterDescriptions.join(', ');
                 }
                 
-                // Si no hay query ni filtros, usar búsqueda general
-                if (!searchQuery) {
-                    searchQuery = 'pokemon';
-                }
+                console.log('📱 Texto a mostrar en input:', displayText);
                 
-                console.log('🔤 Query final:', searchQuery);
-                
-                // Establecer el valor en el input de búsqueda
+                // Establecer el valor en el input de búsqueda (solo para visualización)
                 if (searchInput) {
-                    searchInput.value = searchQuery;
+                    searchInput.value = displayText;
                 }
                 
                 // Cerrar panel de filtros avanzados
