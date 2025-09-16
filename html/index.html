@@ -14709,7 +14709,8 @@
                 
                 if (results.success !== false) {
                     // Mostrar resultados
-                    displaySearchResults(results.data, results.totalCount);
+                    showSearchResults();
+                    renderCardsFromData(results.data);
                     
                     // Cerrar panel
                     toggleAdvancedSearch();
