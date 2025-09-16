@@ -14717,12 +14717,20 @@
                 if (results.success !== false) {
                     // Mostrar resultados
                     console.log('🔄 Mostrando sección de resultados...');
+                    console.log('📍 Hero section antes:', heroSection?.className);
                     showSearchResults();
+                    console.log('📍 Hero section después:', heroSection?.className);
                     
                     // Verificar que la sección se mostró
                     const searchSection = document.getElementById('searchResults');
                     console.log('📍 Sección de resultados:', searchSection);
-                    console.log('📍 Clases de la sección:', searchSection?.className);
+                    console.log('📍 Clases ANTES:', searchSection?.className);
+                    
+                    // Forzar la remoción de la clase hidden
+                    if (searchSection) {
+                        searchSection.classList.remove('hidden');
+                        console.log('📍 Clases DESPUÉS:', searchSection?.className);
+                    }
                     
                     // Renderizar cartas directamente
                     console.log('🎴 Renderizando', results.data.length, 'cartas...');
