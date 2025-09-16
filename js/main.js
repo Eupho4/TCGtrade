@@ -4085,7 +4085,6 @@ window.logoutUser = async () => {
 // --- Configuración de Event Listeners ---
 function setupNavigationEvents() {
     console.log('🚀 Inicializando aplicación...');
-    console.log('🔍 setupNavigationEvents ejecutándose...');
     
     // Verificar que las funciones estén disponibles
     if (typeof showInitialSections === 'undefined') {
@@ -4117,42 +4116,30 @@ function setupNavigationEvents() {
 
     // Configurar event listeners simples y directos
     const homeLink = document.getElementById('homeLink');
-    console.log('🔍 homeLink encontrado:', homeLink);
     if (homeLink) {
         homeLink.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('🏠 Home link clicked');
             showInitialSections();
         });
-        console.log('✅ Event listener agregado a homeLink');
-    } else {
-        console.error('❌ homeLink NO ENCONTRADO');
     }
 
     const startTradingBtn = document.getElementById('startTradingBtn');
-    console.log('🔍 startTradingBtn encontrado:', startTradingBtn);
     if (startTradingBtn) {
         startTradingBtn.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('🚀 Start trading clicked');
             showAuthModal('register');
         });
-        console.log('✅ Event listener agregado a startTradingBtn');
-    } else {
-        console.error('❌ startTradingBtn NO ENCONTRADO');
     }
 
     const loginLink = document.getElementById('loginLink');
-    console.log('🔍 loginLink encontrado:', loginLink);
     if (loginLink) {
         loginLink.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('🚪 Login link clicked');
             showAuthModal('login');
         });
-        console.log('✅ Event listener agregado a loginLink');
-    } else {
-        console.error('❌ loginLink NO ENCONTRADO');
     }
 
     const registerLink = document.getElementById('registerLink');
@@ -4244,7 +4231,6 @@ function setupNavigationEvents() {
 
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 DOM cargado, configurando eventos...');
-    console.log('🔍 DOMContentLoaded ejecutándose...');
     
     // CARGAR MODO OSCURO DESDE LOCALSTORAGE AL INICIO
     const savedDarkMode = localStorage.getItem('darkMode');
@@ -4313,9 +4299,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inicializar la aplicación después de un pequeño delay
     setTimeout(() => {
-        console.log('⏰ Ejecutando setupNavigationEvents después de delay...');
         setupNavigationEvents();
-    }, 500);
+    }, 100);
 
 
 
