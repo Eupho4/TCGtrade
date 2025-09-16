@@ -14669,146 +14669,52 @@
                     hasPrice: document.getElementById('filterHasPrice')?.value || null
                 };
                 
-                // Obtener opciones de ordenamiento
-                const sort = document.getElementById('sortBy')?.value || 'name';
-                const direction = document.getElementById('sortDirection')?.value || 'asc';
-                
                 // Obtener query de búsqueda
                 const query = document.getElementById('searchInput')?.value || '';
                 
-                console.log('🔍 Ejecutando búsqueda avanzada...', { query, filters, sort, direction });
-                console.log('📋 Filtros obtenidos:', filters);
-                console.log('🔤 Query:', query);
+                console.log('🔍 Ejecutando búsqueda avanzada...', { query, filters });
                 
-                // Mostrar loading
-                showLoadingSpinner();
+                // Construir query descriptiva con filtros
+                let searchQuery = query;
+                const filterDescriptions = [];
                 
-                // Construir URL de búsqueda con filtros
-                const searchParams = new URLSearchParams();
+                if (filters.series) filterDescriptions.push(`Serie: ${filters.series}`);
+                if (filters.set) filterDescriptions.push(`Set: ${filters.set}`);
+                if (filters.rarity) filterDescriptions.push(`Rareza: ${filters.rarity}`);
+                if (filters.type) filterDescriptions.push(`Tipo: ${filters.type}`);
+                if (filters.subtype) filterDescriptions.push(`Subtipo: ${filters.subtype}`);
+                if (filters.language) filterDescriptions.push(`Idioma: ${filters.language}`);
+                if (filters.hasImage === 'true') filterDescriptions.push('Con imagen');
+                if (filters.hasPrice === 'true') filterDescriptions.push('Con precio');
                 
-                // Búsqueda simple para testing
-                searchParams.append('q', 'pikachu');
-                searchParams.append('page', '1');
-                searchParams.append('pageSize', '5');
-                
-                // Agregar filtros solo si tienen valor
-                if (query) searchParams.append('q', query);
-                if (filters.series) searchParams.append('series', filters.series);
-                if (filters.set) searchParams.append('set', filters.set);
-                if (filters.rarity) searchParams.append('rarity', filters.rarity);
-                if (filters.type) searchParams.append('type', filters.type);
-                if (filters.subtype) searchParams.append('subtype', filters.subtype);
-                if (filters.language) searchParams.append('language', filters.language);
-                if (filters.hasImage) searchParams.append('hasImage', filters.hasImage);
-                if (filters.hasPrice) searchParams.append('hasPrice', filters.hasPrice);
-                
-                searchParams.append('sort', sort);
-                searchParams.append('direction', direction);
-                
-                // Hacer petición a la API
-                const url = `/api/pokemontcg/cards?${searchParams.toString()}`;
-                console.log('🌐 URL de búsqueda:', url);
-                
-                const response = await fetch(url);
-                const results = await response.json();
-                
-                console.log('📊 Respuesta de la API:', results);
-                
-                if (results.success !== false) {
-                    // Mostrar resultados
-                    console.log('🔄 Mostrando sección de resultados...');
-                    console.log('📍 Hero section antes:', heroSection?.className);
-                    showSearchResults();
-                    console.log('📍 Hero section después:', heroSection?.className);
-                    
-                    // Verificar que la sección se mostró
-                    const searchSection = document.getElementById('searchResults');
-                    console.log('📍 Sección de resultados:', searchSection);
-                    console.log('📍 Clases ANTES:', searchSection?.className);
-                    
-                    // Forzar la remoción de la clase hidden
-                    if (searchSection) {
-                        searchSection.classList.remove('hidden');
-                        searchSection.style.display = 'block';
-                        searchSection.style.visibility = 'visible';
-                        searchSection.style.opacity = '1';
-                        console.log('📍 Clases DESPUÉS:', searchSection?.className);
-                        console.log('📍 Estilos aplicados:', {
-                            display: searchSection.style.display,
-                            visibility: searchSection.style.visibility,
-                            opacity: searchSection.style.opacity
-                        });
-                        
-                        // Verificar elementos padre
-                        let parent = searchSection.parentElement;
-                        let level = 0;
-                        while (parent && level < 5) {
-                            console.log(`📍 Padre nivel ${level}:`, parent.tagName, parent.className, parent.style.display);
-                            parent = parent.parentElement;
-                            level++;
-                        }
-                    }
-                    
-                    // Renderizar cartas directamente
-                    console.log('🎴 Renderizando', results.data.length, 'cartas...');
-                    console.log('📍 Contenedor de cartas:', cardsContainer);
-                    if (cardsContainer) {
-                        cardsContainer.innerHTML = '';
-                        results.data.forEach((card) => {
-                            // Función para escapar caracteres especiales
-                            const escapeForOnclick = (str) => {
-                                return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
-                            };
-                            
-                            const safeCardId = escapeForOnclick(card.id);
-                            const safeCardName = escapeForOnclick(card.name);
-                            const safeSetName = escapeForOnclick(card.set?.name || 'N/A');
-                            const safeSeries = escapeForOnclick(card.set?.series || 'N/A');
-                            const safeNumber = escapeForOnclick(card.number || 'N/A');
-                            const safeRarity = escapeForOnclick(card.rarity || 'N/A');
-                            const safeTypes = escapeForOnclick(card.types?.join(', ') || 'N/A');
-                            
-                            const cardElement = document.createElement('div');
-                            cardElement.className = 'card-item bg-white dark:bg-gray-800 rounded-lg shadow-md hover:shadow-lg transition-shadow duration-200 cursor-pointer';
-                            cardElement.innerHTML = `
-                                <div class="relative">
-                                    <img src="${card.images?.small || '/images/card-placeholder.svg'}" 
-                                         alt="${card.name}" 
-                                         class="w-full h-64 object-contain rounded-t-lg"
-                                         onerror="this.src='/images/card-placeholder.svg'">
-                                    <div class="absolute top-2 right-2 bg-black bg-opacity-75 text-white text-xs px-2 py-1 rounded">
-                                        ${card.rarity || 'N/A'}
-                                    </div>
-                                </div>
-                                <div class="p-4">
-                                    <h3 class="font-bold text-lg text-gray-900 dark:text-white mb-2">${card.name}</h3>
-                                    <div class="text-sm text-gray-600 dark:text-gray-300 space-y-1">
-                                        <p><span class="font-medium">Set:</span> ${card.set?.name || 'N/A'}</p>
-                                        <p><span class="font-medium">Serie:</span> ${card.set?.series || 'N/A'}</p>
-                                        <p><span class="font-medium">Número:</span> ${card.number || 'N/A'}</p>
-                                        <p><span class="font-medium">Tipo:</span> ${card.types?.join(', ') || 'N/A'}</p>
-                                    </div>
-                                </div>
-                            `;
-                            
-                            cardsContainer.appendChild(cardElement);
-                        });
-                    }
-                    
-                    // Cerrar panel
-                    toggleAdvancedSearch();
-                    
-                    console.log('✅ Búsqueda avanzada completada:', results);
-                } else {
-                    throw new Error(results.error || 'Error en la búsqueda');
+                // Si hay filtros, agregar descripción
+                if (filterDescriptions.length > 0) {
+                    searchQuery = searchQuery ? `${searchQuery} (${filterDescriptions.join(', ')})` : filterDescriptions.join(', ');
                 }
+                
+                // Si no hay query ni filtros, usar búsqueda general
+                if (!searchQuery) {
+                    searchQuery = 'pokemon';
+                }
+                
+                console.log('🔤 Query final:', searchQuery);
+                
+                // Establecer el valor en el input de búsqueda
+                if (searchInput) {
+                    searchInput.value = searchQuery;
+                }
+                
+                // Cerrar panel de filtros avanzados
+                toggleAdvancedSearch();
+                
+                // Ejecutar búsqueda normal con la query construida
+                await fetchCards(searchQuery);
+                
+                console.log('✅ Búsqueda avanzada redirigida a búsqueda normal');
                 
             } catch (error) {
                 console.error('❌ Error en búsqueda avanzada:', error);
                 showNotification('Error en la búsqueda avanzada: ' + error.message, 'error');
-            } finally {
-                // Ocultar loading
-                hideLoadingSpinner();
             }
         }
 
