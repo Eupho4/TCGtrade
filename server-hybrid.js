@@ -143,7 +143,10 @@ class HybridAPIServer {
                     direction
                 );
 
-                res.json(results);
+                res.json({
+                    success: true,
+                    ...results
+                });
             } catch (error) {
                 console.error('Error en búsqueda de cartas:', error);
                 res.status(500).json({
