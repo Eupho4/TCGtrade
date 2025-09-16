@@ -402,6 +402,80 @@ class LocalCardDatabase {
         }
     }
 
+    // Obtener todos los sets únicos
+    async getAllSets() {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT DISTINCT 
+                    set_id as id,
+                    set_name as name,
+                    series,
+                    COUNT(*) as card_count
+                FROM cards 
+                WHERE set_id IS NOT NULL AND set_name IS NOT NULL
+                GROUP BY set_id, set_name, series
+                ORDER BY series, set_name
+            `;
+            
+            this.db.all(query, [], (err, rows) => {
+                if (err) {
+                    console.error('❌ Error obteniendo sets:', err);
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
+
+    // Obtener todos los tipos únicos
+    async getAllTypes() {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT DISTINCT 
+                    TRIM(value) as type,
+                    COUNT(*) as card_count
+                FROM cards, json_each('["' || REPLACE(types, ',', '","') || '"]')
+                WHERE types IS NOT NULL AND types != ''
+                GROUP BY TRIM(value)
+                ORDER BY card_count DESC, type
+            `;
+            
+            this.db.all(query, [], (err, rows) => {
+                if (err) {
+                    console.error('❌ Error obteniendo tipos:', err);
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
+
+    // Obtener todas las rarezas únicas
+    async getAllRarities() {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT DISTINCT 
+                    rarity,
+                    COUNT(*) as card_count
+                FROM cards 
+                WHERE rarity IS NOT NULL AND rarity != ''
+                GROUP BY rarity
+                ORDER BY card_count DESC, rarity
+            `;
+            
+            this.db.all(query, [], (err, rows) => {
+                if (err) {
+                    console.error('❌ Error obteniendo rarezas:', err);
+                    reject(err);
+                } else {
+                    resolve(rows);
+                }
+            });
+        });
+    }
+
     // Cerrar conexión
     close() {
         return new Promise((resolve) => {

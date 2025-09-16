@@ -377,6 +377,39 @@ class LocalSearchEngine {
     }
 
     // Cerrar motor de búsqueda
+    // Obtener todos los sets/expansiones
+    async getAllSets() {
+        try {
+            await this.ensureInitialized();
+            return await this.db.getAllSets();
+        } catch (error) {
+            console.error('Error obteniendo sets:', error);
+            throw error;
+        }
+    }
+
+    // Obtener todos los tipos de cartas
+    async getAllTypes() {
+        try {
+            await this.ensureInitialized();
+            return await this.db.getAllTypes();
+        } catch (error) {
+            console.error('Error obteniendo tipos:', error);
+            throw error;
+        }
+    }
+
+    // Obtener todas las rarezas
+    async getAllRarities() {
+        try {
+            await this.ensureInitialized();
+            return await this.db.getAllRarities();
+        } catch (error) {
+            console.error('Error obteniendo rarezas:', error);
+            throw error;
+        }
+    }
+
     async close() {
         this.clearCache();
         await this.db.close();
