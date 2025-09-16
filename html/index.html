@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TCGtrade - Intercambio Pokémon TCG</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="/js/tcgdex-loader.js"></script>
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
     <script src="/js/main.js"></script>
     <script>
         tailwind.config = {
@@ -311,51 +314,6 @@
             }
         }
 
-        function showInterchangesSection() {
-            // Ocultar otras secciones
-            hideHomeSections();
-            if (searchResultsSection) searchResultsSection.classList.add('hidden');
-            if (myCardsSection) myCardsSection.classList.add('hidden');
-            if (profileSection) profileSection.classList.add('hidden');
-            if (helpSection) helpSection.classList.add('hidden');
-            const inboxSection = document.getElementById('inboxSection');
-            if (inboxSection) inboxSection.classList.add('hidden');
-
-            // Mostrar sección de intercambios
-            if (interchangesSection) interchangesSection.classList.remove('hidden');
-
-            // Cargar datos de intercambios si hay usuario autenticado
-            if (currentUser) {
-                loadUserTrades();
-                loadAvailableTrades();
-            } else {
-                // Mostrar mensaje para usuarios no autenticados
-                const myTradesContainer = document.getElementById('myTradesContainer');
-                const availableTradesContainer = document.getElementById('availableTradesContainer');
-                
-                if (myTradesContainer) {
-                    myTradesContainer.innerHTML = `
-                        <div class="text-center text-gray-500 dark:text-gray-400 py-8">
-                            <p>Debes iniciar sesión para ver tus intercambios</p>
-                            <button class="btn-primary mt-4 px-4 py-2 rounded-lg text-sm font-semibold" onclick="showAuthModal('login')">
-                                Iniciar Sesión
-                            </button>
-                        </div>
-                    `;
-                }
-                
-                if (availableTradesContainer) {
-                    availableTradesContainer.innerHTML = `
-                        <div class="text-center text-gray-500 dark:text-gray-400 py-8">
-                            <p>Debes iniciar sesión para ver intercambios disponibles</p>
-                            <button class="btn-primary mt-4 px-4 py-2 rounded-lg text-sm font-semibold" onclick="showAuthModal('login')">
-                                Iniciar Sesión
-                            </button>
-                        </div>
-                    `;
-                }
-            }
-        }
 
         function showProfileSection() {
             // Ocultar otras secciones
