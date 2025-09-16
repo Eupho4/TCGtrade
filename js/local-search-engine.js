@@ -377,6 +377,61 @@ class LocalSearchEngine {
     }
 
     // Cerrar motor de búsqueda
+    // Obtener todos los sets únicos
+    async getAllSets() {
+        try {
+            await this.ensureInitialized();
+            return await this.db.getAllSets();
+        } catch (error) {
+            console.error('❌ Error obteniendo sets:', error);
+            return [];
+        }
+    }
+
+    // Obtener todos los tipos únicos
+    async getAllTypes() {
+        try {
+            await this.ensureInitialized();
+            return await this.db.getAllTypes();
+        } catch (error) {
+            console.error('❌ Error obteniendo tipos:', error);
+            return [];
+        }
+    }
+
+    // Obtener todas las rarezas únicas
+    async getAllRarities() {
+        try {
+            await this.ensureInitialized();
+            return await this.db.getAllRarities();
+        } catch (error) {
+            console.error('❌ Error obteniendo rarezas:', error);
+            return [];
+        }
+    }
+
+    // Obtener todos los subtipos únicos
+    async getAllSubtypes() {
+        try {
+            await this.ensureInitialized();
+            return await this.db.getAllSubtypes();
+        } catch (error) {
+            console.error('❌ Error obteniendo subtipos:', error);
+            return [];
+        }
+    }
+
+    // Obtener todos los idiomas únicos
+    async getAllLanguages() {
+        try {
+            await this.ensureInitialized();
+            return await this.db.getAllLanguages();
+        } catch (error) {
+            console.error('❌ Error obteniendo idiomas:', error);
+            return [];
+        }
+    }
+
     async close() {
         this.clearCache();
         await this.db.close();

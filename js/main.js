@@ -4229,6 +4229,87 @@ function setupNavigationEvents() {
     console.log('✅ Event listeners configurados correctamente');
 }
 
+// Función para cargar datos en los filtros avanzados
+async function loadAdvancedFilters() {
+    try {
+        console.log('🔄 Cargando datos para filtros avanzados...');
+        
+        // Hacer peticiones a la API para obtener los datos
+        const [setsResponse, typesResponse, raritiesResponse, subtypesResponse, languagesResponse] = await Promise.all([
+            fetch('/api/pokemontcg/sets'),
+            fetch('/api/pokemontcg/types'),
+            fetch('/api/pokemontcg/rarities'),
+            fetch('/api/pokemontcg/subtypes'),
+            fetch('/api/pokemontcg/languages')
+        ]);
+
+        const sets = await setsResponse.json();
+        const types = await typesResponse.json();
+        const rarities = await raritiesResponse.json();
+        const subtypes = await subtypesResponse.json();
+        const languages = await languagesResponse.json();
+
+        // Cargar sets
+        const filterSet = document.getElementById('filterSet');
+        if (filterSet && sets.data) {
+            sets.data.forEach(set => {
+                const option = document.createElement('option');
+                option.value = set;
+                option.textContent = set;
+                filterSet.appendChild(option);
+            });
+        }
+
+        // Cargar tipos
+        const filterType = document.getElementById('filterType');
+        if (filterType && types.data) {
+            types.data.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                filterType.appendChild(option);
+            });
+        }
+
+        // Cargar rarezas
+        const filterRarity = document.getElementById('filterRarity');
+        if (filterRarity && rarities.data) {
+            rarities.data.forEach(rarity => {
+                const option = document.createElement('option');
+                option.value = rarity;
+                option.textContent = rarity;
+                filterRarity.appendChild(option);
+            });
+        }
+
+        // Cargar subtipos
+        const filterSubtype = document.getElementById('filterSubtype');
+        if (filterSubtype && subtypes.data) {
+            subtypes.data.forEach(subtype => {
+                const option = document.createElement('option');
+                option.value = subtype;
+                option.textContent = subtype;
+                filterSubtype.appendChild(option);
+            });
+        }
+
+        // Cargar idiomas
+        const filterLanguage = document.getElementById('filterLanguage');
+        if (filterLanguage && languages.data) {
+            languages.data.forEach(language => {
+                const option = document.createElement('option');
+                option.value = language;
+                option.textContent = language;
+                filterLanguage.appendChild(option);
+            });
+        }
+
+        console.log('✅ Filtros avanzados cargados correctamente');
+    } catch (error) {
+        console.error('❌ Error cargando filtros avanzados:', error);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🚀 DOM cargado, configurando eventos...');
     

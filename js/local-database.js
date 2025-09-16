@@ -402,6 +402,111 @@ class LocalCardDatabase {
         }
     }
 
+    // Obtener todas las series únicas
+    async getAllSets() {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT DISTINCT set_name 
+                FROM cards 
+                WHERE set_name IS NOT NULL AND set_name != ''
+                ORDER BY set_name
+            `;
+            
+            this.db.all(query, [], (err, rows) => {
+                if (err) {
+                    console.error('❌ Error obteniendo sets:', err);
+                    reject(err);
+                } else {
+                    resolve(rows.map(row => row.set_name));
+                }
+            });
+        });
+    }
+
+    // Obtener todos los tipos únicos
+    async getAllTypes() {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT DISTINCT type 
+                FROM cards 
+                WHERE type IS NOT NULL AND type != ''
+                ORDER BY type
+            `;
+            
+            this.db.all(query, [], (err, rows) => {
+                if (err) {
+                    console.error('❌ Error obteniendo tipos:', err);
+                    reject(err);
+                } else {
+                    resolve(rows.map(row => row.type));
+                }
+            });
+        });
+    }
+
+    // Obtener todas las rarezas únicas
+    async getAllRarities() {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT DISTINCT rarity 
+                FROM cards 
+                WHERE rarity IS NOT NULL AND rarity != ''
+                ORDER BY rarity
+            `;
+            
+            this.db.all(query, [], (err, rows) => {
+                if (err) {
+                    console.error('❌ Error obteniendo rarezas:', err);
+                    reject(err);
+                } else {
+                    resolve(rows.map(row => row.rarity));
+                }
+            });
+        });
+    }
+
+    // Obtener todos los subtipos únicos
+    async getAllSubtypes() {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT DISTINCT subtype 
+                FROM cards 
+                WHERE subtype IS NOT NULL AND subtype != ''
+                ORDER BY subtype
+            `;
+            
+            this.db.all(query, [], (err, rows) => {
+                if (err) {
+                    console.error('❌ Error obteniendo subtipos:', err);
+                    reject(err);
+                } else {
+                    resolve(rows.map(row => row.subtype));
+                }
+            });
+        });
+    }
+
+    // Obtener todos los idiomas únicos
+    async getAllLanguages() {
+        return new Promise((resolve, reject) => {
+            const query = `
+                SELECT DISTINCT language 
+                FROM cards 
+                WHERE language IS NOT NULL AND language != ''
+                ORDER BY language
+            `;
+            
+            this.db.all(query, [], (err, rows) => {
+                if (err) {
+                    console.error('❌ Error obteniendo idiomas:', err);
+                    reject(err);
+                } else {
+                    resolve(rows.map(row => row.language));
+                }
+            });
+        });
+    }
+
     // Cerrar conexión
     close() {
         return new Promise((resolve) => {

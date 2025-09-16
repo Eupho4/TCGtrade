@@ -143,6 +143,101 @@ class HybridAPIServer {
             }
         });
 
+        // Endpoint para obtener sets únicos
+        this.app.get('/api/pokemontcg/sets', async (req, res) => {
+            try {
+                const sets = await this.searchEngine.getAllSets();
+                res.json({
+                    success: true,
+                    data: sets,
+                    count: sets.length
+                });
+            } catch (error) {
+                console.error('❌ Error obteniendo sets:', error);
+                res.status(500).json({
+                    success: false,
+                    error: 'Error obteniendo sets',
+                    message: error.message
+                });
+            }
+        });
+
+        // Endpoint para obtener tipos únicos
+        this.app.get('/api/pokemontcg/types', async (req, res) => {
+            try {
+                const types = await this.searchEngine.getAllTypes();
+                res.json({
+                    success: true,
+                    data: types,
+                    count: types.length
+                });
+            } catch (error) {
+                console.error('❌ Error obteniendo tipos:', error);
+                res.status(500).json({
+                    success: false,
+                    error: 'Error obteniendo tipos',
+                    message: error.message
+                });
+            }
+        });
+
+        // Endpoint para obtener rarezas únicas
+        this.app.get('/api/pokemontcg/rarities', async (req, res) => {
+            try {
+                const rarities = await this.searchEngine.getAllRarities();
+                res.json({
+                    success: true,
+                    data: rarities,
+                    count: rarities.length
+                });
+            } catch (error) {
+                console.error('❌ Error obteniendo rarezas:', error);
+                res.status(500).json({
+                    success: false,
+                    error: 'Error obteniendo rarezas',
+                    message: error.message
+                });
+            }
+        });
+
+        // Endpoint para obtener subtipos únicos
+        this.app.get('/api/pokemontcg/subtypes', async (req, res) => {
+            try {
+                const subtypes = await this.searchEngine.getAllSubtypes();
+                res.json({
+                    success: true,
+                    data: subtypes,
+                    count: subtypes.length
+                });
+            } catch (error) {
+                console.error('❌ Error obteniendo subtipos:', error);
+                res.status(500).json({
+                    success: false,
+                    error: 'Error obteniendo subtipos',
+                    message: error.message
+                });
+            }
+        });
+
+        // Endpoint para obtener idiomas únicos
+        this.app.get('/api/pokemontcg/languages', async (req, res) => {
+            try {
+                const languages = await this.searchEngine.getAllLanguages();
+                res.json({
+                    success: true,
+                    data: languages,
+                    count: languages.length
+                });
+            } catch (error) {
+                console.error('❌ Error obteniendo idiomas:', error);
+                res.status(500).json({
+                    success: false,
+                    error: 'Error obteniendo idiomas',
+                    message: error.message
+                });
+            }
+        });
+
         // Endpoint para listar archivos exportados
         this.app.get('/api/exports', (req, res) => {
             const fs = require('fs');

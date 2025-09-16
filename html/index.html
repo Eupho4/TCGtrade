@@ -11920,6 +11920,19 @@
             border-bottom-color: #374151;
         }
 
+        .dark-mode .advanced-search-title {
+            color: #f9fafb;
+        }
+
+        .dark-mode .close-advanced-btn {
+            color: #d1d5db;
+        }
+
+        .dark-mode .close-advanced-btn:hover {
+            color: #f9fafb;
+            background: rgba(75, 85, 99, 0.5);
+        }
+
         .advanced-search-content {
             max-width: 1200px;
             margin: 0 auto;
@@ -11991,6 +12004,29 @@
             color: #f9fafb;
         }
 
+        .dark-mode .filter-select:focus {
+            border-color: #60a5fa;
+            box-shadow: 0 0 0 3px rgba(96, 165, 250, 0.1);
+        }
+
+        .dark-mode .filters-grid {
+            background: rgba(55, 65, 81, 0.3);
+            border: 1px solid #4b5563;
+        }
+
+        .dark-mode .filter-group {
+            border-color: #4b5563;
+        }
+
+        .dark-mode .sort-options {
+            background: rgba(55, 65, 81, 0.3);
+            border: 1px solid #4b5563;
+        }
+
+        .dark-mode .sort-group {
+            border-color: #4b5563;
+        }
+
         .sort-options {
             display: flex;
             gap: 1rem;
@@ -12034,6 +12070,24 @@
         }
 
         .clear-filters-btn:hover {
+            background: #4b5563;
+        }
+
+        .dark-mode .search-advanced-btn {
+            background: #f97316;
+            color: white;
+        }
+
+        .dark-mode .search-advanced-btn:hover {
+            background: #ea580c;
+        }
+
+        .dark-mode .clear-filters-btn {
+            background: #6b7280;
+            color: white;
+        }
+
+        .dark-mode .clear-filters-btn:hover {
             background: #4b5563;
         }
 
@@ -14573,7 +14627,14 @@
             try {
                 const panel = document.getElementById('advancedSearchPanel');
                 if (panel) {
+                    const isHidden = panel.classList.contains('hidden');
                     panel.classList.toggle('hidden');
+                    
+                    // Si se está abriendo el panel, cargar los filtros
+                    if (isHidden) {
+                        console.log('🔄 Abriendo panel de filtros avanzados, cargando datos...');
+                        loadAdvancedFilters();
+                    }
                     
                     // Ajustar espaciador del header
                     const spacer = document.querySelector('.header-spacer');
