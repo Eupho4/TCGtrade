@@ -57,6 +57,12 @@
     <!-- Funciones de notificaciones y buzón movidas a archivo separado -->
     <script src="/js/notifications.js"></script>
     
+    <!-- Funciones de sidebar movidas a archivo separado -->
+    <script src="/js/sidebar.js"></script>
+    
+    <!-- Funciones de búsqueda avanzada movidas a archivo separado -->
+    <script src="/js/advanced-search.js"></script>
+    
     <script type="module">
         // Continuación del JavaScript embebido (se extraerá gradualmente)
 
@@ -3803,39 +3809,9 @@
             const hamburgerBtn = document.getElementById('hamburgerBtn');
             
             // Función para abrir sidebar
-            function openSidebar() {
-                sidebar.classList.add('open');
-                sidebarOverlay.classList.add('show');
-                hamburgerBtn.classList.add('active');
-                document.body.style.overflow = 'hidden'; // Prevenir scroll del body
-            }
+            // Funciones de sidebar movidas a sidebar.js
             
-            // Función para cerrar sidebar
-            function closeSidebar() {
-                sidebar.classList.remove('open');
-                sidebarOverlay.classList.remove('show');
-                hamburgerBtn.classList.remove('active');
-                document.body.style.overflow = ''; // Restaurar scroll
-            }
-            
-            // Click en hamburguesa
-            hamburgerBtn.addEventListener('click', () => {
-                if (sidebar.classList.contains('open')) {
-                    closeSidebar();
-                } else {
-                    openSidebar();
-                }
-            });
-            
-            // Click en overlay
-            sidebarOverlay.addEventListener('click', closeSidebar);
-            
-            // ESC para cerrar
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && sidebar.classList.contains('open')) {
-                    closeSidebar();
-                }
-            });
+            // Funciones de sidebar movidas a sidebar.js
             
             // Configurar links del sidebar
             const sidebarLinks = {
@@ -11406,28 +11382,7 @@
         }
 
         // Inicializar búsqueda avanzada
-        async function initAdvancedSearch() {
-            try {
-                console.log('🔍 Inicializando búsqueda avanzada...');
-                
-                // Verificar que el módulo esté disponible
-                if (typeof AdvancedSearch === 'undefined') {
-                    console.error('❌ Módulo AdvancedSearch no está disponible');
-                    return;
-                }
-                
-                advancedSearch = new AdvancedSearch();
-                window.advancedSearch = advancedSearch;
-                
-                // Cargar opciones de filtros
-                await loadFilterOptions();
-                
-                console.log('✅ Búsqueda avanzada inicializada');
-            } catch (error) {
-                console.error('❌ Error inicializando búsqueda avanzada:', error);
-                // No bloquear la aplicación si falla la búsqueda avanzada
-            }
-        }
+        // Funciones de búsqueda avanzada movidas a advanced-search.js
 
         // Cargar opciones de filtros
         async function loadFilterOptions() {
