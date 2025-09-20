@@ -5,10 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TCGtrade - Intercambio Pokémon TCG</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <!-- Firebase se carga como módulos ES6 en los archivos JS -->
     <script src="/js/main.js"></script>
     <script>
         tailwind.config = {
@@ -36,8 +33,8 @@
     <!-- Funciones de navegación movidas a archivo separado -->
     <script src="/js/navigation.js"></script>
     
-    <!-- JavaScript principal movido a archivo separado -->
-    <script type="module" src="/js/app-main.js"></script>
+    <!-- JavaScript principal simplificado -->
+    <script type="module" src="/js/app-main-simple.js"></script>
     
     <!-- Funciones de tabs movidas a archivo separado -->
     <script src="/js/tabs.js"></script>
