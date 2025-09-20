@@ -30,105 +30,11 @@
     <!-- Estilos embebidos movidos a archivo separado -->
     <link rel="stylesheet" href="/css/embedded-styles.css">
 
+    <!-- JavaScript principal movido a archivo separado -->
+    <script type="module" src="/js/app-main.js"></script>
+    
     <script type="module">
-        // Importar las funciones necesarias de Firebase
-        // Deploy forzado: 2024-01-16 - Correcciones completas de modo oscuro aplicadas
-        import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-app.js';
-        import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, signInAnonymously, signInWithCustomToken, updateEmail, updatePassword, reauthenticateWithCredential, EmailAuthProvider, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-auth.js';
-        import { getFirestore, doc, setDoc, getDoc, collection, getDocs, deleteDoc } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore.js';
-        import { getDatabase } from 'https://www.gstatic.com/firebasejs/9.22.0/firebase-database.js';
-        
-        // Importar módulos de chat
-        import ChatManager from '/js/modules/chat.js?v=33';
-        import ChatUI from '/js/modules/chat-ui.js?v=33';
-        import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
-        
-        // Importar módulos de migración y sincronización
-        import DataMigration from '/js/modules/data-migration.js?v=34';
-        import DataSync from '/js/modules/data-sync.js?v=34';
-        
-
-        // CONFIGURACIÓN DE FIREBASE - REEMPLAZA CON TUS DATOS
-        const firebaseConfig = {
-            apiKey: "AIzaSyCkgz6_Zpu0VOW6GgJxOxd9QlVccsBXnog",
-            authDomain: "tcgtrade-7ba27.firebaseapp.com",
-            projectId: "tcgtrade-7ba27",
-            storageBucket: "tcgtrade-7ba27.firebasestorage.app",
-            messagingSenderId: "207150886257",
-            appId: "1:207150886257:web:26edebbeb7df7a1d935ad0",
-            databaseURL: "https://tcgtrade-7ba27-default-rtdb.europe-west1.firebasedatabase.app" // URL de Realtime Database
-         };
-
-        // Inicializar Firebase
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // ID único de tu aplicación para Firestore
-        const appId = 'tcgtrade-pokemon-app';
-
-        // Variables globales
-        let currentUser = null;
-        let allSets = []; // Cache para todos los sets de la API
-        let userCardsCache = []; // Cache para las cartas del usuario
-        
-        // Variables para migración y sincronización
-        let dataMigration = null;
-        let dataSync = null;
-        
-        // Variable para búsqueda avanzada
-        let advancedSearch = null;
-        
-        // Hacer variables disponibles globalmente
-        window.currentUser = currentUser;
-        window.userCardsCache = userCardsCache;
-        window.dataMigration = dataMigration;
-        window.dataSync = dataSync;
-        window.advancedSearch = advancedSearch;
-        let chatManager = null; // Gestor de chat
-        let chatUI = null; // UI del chat
-
-        // Referencias a elementos del DOM
-        let searchInput, searchResultsSection, heroSection, howItWorksSection, cardsContainer, loadingSpinner, noResultsMessage, errorMessage;
-        let authModal, loginForm, registerForm, loginEmailInput, loginPasswordInput, loginBtn, loginError;
-        let registerEmailInput, registerPasswordInput, confirmPasswordInput, registerBtn, registerError;
-        let closeAuthModalBtn, toggleToRegister, toggleToLogin;
-        let loginLink, registerLink, profileLink, logoutLink;
-        let myCardsNavLink, myCardsLink, myCardsSection, myCardsContainer, noMyCardsMessage, myCardsErrorMessage;
-        let seriesFilter, setFilter, languageFilter, applyFiltersBtn, showAllSetCardsToggle;
-        let profileSection, profileSidebarLinks, profileGeneralInfo, profileMyCardsTabContent, profileTradeHistory, profileSettings;
-        let profileEmailDisplay, profileUidDisplay, profileMemberSince, profileLoginRequiredMessage, profileGeneralInfoContent;
-        let profileNameInput, profileLastNameInput, profileAddressInput, profilePhoneInput, profileSaveMessage, saveProfileBtn;
-        let settingsNewEmailInput, emailChangeMessage, saveEmailBtn;
-        let settingsCurrentPasswordInput, settingsNewPasswordInput, settingsConfirmNewPasswordInput, passwordChangeMessage, savePasswordBtn;
-        let darkModeToggle, interchangesSection, helpSection;
-
-        // Token de autenticación inicial (si existe)
-        const initialAuthToken = null; // Puedes configurar esto si tienes un token personalizado
-
-        // --- Funciones de Utilidad ---
-        function showLoadingSpinner() {
-            if (loadingSpinner) loadingSpinner.style.display = 'block';
-        }
-
-        function hideLoadingSpinner() {
-            if (loadingSpinner) loadingSpinner.style.display = 'none';
-        }
-        
-        // Helper function para ocultar todas las secciones de inicio
-        function hideHomeSections() {
-            if (heroSection) heroSection.classList.add('hidden');
-            const howItWorksSection = document.getElementById('howItWorksSection');
-            const featuresSection = document.getElementById('featuresSection');
-            const ctaSection = document.getElementById('ctaSection');
-            if (howItWorksSection) howItWorksSection.classList.add('hidden');
-            if (featuresSection) featuresSection.classList.add('hidden');
-            if (ctaSection) ctaSection.classList.add('hidden');
-        }
-
-        function showInitialSections() {
-            // Mostrar secciones iniciales
-            if (heroSection) heroSection.classList.remove('hidden');
+        // Continuación del JavaScript embebido (se extraerá gradualmente)
             
             // Mostrar las nuevas secciones de la página de inicio
             const howItWorksSection = document.getElementById('howItWorksSection');
