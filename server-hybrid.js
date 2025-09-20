@@ -52,6 +52,9 @@ class HybridAPIServer {
         // Servir archivos JavaScript desde la raíz
         this.app.use('/js', express.static('js'));
         
+        // Servir archivos CSS
+        this.app.use('/css', express.static('css'));
+        
         // Servir archivos exportados
         this.app.use('/exports', express.static('exported_data'));
         

@@ -1,0 +1,35 @@
+/* Estilos embebidos extraídos del HTML principal */
+/* Estilos para modo oscuro */
+.dark-mode {
+    background-color: #1a1a1a;
+    color: #ffffff;
+}
+
+.dark-mode .bg-white {
+    background-color: #2d2d2d;
+}
+
+.dark-mode .text-gray-800 {
+    color: #ffffff;
+}
+
+.dark-mode .text-gray-600 {
+    color: #a0a0a0;
+}
+
+.dark-mode .text-gray-700 {
+    color: #d1d5db;
+}
+
+.dark-mode .border-gray-200 {
+    border-color: #4b5563;
+}
+
+.dark-mode .shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+}
+
+/* Transiciones suaves */
+* {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
