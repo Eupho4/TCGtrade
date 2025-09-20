@@ -13,6 +13,12 @@ function showInitialSections() {
     if (ctaSection) ctaSection.classList.remove('hidden');
 
     // Ocultar otras secciones
+    const searchResultsSection = document.getElementById('searchResultsSection');
+    const myCardsSection = document.getElementById('myCardsSection');
+    const profileSection = document.getElementById('profileSection');
+    const interchangesSection = document.getElementById('interchangesSection');
+    const helpSection = document.getElementById('helpSection');
+    
     if (searchResultsSection) searchResultsSection.classList.add('hidden');
     if (myCardsSection) myCardsSection.classList.add('hidden');
     if (profileSection) profileSection.classList.add('hidden');
@@ -26,9 +32,22 @@ function showInitialSections() {
 
 function showSearchResults() {
     // Ocultar secciones iniciales
-    hideHomeSections();
+    const heroSection = document.getElementById('heroSection');
+    const howItWorksSection = document.getElementById('howItWorksSection');
+    const featuresSection = document.getElementById('featuresSection');
+    const ctaSection = document.getElementById('ctaSection');
+    
+    if (heroSection) heroSection.classList.add('hidden');
+    if (howItWorksSection) howItWorksSection.classList.add('hidden');
+    if (featuresSection) featuresSection.classList.add('hidden');
+    if (ctaSection) ctaSection.classList.add('hidden');
     
     // Ocultar otras secciones
+    const myCardsSection = document.getElementById('myCardsSection');
+    const profileSection = document.getElementById('profileSection');
+    const interchangesSection = document.getElementById('interchangesSection');
+    const helpSection = document.getElementById('helpSection');
+    
     if (myCardsSection) myCardsSection.classList.add('hidden');
     if (profileSection) profileSection.classList.add('hidden');
     if (interchangesSection) interchangesSection.classList.add('hidden');
@@ -37,14 +56,31 @@ function showSearchResults() {
     // Ocultar también el buzón
     const inboxSection = document.getElementById('inboxSection');
     if (inboxSection) inboxSection.classList.add('hidden');
-
+    
     // Mostrar resultados de búsqueda
+    const searchResultsSection = document.getElementById('searchResultsSection');
     if (searchResultsSection) searchResultsSection.classList.remove('hidden');
 }
 
 function showInboxSection() {
+    // Ocultar secciones iniciales
+    const heroSection = document.getElementById('heroSection');
+    const howItWorksSection = document.getElementById('howItWorksSection');
+    const featuresSection = document.getElementById('featuresSection');
+    const ctaSection = document.getElementById('ctaSection');
+    
+    if (heroSection) heroSection.classList.add('hidden');
+    if (howItWorksSection) howItWorksSection.classList.add('hidden');
+    if (featuresSection) featuresSection.classList.add('hidden');
+    if (ctaSection) ctaSection.classList.add('hidden');
+    
     // Ocultar otras secciones
-    hideHomeSections();
+    const searchResultsSection = document.getElementById('searchResultsSection');
+    const myCardsSection = document.getElementById('myCardsSection');
+    const profileSection = document.getElementById('profileSection');
+    const helpSection = document.getElementById('helpSection');
+    const interchangesSection = document.getElementById('interchangesSection');
+    
     if (searchResultsSection) searchResultsSection.classList.add('hidden');
     if (myCardsSection) myCardsSection.classList.add('hidden');
     if (profileSection) profileSection.classList.add('hidden');
@@ -64,8 +100,23 @@ function showInboxSection() {
 }
 
 function showMyCardsSection() {
+    // Ocultar secciones iniciales
+    const heroSection = document.getElementById('heroSection');
+    const howItWorksSection = document.getElementById('howItWorksSection');
+    const featuresSection = document.getElementById('featuresSection');
+    const ctaSection = document.getElementById('ctaSection');
+    
+    if (heroSection) heroSection.classList.add('hidden');
+    if (howItWorksSection) howItWorksSection.classList.add('hidden');
+    if (featuresSection) featuresSection.classList.add('hidden');
+    if (ctaSection) ctaSection.classList.add('hidden');
+    
     // Ocultar otras secciones
-    hideHomeSections();
+    const searchResultsSection = document.getElementById('searchResultsSection');
+    const profileSection = document.getElementById('profileSection');
+    const interchangesSection = document.getElementById('interchangesSection');
+    const helpSection = document.getElementById('helpSection');
+    
     if (searchResultsSection) searchResultsSection.classList.add('hidden');
     if (profileSection) profileSection.classList.add('hidden');
     if (interchangesSection) interchangesSection.classList.add('hidden');
@@ -76,9 +127,11 @@ function showMyCardsSection() {
     if (inboxSection) inboxSection.classList.add('hidden');
 
     // Mostrar sección de mis cartas
+    const myCardsSection = document.getElementById('myCardsSection');
     if (myCardsSection) myCardsSection.classList.remove('hidden');
 
     // Cargar colección si hay usuario autenticado
+    const currentUser = window.currentUser;
     if (currentUser) {
         if (typeof loadMyCollection === 'function') {
             loadMyCollection(currentUser.uid);
@@ -87,6 +140,7 @@ function showMyCardsSection() {
             fetchSetsAndPopulateFilter(); // Cargar sets para filtros
         }
     } else {
+        const noMyCardsMessage = document.getElementById('noMyCardsMessage');
         if (noMyCardsMessage) {
             noMyCardsMessage.textContent = 'Debes iniciar sesión para ver tu colección.';
             noMyCardsMessage.classList.remove('hidden');
@@ -95,8 +149,23 @@ function showMyCardsSection() {
 }
 
 function showInterchangesSection() {
+    // Ocultar secciones iniciales
+    const heroSection = document.getElementById('heroSection');
+    const howItWorksSection = document.getElementById('howItWorksSection');
+    const featuresSection = document.getElementById('featuresSection');
+    const ctaSection = document.getElementById('ctaSection');
+    
+    if (heroSection) heroSection.classList.add('hidden');
+    if (howItWorksSection) howItWorksSection.classList.add('hidden');
+    if (featuresSection) featuresSection.classList.add('hidden');
+    if (ctaSection) ctaSection.classList.add('hidden');
+    
     // Ocultar otras secciones
-    hideHomeSections();
+    const searchResultsSection = document.getElementById('searchResultsSection');
+    const myCardsSection = document.getElementById('myCardsSection');
+    const profileSection = document.getElementById('profileSection');
+    const helpSection = document.getElementById('helpSection');
+    
     if (searchResultsSection) searchResultsSection.classList.add('hidden');
     if (myCardsSection) myCardsSection.classList.add('hidden');
     if (profileSection) profileSection.classList.add('hidden');
@@ -107,9 +176,11 @@ function showInterchangesSection() {
     if (inboxSection) inboxSection.classList.add('hidden');
 
     // Mostrar sección de intercambios
+    const interchangesSection = document.getElementById('interchangesSection');
     if (interchangesSection) interchangesSection.classList.remove('hidden');
 
     // Cargar intercambios si hay usuario autenticado
+    const currentUser = window.currentUser;
     if (currentUser) {
         if (typeof loadAvailableTrades === 'function') {
             loadAvailableTrades();
@@ -131,8 +202,23 @@ function showInterchangesSection() {
 }
 
 function showHelpSection(tabToShow = null) {
+    // Ocultar secciones iniciales
+    const heroSection = document.getElementById('heroSection');
+    const howItWorksSection = document.getElementById('howItWorksSection');
+    const featuresSection = document.getElementById('featuresSection');
+    const ctaSection = document.getElementById('ctaSection');
+    
+    if (heroSection) heroSection.classList.add('hidden');
+    if (howItWorksSection) howItWorksSection.classList.add('hidden');
+    if (featuresSection) featuresSection.classList.add('hidden');
+    if (ctaSection) ctaSection.classList.add('hidden');
+    
     // Ocultar otras secciones
-    hideHomeSections();
+    const searchResultsSection = document.getElementById('searchResultsSection');
+    const myCardsSection = document.getElementById('myCardsSection');
+    const profileSection = document.getElementById('profileSection');
+    const interchangesSection = document.getElementById('interchangesSection');
+    
     if (searchResultsSection) searchResultsSection.classList.add('hidden');
     if (myCardsSection) myCardsSection.classList.add('hidden');
     if (profileSection) profileSection.classList.add('hidden');
@@ -143,6 +229,7 @@ function showHelpSection(tabToShow = null) {
     if (inboxSection) inboxSection.classList.add('hidden');
 
     // Mostrar sección de ayuda
+    const helpSection = document.getElementById('helpSection');
     if (helpSection) helpSection.classList.remove('hidden');
 
     // Inicializar FAQ
@@ -162,8 +249,23 @@ function showHelpSection(tabToShow = null) {
 }
 
 function showProfileSection() {
+    // Ocultar secciones iniciales
+    const heroSection = document.getElementById('heroSection');
+    const howItWorksSection = document.getElementById('howItWorksSection');
+    const featuresSection = document.getElementById('featuresSection');
+    const ctaSection = document.getElementById('ctaSection');
+    
+    if (heroSection) heroSection.classList.add('hidden');
+    if (howItWorksSection) howItWorksSection.classList.add('hidden');
+    if (featuresSection) featuresSection.classList.add('hidden');
+    if (ctaSection) ctaSection.classList.add('hidden');
+    
     // Ocultar otras secciones
-    hideHomeSections();
+    const searchResultsSection = document.getElementById('searchResultsSection');
+    const myCardsSection = document.getElementById('myCardsSection');
+    const interchangesSection = document.getElementById('interchangesSection');
+    const helpSection = document.getElementById('helpSection');
+    
     if (searchResultsSection) searchResultsSection.classList.add('hidden');
     if (myCardsSection) myCardsSection.classList.add('hidden');
     if (interchangesSection) interchangesSection.classList.add('hidden');
@@ -174,6 +276,7 @@ function showProfileSection() {
     if (inboxSection) inboxSection.classList.add('hidden');
 
     // Mostrar sección de perfil
+    const profileSection = document.getElementById('profileSection');
     if (profileSection) {
         profileSection.classList.remove('hidden');
         // Cargar datos del usuario y estadísticas
@@ -248,6 +351,7 @@ function switchProfileTab(tabName) {
     }
 
     // Cargar estadísticas al abrir el Dashboard
+    const currentUser = window.currentUser;
     if (tabName === 'dashboard' && typeof loadProfileStats === 'function' && currentUser) {
         try {
             loadProfileStats();
