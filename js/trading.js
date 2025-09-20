@@ -415,6 +415,423 @@ window.addFromMyCards = async function(type) {
     document.body.appendChild(modal);
 };
 
+// Función para filtrar cartas en el modal
+window.filterMyCardsModal = function(searchTerm) {
+    const setFilter = document.getElementById('myCardsSetFilter');
+    const selectedSet = setFilter ? setFilter.value.toLowerCase() : '';
+    const searchLower = searchTerm.toLowerCase();
+    
+    const cardRows = document.querySelectorAll('.my-card-row');
+    const noResultsMsg = document.getElementById('noResultsMessage');
+    let visibleCount = 0;
+    
+    cardRows.forEach(row => {
+        const cardName = row.dataset.cardName || '';
+        const cardSet = row.dataset.cardSet || '';
+        
+        const matchesSearch = !searchLower || cardName.includes(searchLower);
+        const matchesSet = !selectedSet || cardSet === selectedSet;
+        
+        if (matchesSearch && matchesSet) {
+            row.style.display = 'flex';
+            visibleCount++;
+        } else {
+            row.style.display = 'none';
+        }
+    });
+    
+    // Mostrar mensaje si no hay resultados
+    if (noResultsMsg) {
+        noResultsMsg.classList.toggle('hidden', visibleCount > 0);
+    }
+};
+
+// Función para seleccionar carta desde "Mis Cartas"
+window.selectFromMyCards = function(type, cardId, cardName, cardImage, setName, cardNumber, language = 'Español', condition = 'NM') {
+    console.log('📋 selectFromMyCards llamada con:', { type, cardId, cardName, cardImage, setName, cardNumber, language, condition });
+    
+    // Obtener el contenedor correcto
+    const containerId = type === 'offered' ? 'offeredCardsContainer' : 'wantedCardsContainer';
+    const container = document.getElementById(containerId);
+    
+    if (!container) {
+        console.error('❌ No se encontró el contenedor:', containerId);
+        return;
+    }
+    
+    const cards = container.querySelectorAll('.trade-card');
+    
+    // Buscar la primera fila vacía
+    let targetCardIndex = -1;
+    let cardElement = null;
+    
+    for (let i = 0; i < cards.length; i++) {
+        const nameInput = cards[i].querySelector(`input[name="${type}_name_${i}"]`);
+        if (nameInput && !nameInput.value && !nameInput.readOnly) {
+            targetCardIndex = i;
+            cardElement = cards[i];
+            break;
+        }
+    }
+    
+    // Si no hay filas vacías, añadir una nueva
+    if (targetCardIndex === -1) {
+        if (typeof addCardToTrade === 'function') {
+            addCardToTrade(type);
+        }
+        const newCards = container.querySelectorAll('.trade-card');
+        targetCardIndex = newCards.length - 1;
+        cardElement = newCards[targetCardIndex];
+    }
+    
+    if (!cardElement) {
+        console.error('❌ No se encontró el elemento de carta');
+        return;
+    }
+    
+    // Rellenar los datos de la carta seleccionada
+    // Pasar shouldLock = true porque viene de "Mis Cartas"
+    selectCardForTrade(type, targetCardIndex, cardId, cardName, cardImage, setName, cardNumber, true);
+    
+    // Establecer el idioma de la carta
+    const languageSelect = cardElement.querySelector(`select[name="${type}_language_${targetCardIndex}"]`);
+    if (languageSelect) {
+        console.log('✅ Selector de idioma encontrado, estableciendo:', language);
+        // Buscar la opción que coincida con el idioma
+        const options = languageSelect.options;
+        for (let i = 0; i < options.length; i++) {
+            if (options[i].value === language) {
+                languageSelect.selectedIndex = i;
+                console.log('✅ Idioma establecido en índice:', i);
+                break;
+            }
+        }
+    } else {
+        console.error('❌ No se encontró el selector de idioma');
+    }
+    
+    // Establecer la condición de la carta
+    const conditionSelect = cardElement.querySelector(`select[name="${type}_condition_${targetCardIndex}"]`);
+    if (conditionSelect) {
+        console.log('✅ Selector de condición encontrado, estableciendo:', condition);
+        conditionSelect.value = condition;
+    } else {
+        console.error('❌ No se encontró el selector de condición');
+    }
+    
+    // IMPORTANTE: Marcar que esta carta viene de "Mis Cartas"
+    const fromMyCardsInput = cardElement.querySelector(`input[name="${type}_fromMyCards_${targetCardIndex}"]`);
+    if (fromMyCardsInput) {
+        fromMyCardsInput.value = 'true';
+        console.log('✅ Carta marcada como proveniente de "Mis Cartas"');
+    }
+    
+    // Verificar que el nombre se haya establecido correctamente
+    const nameInput = cardElement.querySelector(`input[name="${type}_name_${targetCardIndex}"]`);
+    if (nameInput) {
+        console.log('✅ Nombre establecido:', nameInput.value);
+    } else {
+        console.error('❌ No se encontró el input de nombre');
+    }
+};
+
+// Función para contar cuántas personas ofrecen una carta específica
+function getCardOffersCount(cardName, cardSet) {
+    let offersCount = 0;
+    
+    // Debug: log para ver qué carta estamos buscando
+    console.log('🔍 Buscando ofertas para:', cardName, 'del set:', cardSet);
+    
+    // Buscar en todos los intercambios guardados en localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        
+        if (key && key.startsWith('userTrades_')) {
+            try {
+                const trades = JSON.parse(localStorage.getItem(key) || '[]');
+                console.log(`📦 Revisando ${trades.length} intercambios en ${key}`);
+                
+                // Contar las veces que esta carta aparece en las cartas ofrecidas
+                trades.forEach(trade => {
+                    if (trade.offeredCards && Array.isArray(trade.offeredCards)) {
+                        trade.offeredCards.forEach(offeredCard => {
+                            const offeredCardName = offeredCard.name || offeredCard;
+                            const offeredCardSet = offeredCard.set || '';
+                            
+                            console.log(`  - Comparando "${cardName}" (${cardSet}) con "${offeredCardName}" (${offeredCardSet})`);
+                            
+                            // Comparación exacta de nombre Y set
+                            const nameMatch = offeredCardName && offeredCardName.toLowerCase() === cardName.toLowerCase();
+                            const setMatch = offeredCardSet && offeredCardSet.toLowerCase() === cardSet.toLowerCase();
+                            
+                            if (nameMatch && setMatch) {
+                                console.log('  ✅ ¡Coincidencia exacta encontrada!');
+                                offersCount++;
+                            }
+                        });
+                    }
+                });
+            } catch (error) {
+                console.error('Error al procesar intercambios:', error);
+            }
+        }
+    }
+    
+    console.log(`📊 Total de ofertas encontradas para "${cardName}" del set "${cardSet}": ${offersCount}`);
+    return offersCount;
+}
+
+// Función de debug para ver todos los intercambios
+window.debugShowAllTrades = function() {
+    console.log('🔍 === MOSTRANDO TODOS LOS INTERCAMBIOS ===');
+    
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        
+        if (key && key.startsWith('userTrades_')) {
+            try {
+                const trades = JSON.parse(localStorage.getItem(key) || '[]');
+                console.log(`\n📦 Usuario: ${key}`);
+                console.log(`Total de intercambios: ${trades.length}`);
+                
+                trades.forEach((trade, index) => {
+                    console.log(`\n--- Intercambio ${index + 1} ---`);
+                    console.log('ID:', trade.id);
+                    console.log('Título:', trade.title);
+                    console.log('Descripción:', trade.description);
+                    console.log('Creado:', trade.createdAt);
+                    
+                    console.log('\n📤 Cartas Ofrecidas:');
+                    if (trade.offeredCards && trade.offeredCards.length > 0) {
+                        trade.offeredCards.forEach((card, i) => {
+                            if (typeof card === 'object') {
+                                console.log(`  ${i + 1}. ${card.name} - Set: ${card.set || 'N/A'} - Condición: ${card.condition || 'N/A'} - Idioma: ${card.language || 'N/A'}`);
+                            } else {
+                                console.log(`  ${i + 1}. ${card}`);
+                            }
+                        });
+                    } else {
+                        console.log('  (Sin cartas ofrecidas)');
+                    }
+                    
+                    console.log('\n📥 Cartas Buscadas:');
+                    if (trade.wantedCards && trade.wantedCards.length > 0) {
+                        trade.wantedCards.forEach((card, i) => {
+                            if (typeof card === 'object') {
+                                console.log(`  ${i + 1}. ${card.name} - Set: ${card.set || 'N/A'} - Condición: ${card.condition || 'N/A'} - Idioma: ${card.language || 'N/A'}`);
+                            } else {
+                                console.log(`  ${i + 1}. ${card}`);
+                            }
+                        });
+                    } else {
+                        console.log('  (Sin cartas buscadas)');
+                    }
+                });
+            } catch (error) {
+                console.error('Error al procesar intercambios:', error);
+            }
+        }
+    }
+};
+
+// Función para obtener todos los intercambios que ofrecen una carta específica
+function getCardOfferDetails(cardName, cardSet) {
+    const offers = [];
+    
+    // Buscar en todos los intercambios guardados en localStorage
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        
+        if (key && key.startsWith('userTrades_')) {
+            try {
+                const trades = JSON.parse(localStorage.getItem(key) || '[]');
+                
+                trades.forEach(trade => {
+                    if (trade.offeredCards && Array.isArray(trade.offeredCards)) {
+                        const hasCard = trade.offeredCards.some(offeredCard => {
+                            const offeredCardName = offeredCard.name || offeredCard;
+                            const offeredCardSet = offeredCard.set || '';
+                            
+                            // Comparación exacta de nombre Y set
+                            const nameMatch = offeredCardName && offeredCardName.toLowerCase() === cardName.toLowerCase();
+                            const setMatch = offeredCardSet && offeredCardSet.toLowerCase() === cardSet.toLowerCase();
+                            
+                            return nameMatch && setMatch;
+                        });
+                        
+                        if (hasCard) {
+                            offers.push({
+                                user: trade.user || 'Usuario desconocido',
+                                userId: trade.userId || key.replace('userTrades_', ''),
+                                title: trade.title,
+                                offeredCards: trade.offeredCards,
+                                wantedCards: trade.wantedCards,
+                                createdAt: trade.createdAt
+                            });
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error('Error al procesar intercambios:', error);
+            }
+        }
+    }
+    
+    return offers;
+}
+
+// Función para mostrar el modal con las ofertas de una carta
+window.showCardOffers = function(cardName, cardSet, cardImageUrl) {
+    const offers = getCardOfferDetails(cardName, cardSet);
+    
+    if (offers.length === 0) {
+        if (typeof showNotification === 'function') {
+            showNotification('No hay ofertas disponibles para esta carta en este momento.', 'info', 4000);
+        }
+        return;
+    }
+    
+    // Crear el modal
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
+    modal.onclick = function(e) {
+        if (e.target === modal) modal.remove();
+    };
+    
+    let offersHTML = offers.map(offer => `
+        <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 mb-4 border border-gray-200 dark:border-gray-600">
+            <div class="flex justify-between items-start mb-3">
+                <div>
+                    <h4 class="font-semibold text-gray-800 dark:text-white">${offer.title || 'Intercambio sin título'}</h4>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Por: <span class="font-medium">${offer.user}</span></p>
+                </div>
+                <span class="text-xs text-gray-500 dark:text-gray-400">
+                    ${offer.createdAt ? new Date(offer.createdAt).toLocaleDateString('es-ES') : 'Fecha no disponible'}
+                </span>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                    <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">📤 Ofrece:</h5>
+                    <div class="space-y-1">
+                        ${offer.offeredCards.map(card => `
+                            <div class="bg-white dark:bg-gray-600 px-2 py-1 rounded text-xs flex items-center gap-1">
+                                ${card.image ? `<img src="${card.image}" alt="${card.name}" class="w-6 h-8 object-contain">` : ''}
+                                <span class="text-gray-700 dark:text-gray-200">${card.name || card}</span>
+                                ${card.condition ? `<span class="ml-2 text-gray-500 dark:text-gray-400">(${card.condition})</span>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+                
+                <div>
+                    <h5 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">📥 Busca:</h5>
+                    <div class="space-y-1">
+                        ${offer.wantedCards.map(card => `
+                            <div class="bg-white dark:bg-gray-600 px-2 py-1 rounded text-xs flex items-center gap-1">
+                                ${card.image ? `<img src="${card.image}" alt="${card.name}" class="w-6 h-8 object-contain">` : ''}
+                                <span class="text-gray-700 dark:text-gray-200">${card.name || card}</span>
+                                ${card.condition ? `<span class="ml-2 text-gray-500 dark:text-gray-400">(${card.condition})</span>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="mt-3 flex justify-end">
+                <button class="bg-orange-500 hover:bg-orange-600 text-white px-3 py-1 rounded text-sm"
+                        onclick="alert('Función de contacto en desarrollo')">
+                    💬 Contactar
+                </button>
+            </div>
+        </div>
+    `).join('');
+    
+    modal.innerHTML = `
+        <div class="bg-white dark:bg-gray-800 rounded-lg max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+            <div class="p-6 border-b dark:border-gray-700">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-4">
+                        <img src="${cardImageUrl}" alt="${cardName}" class="w-16 h-20 object-contain rounded">
+                        <div>
+                            <h3 class="text-xl font-bold text-gray-900 dark:text-white">
+                                Ofertas de ${cardName}
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400">
+                                ${offers.length} ${offers.length === 1 ? 'persona ofrece' : 'personas ofrecen'} esta carta
+                            </p>
+                        </div>
+                    </div>
+                    <button onclick="this.closest('.fixed').remove()" 
+                            class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 text-2xl">
+                        &times;
+                    </button>
+                </div>
+            </div>
+            
+            <div class="p-6 overflow-y-auto flex-1">
+                ${offersHTML}
+            </div>
+        </div>
+    `;
+    
+    document.body.appendChild(modal);
+};
+
+// Función helper para obtener el nombre de usuario para mostrar en intercambios
+async function getUserDisplayName(uid = null) {
+    try {
+        const userId = uid || currentUser?.uid;
+        if (!userId) return 'Usuario';
+        
+        // Si es el usuario actual y no se proporciona uid
+        if (!uid && currentUser) {
+            // Primero intentar obtener de Firestore
+            if (typeof db !== 'undefined' && db) {
+                const userDoc = await getDoc(doc(db, 'users', userId));
+                const userData = userDoc.data();
+                
+                if (userData) {
+                    // PRIORIDAD 1: Username (nombre de usuario único)
+                    if (userData.username) {
+                        return userData.username;
+                    }
+                    // PRIORIDAD 2: Nombre completo si no hay username
+                    if (userData.name && userData.lastName) {
+                        return `${userData.name} ${userData.lastName}`;
+                    }
+                    // PRIORIDAD 3: Solo nombre
+                    if (userData.name) {
+                        return userData.name;
+                    }
+                    // PRIORIDAD 4: DisplayName guardado
+                    if (userData.displayName) {
+                        return userData.displayName;
+                    }
+                }
+            }
+            
+            // Si no hay datos en Firestore, usar displayName de Auth
+            if (currentUser.displayName) {
+                return currentUser.displayName;
+            }
+            
+            // Como último recurso, usar parte del email antes del @
+            if (currentUser.email) {
+                return currentUser.email.split('@')[0];
+            }
+        }
+        
+        return 'Usuario';
+    } catch (error) {
+        console.error('Error obteniendo nombre de usuario:', error);
+        // Si hay error, intentar con el displayName o email del currentUser
+        if (currentUser?.displayName) return currentUser.displayName;
+        if (currentUser?.email) return currentUser.email.split('@')[0];
+        return 'Usuario';
+    }
+}
+
 // Exportar funciones para uso global
 window.searchCardForTrade = window.searchCardForTrade;
 window.selectCardForTrade = window.selectCardForTrade;
@@ -423,5 +840,12 @@ window.clearCardSelection = window.clearCardSelection;
 window.handleCardInputKeypress = window.handleCardInputKeypress;
 window.handleCardInputBlur = window.handleCardInputBlur;
 window.addFromMyCards = window.addFromMyCards;
+window.filterMyCardsModal = window.filterMyCardsModal;
+window.selectFromMyCards = window.selectFromMyCards;
+window.getCardOffersCount = getCardOffersCount;
+window.debugShowAllTrades = window.debugShowAllTrades;
+window.getCardOfferDetails = getCardOfferDetails;
+window.showCardOffers = window.showCardOffers;
+window.getUserDisplayName = getUserDisplayName;
 
 console.log('🚀 Módulo de intercambios cargado');
