@@ -86,4 +86,12 @@ window.openSidebar = openSidebar;
 window.closeSidebar = closeSidebar;
 window.toggleSidebar = toggleSidebar;
 
+// Inicializar sidebar cuando el DOM esté listo
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initSidebar);
+} else {
+    // DOM ya está listo, inicializar inmediatamente
+    initSidebar();
+}
+
 console.log('🚀 Módulo de sidebar cargado');
