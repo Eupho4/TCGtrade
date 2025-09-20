@@ -63,6 +63,9 @@
     <!-- Funciones de búsqueda avanzada movidas a archivo separado -->
     <script src="/js/advanced-search.js"></script>
     
+    <!-- Funciones de autenticación movidas a archivo separado -->
+    <script type="module" src="/js/auth.js"></script>
+    
     <script type="module">
         // Continuación del JavaScript embebido (se extraerá gradualmente)
 
@@ -4747,100 +4750,11 @@
                 });
             }
 
-            // Función para manejar el login
-            async function handleLogin() {
-                const email = loginEmailInput?.value;
-                const password = loginPasswordInput?.value;
-                if (loginError) loginError.classList.add('hidden');
+            // Funciones de autenticación movidas a auth.js
 
-                try {
-                    await signInWithEmailAndPassword(auth, email, password);
-                    hideAuthModal();
-                    console.log('Usuario inició sesión:', auth.currentUser.email);
-                } catch (error) {
-                    console.error('Error al iniciar sesión:', error);
-                    let errorMessage = 'Error al iniciar sesión.';
-                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                        errorMessage = 'Correo o contraseña incorrectos.';
-                    } else if (error.code === 'auth/invalid-email') {
-                        errorMessage = 'Formato de correo inválido.';
-                    }
-                    if (loginError) {
-                        loginError.textContent = errorMessage;
-                        loginError.classList.remove('hidden');
-                    }
-                }
-            }
+            // Funciones de autenticación movidas a auth.js
 
-            // Event listeners para autenticación - BOTÓN LOGIN
-            if (loginBtn) {
-                loginBtn.addEventListener('click', handleLogin);
-            }
-
-            // Event listener para ENTER en el formulario de login
-            if (loginForm) {
-                // Agregar event listener a los campos de input del login
-                const loginInputs = [loginEmailInput, loginPasswordInput];
-                loginInputs.forEach(input => {
-                    if (input) {
-                        input.addEventListener('keypress', (e) => {
-                            if (e.key === 'Enter') {
-                                e.preventDefault();
-                                handleLogin();
-                            }
-                        });
-                    }
-                });
-            }
-
-            // Función para manejar el registro
-            async function handleRegister() {
-                    const username = document.getElementById('registerUsername')?.value?.trim();
-                    const email = registerEmailInput?.value;
-                    const password = registerPasswordInput?.value;
-                    const confirmPassword = confirmPasswordInput?.value;
-                    if (registerError) registerError.classList.add('hidden');
-
-                    // Validaciones
-                    if (!username) {
-                        if (registerError) {
-                            registerError.textContent = 'El nombre de usuario es obligatorio.';
-                            registerError.classList.remove('hidden');
-                        }
-                        return;
-                    }
-
-                    if (username.length < 3) {
-                        if (registerError) {
-                            registerError.textContent = 'El nombre de usuario debe tener al menos 3 caracteres.';
-                            registerError.classList.remove('hidden');
-                        }
-                        return;
-                    }
-
-                    if (!/^[a-zA-Z0-9_]+$/.test(username)) {
-                        if (registerError) {
-                            registerError.textContent = 'El nombre de usuario solo puede contener letras, números y guiones bajos.';
-                            registerError.classList.remove('hidden');
-                        }
-                        return;
-                    }
-
-                    if (password !== confirmPassword) {
-                        if (registerError) {
-                            registerError.textContent = 'Las contraseñas no coinciden.';
-                            registerError.classList.remove('hidden');
-                        }
-                        return;
-                    }
-
-                    if (password.length < 6) {
-                        if (registerError) {
-                            registerError.textContent = 'La contraseña debe tener al menos 6 caracteres.';
-                            registerError.classList.remove('hidden');
-                        }
-                        return;
-                    }
+            // Funciones de autenticación movidas a auth.js
 
                     try {
                         console.log('🚀 Iniciando proceso de registro...');
