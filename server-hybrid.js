@@ -4,13 +4,11 @@ const cors = require('cors');
 const path = require('path');
 const https = require('https');
 const LocalSearchEngine = require('./js/local-search-engine');
-const DataMigrator = require('./js/data-migrator');
 
 class HybridAPIServer {
     constructor() {
         this.app = express();
         this.searchEngine = new LocalSearchEngine();
-        this.migrator = new DataMigrator();
         this.port = process.env.PORT || 3000;
         this.isInitialized = false;
         
@@ -69,11 +67,12 @@ class HybridAPIServer {
         // Ruta principal
         this.app.get('/', (req, res) => {
             res.json({
-                message: 'TCGtrade Hybrid API Server',
+                message: 'TCGtrade API Server',
                 version: '1.0.0',
                 status: 'running',
-                searchEngine: 'Local SQLite + eBay Prices',
-                performance: 'Ultra Fast'
+                searchEngine: 'Local SQLite Database',
+                performance: 'Ultra Fast',
+                environment: process.env.NODE_ENV || 'development'
             });
         });
 
@@ -86,7 +85,8 @@ class HybridAPIServer {
                     timestamp: new Date().toISOString(),
                     searchEngine: 'Local SQLite',
                     totalCards: stats.totalCards,
-                    pokemonApiKey: !!process.env.POKEMON_TCG_API_KEY
+                    databasePath: process.env.DATABASE_PATH || './cards.db',
+                    environment: process.env.NODE_ENV || 'development'
                 });
             } catch (error) {
                 console.error('Error obteniendo estadísticas:', error);
@@ -353,7 +353,6 @@ class HybridAPIServer {
         
         try {
             console.log('🔄 Inicializando servidor híbrido...');
-            await this.migrator.init();
             await this.searchEngine.init();
             this.isInitialized = true;
             console.log('✅ Servidor híbrido inicializado correctamente');
