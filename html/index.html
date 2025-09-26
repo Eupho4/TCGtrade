@@ -8388,8 +8388,8 @@
                     // Ocultar chat y buzón para usuarios no autenticados
                     if (chatLink) chatLink.classList.add('hidden');
                     if (inboxLink) inboxLink.classList.add('hidden');
-                    // Mi Perfil siempre visible (redirige a login si no está conectado)
-                    if (profileLink) profileLink.classList.remove('hidden');
+                    // OCULTAR Mi Perfil cuando no hay usuario autenticado
+                    if (profileLink) profileLink.classList.add('hidden');
                     
                     // Actualizar sidebar
                     if (window.updateSidebarVisibility) {
@@ -8559,16 +8559,8 @@
                 profileLinkNav.addEventListener('click', (e) => {
                     e.preventDefault();
                     console.log('👤 Profile link clicked');
-                    
-                    // Verificar autenticación aquí donde tenemos acceso a auth
-                    if (!auth.currentUser) {
-                        console.log('❌ Usuario no autenticado');
-                        showAuthModal('login');
-                        showNotification('Debes iniciar sesión para ver tu perfil', 'info');
-                        return;
-                    }
-                    
-                    console.log('✅ Usuario autenticado:', auth.currentUser.email);
+                    // El botón de perfil solo es visible cuando hay usuario autenticado
+                    // Por lo tanto, no necesitamos verificar autenticación aquí
                     showProfileSection();
                 });
             }
