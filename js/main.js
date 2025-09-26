@@ -668,7 +668,12 @@ async function changePassword() {
 
 // Función para cargar información del usuario
 async function loadUserInfo() {
-    if (!currentUser) return;
+    // Usar firebase.auth().currentUser para obtener el usuario actual
+    const user = auth.currentUser || currentUser;
+    if (!user) return;
+    
+    // Actualizar currentUser para el resto de la función
+    currentUser = user;
 
     try {
         const userDoc = await db.collection('users').doc(currentUser.uid).get();

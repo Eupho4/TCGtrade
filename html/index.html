@@ -343,26 +343,6 @@
 
 
         function showProfileSection() {
-            console.log('📍 showProfileSection ejecutado');
-            console.log('📍 auth está definido:', !!auth);
-            
-            // Usar auth.currentUser directamente para obtener el estado actual
-            const user = (auth && auth.currentUser) || currentUser || window.currentUser;
-            console.log('📍 auth.currentUser:', auth && !!auth.currentUser, auth?.currentUser?.email);
-            console.log('📍 currentUser local:', !!currentUser, currentUser?.email);
-            console.log('📍 window.currentUser:', !!window.currentUser, window.currentUser?.email);
-            console.log('📍 Usuario final:', !!user, user?.email);
-            
-            // Verificar si el usuario está autenticado
-            if (!user) {
-                console.log('❌ Usuario no autenticado, mostrando modal de login');
-                showAuthModal('login');
-                showNotification('Debes iniciar sesión para ver tu perfil', 'info');
-                return;
-            }
-            
-            console.log('✅ Usuario autenticado, mostrando perfil');
-            
             // Ocultar otras secciones
             hideHomeSections();
             if (searchResultsSection) searchResultsSection.classList.add('hidden');
@@ -563,11 +543,11 @@
 
         // Función para cargar datos del perfil
         async function loadProfileData() {
-            console.log('🔍 loadProfileData ejecutado, currentUser:', !!currentUser);
+            // Usar auth.currentUser directamente
+            const user = auth.currentUser;
             
-            if (!currentUser) {
+            if (!user) {
                 console.log('❌ No hay usuario conectado en loadProfileData');
-                // NO llamar a showAuthModal aquí porque ya se maneja en showProfileSection
                 return;
             }
 
@@ -5758,8 +5738,6 @@
 
         // --- Funciones del Modal de Autenticación ---
         function showAuthModal(mode) {
-            console.log('🔧 showAuthModal called with mode:', mode);
-            console.log('🔧 Stack trace:', new Error().stack);
             if (!authModal) {
                 console.error('❌ authModal not found!');
                 return;
@@ -8581,17 +8559,17 @@
                 profileLinkNav.addEventListener('click', (e) => {
                     e.preventDefault();
                     console.log('👤 Profile link clicked');
-                    console.log('👤 Estado de auth al hacer clic:', {
-                        'auth': !!auth,
-                        'auth.currentUser': !!auth.currentUser,
-                        'currentUser': !!currentUser,
-                        'window.currentUser': !!window.currentUser
-                    });
                     
-                    // Pequeño delay para asegurar que todo esté sincronizado
-                    setTimeout(() => {
-                        showProfileSection();
-                    }, 50);
+                    // Verificar autenticación aquí donde tenemos acceso a auth
+                    if (!auth.currentUser) {
+                        console.log('❌ Usuario no autenticado');
+                        showAuthModal('login');
+                        showNotification('Debes iniciar sesión para ver tu perfil', 'info');
+                        return;
+                    }
+                    
+                    console.log('✅ Usuario autenticado:', auth.currentUser.email);
+                    showProfileSection();
                 });
             }
 
