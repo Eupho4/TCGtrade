@@ -341,6 +341,18 @@
 
 
         function showProfileSection() {
+            console.log('📍 showProfileSection ejecutado, currentUser:', !!currentUser, currentUser?.email);
+            
+            // Verificar si el usuario está autenticado
+            if (!currentUser) {
+                console.log('❌ Usuario no autenticado, mostrando modal de login');
+                showAuthModal('login');
+                showNotification('Debes iniciar sesión para ver tu perfil', 'info');
+                return;
+            }
+            
+            console.log('✅ Usuario autenticado, mostrando perfil');
+            
             // Ocultar otras secciones
             hideHomeSections();
             if (searchResultsSection) searchResultsSection.classList.add('hidden');
@@ -541,8 +553,11 @@
 
         // Función para cargar datos del perfil
         async function loadProfileData() {
+            console.log('🔍 loadProfileData ejecutado, currentUser:', !!currentUser);
+            
             if (!currentUser) {
-                console.log('❌ No hay usuario conectado');
+                console.log('❌ No hay usuario conectado en loadProfileData');
+                // NO llamar a showAuthModal aquí porque ya se maneja en showProfileSection
                 return;
             }
 
@@ -5734,6 +5749,7 @@
         // --- Funciones del Modal de Autenticación ---
         function showAuthModal(mode) {
             console.log('🔧 showAuthModal called with mode:', mode);
+            console.log('🔧 Stack trace:', new Error().stack);
             if (!authModal) {
                 console.error('❌ authModal not found!');
                 return;
@@ -8503,6 +8519,16 @@
             const myCardsNavLinkNav = document.getElementById('myCardsNavLink');
             const inboxLinkNav = document.getElementById('inboxLink');
             const chatLinkNav = document.getElementById('chatLink');
+            
+            console.log('🔍 Enlaces encontrados:', {
+                loginLink: !!loginLinkNav,
+                registerLink: !!registerLinkNav,
+                logoutLink: !!logoutLinkNav,
+                profileLink: !!profileLinkNav,
+                myCardsNavLink: !!myCardsNavLinkNav,
+                inboxLink: !!inboxLinkNav,
+                chatLink: !!chatLinkNav
+            });
 
             // Event listener para login
             if (loginLinkNav) {
