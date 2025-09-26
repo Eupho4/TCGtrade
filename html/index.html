@@ -343,10 +343,18 @@
 
 
         function showProfileSection() {
-            console.log('📍 showProfileSection ejecutado, currentUser:', !!currentUser, currentUser?.email);
+            console.log('📍 showProfileSection ejecutado');
+            console.log('📍 auth está definido:', !!auth);
+            
+            // Usar auth.currentUser directamente para obtener el estado actual
+            const user = (auth && auth.currentUser) || currentUser || window.currentUser;
+            console.log('📍 auth.currentUser:', auth && !!auth.currentUser, auth?.currentUser?.email);
+            console.log('📍 currentUser local:', !!currentUser, currentUser?.email);
+            console.log('📍 window.currentUser:', !!window.currentUser, window.currentUser?.email);
+            console.log('📍 Usuario final:', !!user, user?.email);
             
             // Verificar si el usuario está autenticado
-            if (!currentUser) {
+            if (!user) {
                 console.log('❌ Usuario no autenticado, mostrando modal de login');
                 showAuthModal('login');
                 showNotification('Debes iniciar sesión para ver tu perfil', 'info');
@@ -8198,7 +8206,7 @@
             onAuthStateChanged(auth, async (user) => {
                 currentUser = user;
                 window.currentUser = user; // Actualizar referencia global
-                console.log('🔐 onAuthStateChanged ejecutado. Usuario:', !!user);
+                console.log('🔐 onAuthStateChanged ejecutado. Usuario:', !!user, user?.email);
 
                 // Inicializar sistema de chat si el usuario está autenticado
                 if (user && !chatManager) {
@@ -8573,7 +8581,17 @@
                 profileLinkNav.addEventListener('click', (e) => {
                     e.preventDefault();
                     console.log('👤 Profile link clicked');
-                    showProfileSection();
+                    console.log('👤 Estado de auth al hacer clic:', {
+                        'auth': !!auth,
+                        'auth.currentUser': !!auth.currentUser,
+                        'currentUser': !!currentUser,
+                        'window.currentUser': !!window.currentUser
+                    });
+                    
+                    // Pequeño delay para asegurar que todo esté sincronizado
+                    setTimeout(() => {
+                        showProfileSection();
+                    }, 50);
                 });
             }
 
