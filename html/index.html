@@ -7892,26 +7892,50 @@
 
             // Función para manejar el login
             async function handleLogin() {
+                console.log('🔐 handleLogin ejecutado');
                 const email = loginEmailInput?.value;
                 const password = loginPasswordInput?.value;
+                
+                console.log('📧 Email:', email);
+                console.log('🔑 Password length:', password?.length);
+                
+                if (!email || !password) {
+                    console.error('❌ Email o contraseña vacíos');
+                    if (loginError) {
+                        loginError.textContent = 'Por favor ingresa email y contraseña';
+                        loginError.classList.remove('hidden');
+                    }
+                    return;
+                }
+                
                 if (loginError) loginError.classList.add('hidden');
 
                 try {
-                    await signInWithEmailAndPassword(auth, email, password);
+                    console.log('🚀 Intentando iniciar sesión con Firebase...');
+                    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                    console.log('✅ Inicio de sesión exitoso:', userCredential.user.email);
                     hideAuthModal();
-                    console.log('Usuario inició sesión:', auth.currentUser.email);
+                    console.log('✅ Modal cerrado');
+                    showNotification('¡Bienvenido de nuevo!', 'success');
                 } catch (error) {
-                    console.error('Error al iniciar sesión:', error);
+                    console.error('❌ Error al iniciar sesión:', error.code, error.message);
                     let errorMessage = 'Error al iniciar sesión.';
-                    if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
-                        errorMessage = 'Correo o contraseña incorrectos.';
+                    if (error.code === 'auth/user-not-found') {
+                        errorMessage = 'No existe una cuenta con este correo electrónico.';
+                    } else if (error.code === 'auth/wrong-password') {
+                        errorMessage = 'Contraseña incorrecta.';
                     } else if (error.code === 'auth/invalid-email') {
                         errorMessage = 'Formato de correo inválido.';
+                    } else if (error.code === 'auth/invalid-credential') {
+                        errorMessage = 'Credenciales inválidas. Verifica tu email y contraseña.';
+                    } else if (error.code === 'auth/too-many-requests') {
+                        errorMessage = 'Demasiados intentos fallidos. Intenta más tarde.';
                     }
                     if (loginError) {
                         loginError.textContent = errorMessage;
                         loginError.classList.remove('hidden');
                     }
+                    showNotification(errorMessage, 'error');
                 }
             }
 
@@ -8444,6 +8468,92 @@
                 });
             }
 
+            // Event listeners para enlaces de navegación
+            const loginLinkNav = document.getElementById('loginLink');
+            const registerLinkNav = document.getElementById('registerLink');
+            const logoutLinkNav = document.getElementById('logoutLink');
+            const profileLinkNav = document.getElementById('profileLink');
+            const myCardsNavLinkNav = document.getElementById('myCardsNavLink');
+            const inboxLinkNav = document.getElementById('inboxLink');
+            const chatLinkNav = document.getElementById('chatLink');
+
+            // Event listener para login
+            if (loginLinkNav) {
+                loginLinkNav.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('🔐 Login link clicked');
+                    showAuthModal('login');
+                });
+            }
+
+            // Event listener para register
+            if (registerLinkNav) {
+                registerLinkNav.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('📝 Register link clicked');
+                    showAuthModal('register');
+                });
+            }
+
+            // Event listener para logout
+            if (logoutLinkNav) {
+                logoutLinkNav.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    console.log('🚪 Logout link clicked');
+                    try {
+                        await signOut(auth);
+                        console.log('✅ Usuario desconectado');
+                        showNotification('Sesión cerrada exitosamente', 'success');
+                        // Volver a la página principal
+                        showInitialSections();
+                    } catch (error) {
+                        console.error('❌ Error al cerrar sesión:', error);
+                        showNotification('Error al cerrar sesión', 'error');
+                    }
+                });
+            }
+
+            // Event listener para Mi Perfil
+            if (profileLinkNav) {
+                profileLinkNav.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('👤 Profile link clicked');
+                    showProfileSection();
+                });
+            }
+
+            // Event listener para Mis Cartas
+            if (myCardsNavLinkNav) {
+                myCardsNavLinkNav.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('🎴 My cards link clicked');
+                    showMyCardsSection();
+                });
+            }
+
+            // Event listener para Buzón
+            if (inboxLinkNav) {
+                inboxLinkNav.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('📬 Inbox link clicked');
+                    showInboxSection();
+                });
+            }
+
+            // Event listener para Chat
+            if (chatLinkNav) {
+                chatLinkNav.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    console.log('💬 Chat link clicked');
+                    // Verificar si hay sistema de chat inicializado
+                    if (window.chatUI && window.chatUI.toggleMinimizedBar) {
+                        window.chatUI.toggleMinimizedBar();
+                    } else {
+                        console.warn('⚠️ Sistema de chat no inicializado');
+                        showNotification('El sistema de chat se está cargando...', 'info');
+                    }
+                });
+            }
 
         });
 
