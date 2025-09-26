@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TCGtrade - Intercambio Pokémon TCG</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-firestore-compat.js"></script>
+    <!-- Firebase - Usando versión más reciente compat para compatibilidad -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="/js/main.js"></script>
     <script>
         tailwind.config = {
@@ -102,6 +102,33 @@
 
         // ID único de tu aplicación para Firestore
         const appId = 'tcgtrade-pokemon-app';
+        
+        // Hacer disponibles globalmente para compatibilidad con main.js
+        window.auth = auth;
+        window.db = db;
+        window.EmailAuthProvider = EmailAuthProvider;
+        window.signInWithEmailAndPassword = signInWithEmailAndPassword;
+        window.createUserWithEmailAndPassword = createUserWithEmailAndPassword;
+        window.signOut = signOut;
+        window.onAuthStateChanged = onAuthStateChanged;
+        window.updateEmail = updateEmail;
+        window.updatePassword = updatePassword;
+        window.reauthenticateWithCredential = reauthenticateWithCredential;
+        window.sendPasswordResetEmail = sendPasswordResetEmail;
+        window.doc = doc;
+        window.setDoc = setDoc;
+        window.getDoc = getDoc;
+        window.collection = collection;
+        window.getDocs = getDocs;
+        window.deleteDoc = deleteDoc;
+        
+        // Emitir evento cuando Firebase esté listo (por si algún módulo lo necesita)
+        setTimeout(() => {
+            window.dispatchEvent(new CustomEvent('firebaseReady', {
+                detail: { auth, db, EmailAuthProvider }
+            }));
+            console.log('🔥 Evento firebaseReady emitido');
+        }, 100);
 
         // Variables globales
         let currentUser = null;

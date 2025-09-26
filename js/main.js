@@ -4,6 +4,7 @@
 // TCGdex integration se carga desde tcgdex-loader.js
 
 // CONFIGURACIÓN DE FIREBASE - REEMPLAZA CON TUS DATOS
+// Configuración de Firebase
 const firebaseConfig = {
     apiKey: "AIzaSyCkgz6_Zpu0VOW6GgJxOxd9QlVccsBXnog",
     authDomain: "tcgtrade-7ba27.firebaseapp.com",
@@ -11,10 +12,12 @@ const firebaseConfig = {
     storageBucket: "tcgtrade-7ba27.firebasestorage.app",
     messagingSenderId: "207150886257",
     appId: "1:207150886257:web:26edebbeb7df7a1d935ad0",
- };
+};
 
-// Inicializar Firebase
-firebase.initializeApp(firebaseConfig);
+// Inicializar Firebase solo si no está ya inicializado
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
 const auth = firebase.auth();
 const db = firebase.firestore();
 
