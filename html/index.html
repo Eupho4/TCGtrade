@@ -343,6 +343,17 @@
 
 
         function showProfileSection() {
+            console.log('🔍 showProfileSection llamada');
+            
+            // IMPORTANTE: NO MOSTRAR MODAL DE LOGIN AQUÍ
+            // Esta función SOLO debe mostrar el perfil, nada más
+            
+            // Ocultar el modal de autenticación si está abierto
+            if (authModal && authModal.classList.contains('show')) {
+                console.log('⚠️ Cerrando modal de auth que no debería estar abierto');
+                hideAuthModal();
+            }
+            
             // Ocultar otras secciones
             hideHomeSections();
             if (searchResultsSection) searchResultsSection.classList.add('hidden');
@@ -8558,9 +8569,9 @@
             if (profileLinkNav) {
                 profileLinkNav.addEventListener('click', (e) => {
                     e.preventDefault();
-                    console.log('👤 Profile link clicked');
-                    // El botón de perfil solo es visible cuando hay usuario autenticado
-                    // Por lo tanto, no necesitamos verificar autenticación aquí
+                    e.stopPropagation(); // Evitar propagación
+                    console.log('👤 Profile link clicked - Usuario autenticado');
+                    // SOLO mostrar el perfil, sin verificaciones
                     showProfileSection();
                 });
             }
@@ -12465,9 +12476,9 @@
                             <span class="nav-icon">👤</span>
                         </button>
                         
-                        <button id="logoutLink" class="modern-nav-btn group hidden" title="Cerrar sesión">
+                        <button id="logoutLink" class="modern-nav-btn group hidden bg-red-500 hover:bg-red-600 text-white" title="Cerrar sesión">
                             <span class="nav-icon">🚪</span>
-                            <span class="hidden md:inline text-sm">Salir</span>
+                            <span class="hidden md:inline text-sm font-medium">Salir</span>
                         </button>
                         
                         <button id="loginLink" class="modern-login-btn group" title="Iniciar sesión">
