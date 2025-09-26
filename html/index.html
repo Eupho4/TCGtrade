@@ -554,14 +554,6 @@
 
         // Función para cargar datos del perfil
         async function loadProfileData() {
-            // Usar auth.currentUser directamente
-            const user = auth.currentUser;
-            
-            if (!user) {
-                console.log('❌ No hay usuario conectado en loadProfileData');
-                return;
-            }
-
             try {
                 console.log('🔄 Cargando datos del perfil...');
                 

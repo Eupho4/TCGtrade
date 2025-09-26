@@ -4186,18 +4186,7 @@ function setupNavigationEvents() {
         });
     }
 
-    const profileLink = document.getElementById('profileLink');
-    if (profileLink) {
-        profileLink.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('👤 Profile link clicked');
-            if (currentUser) {
-                showProfileSection();
-            } else {
-                showAuthModal('login');
-            }
-        });
-    }
+    // ELIMINADO - El event listener del profileLink se maneja en el HTML principal
 
     const helpLink = document.getElementById('helpLink');
     if (helpLink) {
