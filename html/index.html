@@ -8828,17 +8828,152 @@
                 chatLinkNav.addEventListener('click', (e) => {
                     e.preventDefault();
                     console.log('💬 Chat link clicked');
+                    console.log('🔍 Estado del chat:', {
+                        chatManager: !!window.chatManager,
+                        chatUI: !!window.chatUI,
+                        chatDebugger: !!window.chatDebugger,
+                        currentUser: !!currentUser
+                    });
+                    
                     // Verificar si hay sistema de chat inicializado
                     if (window.chatUI && window.chatUI.toggleMinimizedBar) {
                         window.chatUI.toggleMinimizedBar();
                     } else {
                         console.warn('⚠️ Sistema de chat no inicializado');
-                        showNotification('El sistema de chat se está cargando...', 'info');
+                        showNotification('Sistema de chat no disponible. Intentando reinicializar...', 'warning');
+                        
+                        // Intentar reinicializar el chat
+                        try {
+                            if (currentUser && typeof ChatManager !== 'undefined' && typeof ChatUI !== 'undefined') {
+                                console.log('🔄 Reinicializando sistema de chat...');
+                                window.chatManager = new ChatManager(auth, db);
+                                window.chatUI = new ChatUI(window.chatManager);
+                                window.chatDebugger = new ChatDebugger(window.chatManager);
+                                showNotification('Sistema de chat reinicializado correctamente', 'success');
+                            } else {
+                                showNotification('No se puede reinicializar el chat. Recarga la página.', 'error');
+                            }
+                        } catch (error) {
+                            console.error('❌ Error al reinicializar chat:', error);
+                            showNotification('Error al reinicializar el chat: ' + error.message, 'error');
+                        }
                     }
                 });
             }
 
         });
+
+        // Función de diagnóstico del sistema de chat
+        window.diagnoseChat = function() {
+            console.log('🔍 === DIAGNÓSTICO DEL SISTEMA DE CHAT ===');
+            console.log('📊 Estado general:', {
+                currentUser: !!currentUser,
+                currentUserUid: currentUser?.uid,
+                chatManager: !!window.chatManager,
+                chatUI: !!window.chatUI,
+                chatDebugger: !!window.chatDebugger,
+                ChatManagerClass: typeof ChatManager,
+                ChatUIClass: typeof ChatUI,
+                ChatDebuggerClass: typeof ChatDebugger
+            });
+            
+            if (window.chatManager) {
+                console.log('💬 ChatManager:', {
+                    activeChats: window.chatManager.activeChats?.size || 0,
+                    chatListeners: window.chatManager.chatListeners?.size || 0,
+                    currentChatId: window.chatManager.currentChatId
+                });
+            }
+            
+            if (window.chatUI) {
+                console.log('🎨 ChatUI:', {
+                    hasToggleMinimizedBar: typeof window.chatUI.toggleMinimizedBar === 'function',
+                    hasOpenChat: typeof window.chatUI.openChat === 'function'
+                });
+            }
+            
+            console.log('🔧 Acciones disponibles:');
+            console.log('- window.diagnoseChat() - Este diagnóstico');
+            console.log('- window.reinitializeChat() - Reinicializar chat');
+            console.log('- window.testChat() - Probar funcionalidad básica');
+        };
+        
+        // Función para reinicializar el chat
+        window.reinitializeChat = function() {
+            console.log('🔄 Reinicializando sistema de chat...');
+            try {
+                if (!currentUser) {
+                    console.error('❌ No hay usuario autenticado');
+                    showNotification('Debes iniciar sesión para usar el chat', 'warning');
+                    return false;
+                }
+                
+                if (typeof ChatManager === 'undefined' || typeof ChatUI === 'undefined') {
+                    console.error('❌ Clases de chat no disponibles');
+                    showNotification('Error: Las clases de chat no se cargaron correctamente', 'error');
+                    return false;
+                }
+                
+                // Limpiar instancias anteriores
+                if (window.chatManager) {
+                    try {
+                        window.chatManager.disconnectAll();
+                    } catch (e) {
+                        console.warn('Error al desconectar chat manager anterior:', e);
+                    }
+                }
+                
+                // Crear nuevas instancias
+                window.chatManager = new ChatManager(auth, db);
+                window.chatUI = new ChatUI(window.chatManager);
+                window.chatDebugger = new ChatDebugger(window.chatManager);
+                
+                console.log('✅ Sistema de chat reinicializado correctamente');
+                showNotification('Sistema de chat reinicializado correctamente', 'success');
+                return true;
+                
+            } catch (error) {
+                console.error('❌ Error al reinicializar chat:', error);
+                showNotification('Error al reinicializar el chat: ' + error.message, 'error');
+                return false;
+            }
+        };
+        
+        // Función para probar el chat
+        window.testChat = function() {
+            console.log('🧪 Probando funcionalidad del chat...');
+            
+            if (!window.chatManager || !window.chatUI) {
+                console.error('❌ Sistema de chat no inicializado');
+                showNotification('Sistema de chat no inicializado. Usa window.reinitializeChat()', 'error');
+                return false;
+            }
+            
+            try {
+                // Probar métodos básicos
+                const hasToggleMinimizedBar = typeof window.chatUI.toggleMinimizedBar === 'function';
+                const hasOpenChat = typeof window.chatUI.openChat === 'function';
+                
+                console.log('✅ Métodos disponibles:', {
+                    toggleMinimizedBar: hasToggleMinimizedBar,
+                    openChat: hasOpenChat
+                });
+                
+                if (hasToggleMinimizedBar) {
+                    console.log('🎯 Probando toggleMinimizedBar...');
+                    window.chatUI.toggleMinimizedBar();
+                    console.log('✅ toggleMinimizedBar ejecutado correctamente');
+                }
+                
+                showNotification('Prueba de chat completada. Revisa la consola.', 'success');
+                return true;
+                
+            } catch (error) {
+                console.error('❌ Error en prueba de chat:', error);
+                showNotification('Error en prueba de chat: ' + error.message, 'error');
+                return false;
+            }
+        };
 
         // Función para mostrar detalles de carta (mejorada)
         window.showCardDetailsOnly = async (cardId, cardName, imageUrl, setName, series, number) => {
