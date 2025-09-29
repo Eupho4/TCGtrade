@@ -3524,16 +3524,23 @@
         };
         
         // Función para eliminar notificación
-        window.deleteNotification = function(notifId) {
+        window.deleteNotification = async function(notifId) {
             if (!currentUser) return;
             
-            // Confirmar eliminación
-            if (!confirm('¿Estás seguro de que quieres eliminar esta notificación?')) {
-                return;
-            }
-            
+            // Buscar la notificación para mostrar su título
             const notificationsKey = `notifications_${currentUser.uid}`;
             const notifications = JSON.parse(localStorage.getItem(notificationsKey) || '[]');
+            const notif = notifications.find(n => n.id === notifId);
+            
+            // Confirmar eliminación con modal personalizado
+            const confirmed = await showCustomConfirmModal(
+                '¿Eliminar notificación?',
+                'Esta acción no se puede deshacer.',
+                notif ? notif.title : 'Notificación',
+                'delete'
+            );
+            
+            if (!confirmed) return;
             
             // Filtrar la notificación a eliminar
             const updatedNotifications = notifications.filter(n => n.id !== notifId);
@@ -3548,16 +3555,23 @@
         };
         
         // Función para eliminar propuesta recibida
-        window.deleteReceivedProposal = function(proposalId, tradeId) {
+        window.deleteReceivedProposal = async function(proposalId, tradeId) {
             if (!currentUser) return;
             
-            // Confirmar eliminación
-            if (!confirm('¿Estás seguro de que quieres eliminar esta propuesta recibida?')) {
-                return;
-            }
-            
+            // Buscar la propuesta para mostrar información
             const proposalsKey = `proposals_${tradeId}`;
             const proposals = JSON.parse(localStorage.getItem(proposalsKey) || '[]');
+            const proposal = proposals.find(p => p.id === proposalId);
+            
+            // Confirmar eliminación con modal personalizado
+            const confirmed = await showCustomConfirmModal(
+                '¿Eliminar propuesta recibida?',
+                'Esta acción no se puede deshacer.',
+                proposal ? `Propuesta de ${proposal.fromUserName}` : 'Propuesta recibida',
+                'delete'
+            );
+            
+            if (!confirmed) return;
             
             // Filtrar la propuesta a eliminar
             const updatedProposals = proposals.filter(p => p.id !== proposalId);
@@ -3571,16 +3585,23 @@
         };
         
         // Función para eliminar propuesta enviada
-        window.deleteSentProposal = function(proposalId, tradeId) {
+        window.deleteSentProposal = async function(proposalId, tradeId) {
             if (!currentUser) return;
             
-            // Confirmar eliminación
-            if (!confirm('¿Estás seguro de que quieres eliminar esta propuesta enviada?')) {
-                return;
-            }
-            
+            // Buscar la propuesta para mostrar información
             const proposalsKey = `proposals_${tradeId}`;
             const proposals = JSON.parse(localStorage.getItem(proposalsKey) || '[]');
+            const proposal = proposals.find(p => p.id === proposalId);
+            
+            // Confirmar eliminación con modal personalizado
+            const confirmed = await showCustomConfirmModal(
+                '¿Eliminar propuesta enviada?',
+                'Esta acción no se puede deshacer.',
+                proposal ? `Propuesta enviada` : 'Propuesta enviada',
+                'delete'
+            );
+            
+            if (!confirmed) return;
             
             // Filtrar la propuesta a eliminar
             const updatedProposals = proposals.filter(p => p.id !== proposalId);
@@ -5535,6 +5556,90 @@
                 // Eventos
                 const cancelBtn = confirmModal.querySelector('#cancelDelete');
                 const confirmBtn = confirmModal.querySelector('#confirmDelete');
+                
+                cancelBtn.addEventListener('click', () => {
+                    confirmModal.remove();
+                    resolve(false);
+                });
+                
+                confirmBtn.addEventListener('click', () => {
+                    confirmModal.remove();
+                    resolve(true);
+                });
+                
+                // ESC para cancelar
+                const handleEsc = (e) => {
+                    if (e.key === 'Escape') {
+                        confirmModal.remove();
+                        document.removeEventListener('keydown', handleEsc);
+                        resolve(false);
+                    }
+                };
+                document.addEventListener('keydown', handleEsc);
+                
+                // Click fuera del modal para cancelar
+                confirmModal.addEventListener('click', (e) => {
+                    if (e.target === confirmModal) {
+                        confirmModal.remove();
+                        resolve(false);
+                    }
+                });
+            });
+        }
+        
+        // Función genérica para mostrar modal de confirmación personalizado
+        function showCustomConfirmModal(title, message, itemName = '', type = 'delete') {
+            return new Promise((resolve) => {
+                const confirmModal = document.createElement('div');
+                confirmModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+                
+                // Configurar icono y colores según el tipo
+                let icon, confirmButtonClass, confirmButtonText;
+                switch(type) {
+                    case 'delete':
+                        icon = '🗑️';
+                        confirmButtonClass = 'bg-red-500 hover:bg-red-600';
+                        confirmButtonText = '🗑️ Eliminar';
+                        break;
+                    case 'warning':
+                        icon = '⚠️';
+                        confirmButtonClass = 'bg-orange-500 hover:bg-orange-600';
+                        confirmButtonText = '⚠️ Confirmar';
+                        break;
+                    default:
+                        icon = '❓';
+                        confirmButtonClass = 'bg-blue-500 hover:bg-blue-600';
+                        confirmButtonText = '✅ Confirmar';
+                }
+                
+                confirmModal.innerHTML = `
+                    <div class="bg-white dark:bg-gray-800 rounded-lg p-8 max-w-md w-full mx-4 text-center shadow-xl">
+                        <div class="text-6xl mb-4">${icon}</div>
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-4">${title}</h3>
+                        ${itemName ? `
+                            <div class="bg-orange-50 dark:bg-orange-900/20 rounded-lg p-4 mb-6">
+                                <p class="text-gray-800 dark:text-gray-200 font-semibold">"${itemName}"</p>
+                            </div>
+                        ` : ''}
+                        <p class="text-gray-600 dark:text-gray-300 mb-6">${message}</p>
+                        <div class="flex gap-3 justify-center">
+                            <button id="cancelCustomConfirm" 
+                                    class="bg-gray-500 hover:bg-gray-600 text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                                Cancelar
+                            </button>
+                            <button id="confirmCustomConfirm" 
+                                    class="${confirmButtonClass} text-white px-6 py-3 rounded-lg font-semibold transition-colors">
+                                ${confirmButtonText}
+                            </button>
+                        </div>
+                    </div>
+                `;
+                
+                document.body.appendChild(confirmModal);
+                
+                // Eventos
+                const cancelBtn = confirmModal.querySelector('#cancelCustomConfirm');
+                const confirmBtn = confirmModal.querySelector('#confirmCustomConfirm');
                 
                 cancelBtn.addEventListener('click', () => {
                     confirmModal.remove();
