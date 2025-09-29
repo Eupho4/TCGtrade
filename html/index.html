@@ -5520,8 +5520,21 @@
                     tradeData.id = 'trade_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
                     console.log('💾 Creando nuevo intercambio:', tradeData);
                     
+                    // Debug: Verificar estado antes de guardar
+                    console.log('🔍 === ANTES DE GUARDAR ===');
+                    console.log('👤 Usuario actual:', currentUser?.uid);
+                    console.log('🔑 Clave a usar:', userTradesKey);
+                    console.log('📦 Intercambios existentes:', savedTrades.length);
+                    console.log('📦 Intercambios existentes (detalle):', savedTrades.map(t => ({ id: t.id, title: t.title, userId: t.userId })));
+                    
                     savedTrades.unshift(tradeData); // Añadir al principio
                     localStorage.setItem(userTradesKey, JSON.stringify(savedTrades));
+                    
+                    // Debug: Verificar estado después de guardar
+                    console.log('🔍 === DESPUÉS DE GUARDAR ===');
+                    const verifyTrades = JSON.parse(localStorage.getItem(userTradesKey) || '[]');
+                    console.log('📦 Intercambios guardados:', verifyTrades.length);
+                    console.log('📦 Intercambios guardados (detalle):', verifyTrades.map(t => ({ id: t.id, title: t.title, userId: t.userId })));
                     
                     // Aquí se implementará el guardado en Firestore
                     // await saveTradeToFirestore(tradeData);
@@ -8449,6 +8462,28 @@
                 currentUser = user;
                 window.currentUser = user; // Actualizar referencia global
                 console.log('🔐 onAuthStateChanged ejecutado. Usuario:', !!user, user?.email);
+                
+                // Debug: Verificar localStorage al cambiar de usuario
+                if (user) {
+                    console.log('🔍 === LOGIN DETECTADO ===');
+                    const userTradesKey = `userTrades_${user.uid}`;
+                    const existingTrades = JSON.parse(localStorage.getItem(userTradesKey) || '[]');
+                    console.log('📦 Intercambios existentes para este usuario:', {
+                        key: userTradesKey,
+                        count: existingTrades.length,
+                        trades: existingTrades.map(t => ({ id: t.id, title: t.title }))
+                    });
+                } else {
+                    console.log('🔍 === LOGOUT DETECTADO ===');
+                    console.log('📦 Verificando localStorage después del logout...');
+                    for (let i = 0; i < localStorage.length; i++) {
+                        const key = localStorage.key(i);
+                        if (key && key.startsWith('userTrades_')) {
+                            const trades = JSON.parse(localStorage.getItem(key) || '[]');
+                            console.log(`- ${key}: ${trades.length} intercambios`);
+                        }
+                    }
+                }
 
                 // Inicializar sistema de chat si el usuario está autenticado
                 if (user && !chatManager) {
@@ -9100,6 +9135,81 @@
                 loadUserTrades();
             } else {
                 console.error('❌ loadUserTrades no está disponible');
+            }
+        };
+        
+        // Función para verificar intercambios fantasma
+        window.checkGhostTrades = function() {
+            console.log('👻 === VERIFICANDO INTERCAMBIOS FANTASMA ===');
+            console.log('👤 Usuario actual:', currentUser?.uid);
+            
+            if (!currentUser) {
+                console.error('❌ No hay usuario autenticado');
+                return;
+            }
+            
+            const currentUserKey = `userTrades_${currentUser.uid}`;
+            console.log('🔑 Clave del usuario actual:', currentUserKey);
+            
+            // Verificar todos los intercambios en localStorage
+            console.log('🌍 Todos los intercambios en localStorage:');
+            const allTradeKeys = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('userTrades_')) {
+                    allTradeKeys.push(key);
+                    const trades = JSON.parse(localStorage.getItem(key) || '[]');
+                    console.log(`- ${key}: ${trades.length} intercambios`);
+                    trades.forEach(trade => {
+                        console.log(`  * ${trade.id}: "${trade.title}" (userId: ${trade.userId})`);
+                    });
+                }
+            }
+            
+            // Verificar si hay claves de otros usuarios
+            const otherUserKeys = allTradeKeys.filter(key => key !== currentUserKey);
+            if (otherUserKeys.length > 0) {
+                console.log('⚠️ INTERCAMBIOS DE OTROS USUARIOS DETECTADOS:', otherUserKeys);
+                console.log('💡 Esto podría explicar por qué aparecen intercambios "fantasma"');
+            } else {
+                console.log('✅ Solo hay intercambios del usuario actual');
+            }
+            
+            // Verificar el contenedor actual
+            const container = document.getElementById('myTradesContainer');
+            if (container) {
+                const tradeElements = container.querySelectorAll('[class*="bg-gray-50"]');
+                console.log('📱 Elementos de intercambio en el DOM:', tradeElements.length);
+            }
+        };
+        
+        // Función para limpiar intercambios de otros usuarios
+        window.cleanGhostTrades = function() {
+            console.log('🧹 === LIMPIANDO INTERCAMBIOS FANTASMA ===');
+            
+            if (!currentUser) {
+                console.error('❌ No hay usuario autenticado');
+                return;
+            }
+            
+            const currentUserKey = `userTrades_${currentUser.uid}`;
+            let cleaned = 0;
+            
+            // Eliminar todas las claves de intercambios que no sean del usuario actual
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('userTrades_') && key !== currentUserKey) {
+                    console.log('🗑️ Eliminando intercambios de:', key);
+                    localStorage.removeItem(key);
+                    cleaned++;
+                }
+            }
+            
+            console.log(`✅ Limpieza completada. ${cleaned} claves eliminadas.`);
+            
+            // Recargar la vista
+            if (typeof loadUserTrades === 'function') {
+                loadUserTrades();
             }
         };
 
