@@ -361,8 +361,22 @@ class PostgresCardDatabase {
     // Obtener todas las series únicas
     async getAllSets() {
         try {
-            const result = await this.pool.query('SELECT DISTINCT set_name FROM cards WHERE set_name IS NOT NULL AND set_name != \'\' ORDER BY set_name');
-            return result.rows.map(row => row.set_name);
+            const result = await this.pool.query(`
+                SELECT DISTINCT set_name, 
+                       COUNT(*) as card_count,
+                       MIN(id) as first_card_id
+                FROM cards 
+                WHERE set_name IS NOT NULL AND set_name != '' 
+                GROUP BY set_name 
+                ORDER BY set_name
+            `);
+            return result.rows.map(row => ({
+                id: row.first_card_id.split('-').slice(0, -1).join('-') || row.set_name.toLowerCase().replace(/\s+/g, '-'),
+                name: row.set_name,
+                series: this.extractSeriesFromSetName(row.set_name),
+                cardCount: parseInt(row.card_count),
+                source: 'pokemontcg'
+            }));
         } catch (error) {
             console.error('❌ Error obteniendo sets:', error);
             return [];
@@ -372,8 +386,20 @@ class PostgresCardDatabase {
     // Obtener todos los tipos únicos
     async getAllTypes() {
         try {
-            const result = await this.pool.query('SELECT DISTINCT unnest(types) as type FROM cards WHERE types IS NOT NULL AND array_length(types, 1) > 0');
-            return result.rows.map(row => row.type).filter(type => type && type.trim()).sort();
+            const result = await this.pool.query(`
+                SELECT unnest(types) as type, COUNT(*) as card_count
+                FROM cards 
+                WHERE types IS NOT NULL AND array_length(types, 1) > 0
+                GROUP BY unnest(types)
+                ORDER BY type
+            `);
+            return result.rows
+                .filter(row => row.type && row.type.trim())
+                .map(row => ({
+                    id: row.type.toLowerCase(),
+                    name: row.type,
+                    cardCount: parseInt(row.card_count)
+                }));
         } catch (error) {
             console.error('❌ Error obteniendo tipos:', error);
             return [];
@@ -383,8 +409,18 @@ class PostgresCardDatabase {
     // Obtener todas las rarezas únicas
     async getAllRarities() {
         try {
-            const result = await this.pool.query('SELECT DISTINCT rarity FROM cards WHERE rarity IS NOT NULL AND rarity != \'\' ORDER BY rarity');
-            return result.rows.map(row => row.rarity);
+            const result = await this.pool.query(`
+                SELECT rarity, COUNT(*) as card_count
+                FROM cards 
+                WHERE rarity IS NOT NULL AND rarity != '' 
+                GROUP BY rarity 
+                ORDER BY rarity
+            `);
+            return result.rows.map(row => ({
+                id: row.rarity.toLowerCase().replace(/\s+/g, '-'),
+                name: row.rarity,
+                cardCount: parseInt(row.card_count)
+            }));
         } catch (error) {
             console.error('❌ Error obteniendo rarezas:', error);
             return [];
@@ -394,8 +430,20 @@ class PostgresCardDatabase {
     // Obtener todos los subtipos únicos
     async getAllSubtypes() {
         try {
-            const result = await this.pool.query('SELECT DISTINCT unnest(subtypes) as subtype FROM cards WHERE subtypes IS NOT NULL AND array_length(subtypes, 1) > 0');
-            return result.rows.map(row => row.subtype).filter(subtype => subtype && subtype.trim()).sort();
+            const result = await this.pool.query(`
+                SELECT unnest(subtypes) as subtype, COUNT(*) as card_count
+                FROM cards 
+                WHERE subtypes IS NOT NULL AND array_length(subtypes, 1) > 0
+                GROUP BY unnest(subtypes)
+                ORDER BY subtype
+            `);
+            return result.rows
+                .filter(row => row.subtype && row.subtype.trim())
+                .map(row => ({
+                    id: row.subtype.toLowerCase().replace(/\s+/g, '-'),
+                    name: row.subtype,
+                    cardCount: parseInt(row.card_count)
+                }));
         } catch (error) {
             console.error('❌ Error obteniendo subtipos:', error);
             return [];
@@ -445,8 +493,34 @@ class PostgresCardDatabase {
     // Obtener todas las series únicas
     async getAllSeries() {
         try {
-            const result = await this.pool.query('SELECT DISTINCT set_series FROM cards WHERE set_series IS NOT NULL AND set_series != \'\' ORDER BY set_series');
-            return result.rows.map(row => row.set_series);
+            const result = await this.pool.query(`
+                SELECT DISTINCT set_name, COUNT(*) as card_count
+                FROM cards 
+                WHERE set_name IS NOT NULL AND set_name != '' 
+                GROUP BY set_name 
+                ORDER BY set_name
+            `);
+            
+            // Extraer series únicas de los nombres de sets
+            const seriesMap = new Map();
+            result.rows.forEach(row => {
+                const series = this.extractSeriesFromSetName(row.set_name);
+                if (series && series !== '') {
+                    if (seriesMap.has(series)) {
+                        seriesMap.set(series, seriesMap.get(series) + parseInt(row.card_count));
+                    } else {
+                        seriesMap.set(series, parseInt(row.card_count));
+                    }
+                }
+            });
+            
+            return Array.from(seriesMap.entries())
+                .map(([series, cardCount]) => ({
+                    id: series.toLowerCase().replace(/\s+/g, '-'),
+                    name: series,
+                    cardCount: cardCount
+                }))
+                .sort((a, b) => a.name.localeCompare(b.name));
         } catch (error) {
             console.error('❌ Error obteniendo series:', error);
             return [];
