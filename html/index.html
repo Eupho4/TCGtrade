@@ -6964,6 +6964,7 @@
             const sidebar = document.getElementById('sidebar');
             const sidebarOverlay = document.getElementById('sidebarOverlay');
             const hamburgerBtn = document.getElementById('hamburgerBtn');
+            const closeSidebarBtn = document.getElementById('closeSidebarBtn');
             
             // Función para abrir sidebar
             function openSidebar() {
@@ -6989,6 +6990,11 @@
                     openSidebar();
                 }
             });
+            
+            // Click en botón de cerrar
+            if (closeSidebarBtn) {
+                closeSidebarBtn.addEventListener('click', closeSidebar);
+            }
             
             // Click en overlay
             sidebarOverlay.addEventListener('click', closeSidebar);
@@ -10372,6 +10378,35 @@
             overflow-y: auto;
         }
         
+        /* Botón de cerrar sidebar */
+        .close-sidebar-btn {
+            padding: 8px;
+            border-radius: 8px;
+            background: rgba(0, 0, 0, 0.05);
+            color: #6b7280;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .close-sidebar-btn:hover {
+            background: rgba(0, 0, 0, 0.1);
+            color: #374151;
+        }
+        
+        .dark-mode .close-sidebar-btn {
+            background: rgba(255, 255, 255, 0.1);
+            color: #9ca3af;
+        }
+        
+        .dark-mode .close-sidebar-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            color: #d1d5db;
+        }
+        
         .sidebar.dark {
             background: #1f2937;
             box-shadow: 2px 0 20px rgba(0, 0, 0, 0.3);
@@ -12298,8 +12333,17 @@
     <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h2 class="text-2xl font-bold text-gray-800 dark:text-white">TCGtrade</h2>
-            <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Tu plataforma de intercambio</p>
+            <div class="flex justify-between items-start">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 dark:text-white">TCGtrade</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Tu plataforma de intercambio</p>
+                </div>
+                <button id="closeSidebarBtn" class="close-sidebar-btn" title="Cerrar menú">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
         </div>
         
         <nav class="sidebar-menu">
