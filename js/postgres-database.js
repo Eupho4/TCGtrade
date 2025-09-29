@@ -150,12 +150,20 @@ class PostgresCardDatabase {
             
             // Aplicar filtros adicionales
             if (filters.series) {
+                // Para el filtro de serie, necesitamos usar una subconsulta o lógica más compleja
+                // ya que la serie se extrae del nombre del set, no de una columna directa
+                const seriesCondition = this.buildSeriesFilterCondition(filters.series, paramCount);
                 if (whereClause) {
-                    whereClause += ` AND set_series = $${paramCount++}`;
+                    whereClause += ` AND ${seriesCondition}`;
                 } else {
-                    whereClause = `WHERE set_series = $${paramCount++}`;
+                    whereClause = `WHERE ${seriesCondition}`;
                 }
-                params.push(String(filters.series));
+                // Agregar los parámetros para los nombres de sets
+                const setsInSeries = this.getSetsForSeries(filters.series);
+                setsInSeries.forEach(setName => {
+                    params.push(setName);
+                });
+                paramCount += setsInSeries.length;
             }
             
             if (filters.set) {
@@ -525,6 +533,50 @@ class PostgresCardDatabase {
             console.error('❌ Error obteniendo series:', error);
             return [];
         }
+    }
+
+    // Construir condición de filtro para series
+    buildSeriesFilterCondition(seriesName, paramCount) {
+        // Obtener todos los sets que pertenecen a esta serie
+        const setsInSeries = this.getSetsForSeries(seriesName);
+        
+        if (setsInSeries.length === 0) {
+            return '1=0'; // No hay sets, devolver condición que nunca se cumple
+        }
+        
+        // Crear condición IN con los nombres de sets
+        const placeholders = setsInSeries.map((_, index) => `$${paramCount + index}`).join(', ');
+        return `set_name IN (${placeholders})`;
+    }
+    
+    // Obtener número de parámetros para el filtro de serie
+    getSeriesFilterParamCount(seriesName) {
+        return this.getSetsForSeries(seriesName).length;
+    }
+    
+    // Obtener todos los sets que pertenecen a una serie específica
+    getSetsForSeries(seriesName) {
+        // Mapeo de series a sets (basado en la función extractSeriesFromSetName)
+        const seriesToSetsMap = {
+            'Base': ['Base', 'Base Set', 'Base Set 2', 'Expedition Base Set'],
+            'Jungle': ['Jungle'],
+            'Fossil': ['Fossil'],
+            'Team Rocket': ['Team Rocket'],
+            'Gym': ['Gym Heroes', 'Gym Challenge'],
+            'Neo': ['Neo Genesis', 'Neo Discovery', 'Neo Revelation', 'Neo Destiny'],
+            'e-Card': ['Expedition', 'Aquapolis', 'Skyridge'],
+            'EX': ['Ruby & Sapphire', 'Sandstorm', 'Dragon', 'Team Magma vs Team Aqua', 'Hidden Legends', 'FireRed & LeafGreen', 'Team Rocket Returns', 'Deoxys', 'Emerald', 'Unseen Forces', 'Delta Species', 'Legend Maker', 'Holon Phantoms', 'Crystal Guardians', 'Dragon Frontiers', 'Power Keepers'],
+            'Diamond & Pearl': ['Diamond & Pearl', 'Mysterious Treasures', 'Secret Wonders', 'Great Encounters', 'Majestic Dawn', 'Legends Awakened', 'Stormfront'],
+            'Platinum': ['Platinum', 'Rising Rivals', 'Supreme Victors', 'Arceus'],
+            'HeartGold & SoulSilver': ['HeartGold & SoulSilver', 'Unleashed', 'Undaunted', 'Triumphant', 'Call of Legends'],
+            'Black & White': ['Black & White', 'Emerging Powers', 'Noble Victories', 'Next Destinies', 'Dark Explorers', 'Dragons Exalted', 'Boundaries Crossed', 'Plasma Storm', 'Plasma Freeze', 'Plasma Blast', 'Legendary Treasures', 'BW Black Star Promos', 'DP Black Star Promos', 'HGSS Black Star Promos', 'SM Black Star Promos', 'SWSH Black Star Promos', 'Nintendo Black Star Promos', 'Wizards Black Star Promos'],
+            'XY': ['XY', 'Flashfire', 'Furious Fists', 'Phantom Forces', 'Primal Clash', 'Roaring Skies', 'Ancient Origins', 'BREAKthrough', 'BREAKpoint', 'Fates Collide', 'Steam Siege', 'Evolutions', 'XY Black Star Promos'],
+            'Sun & Moon': ['Sun & Moon', 'Guardians Rising', 'Burning Shadows', 'Crimson Invasion', 'Ultra Prism', 'Forbidden Light', 'Celestial Storm', 'Lost Thunder', 'Team Up', 'Detective Pikachu', 'Unbroken Bonds', 'Unified Minds', 'Hidden Fates', 'Cosmic Eclipse'],
+            'Sword & Shield': ['Sword & Shield', 'Rebel Clash', 'Darkness Ablaze', 'Champion\'s Path', 'Vivid Voltage', 'Battle Styles', 'Chilling Reign', 'Evolving Skies', 'Celebrations', 'Fusion Strike', 'Brilliant Stars', 'Astral Radiance', 'Lost Origin', 'Silver Tempest', 'Crown Zenith'],
+            'Scarlet & Violet': ['Scarlet & Violet', 'Paldea Evolved', 'Obsidian Flames', '151', 'Paradox Rift', 'Paldean Fates', 'Temporal Forces', 'Twilight Masquerade', 'Shrouded Fable', 'Ancient Roar', 'Future Flash', 'Shining Treasure ex', 'Wild Force', 'Cyber Judge', 'Peach Moon', 'Mask of Change', 'Stellar Crown', 'Scarlet & Violet Black Star Promos', 'Scarlet & Violet Energies', 'Scarlet & Violet Promos']
+        };
+        
+        return seriesToSetsMap[seriesName] || [];
     }
 
     // Extraer serie del nombre del set
