@@ -3276,6 +3276,11 @@
                                     Marcar como leído
                                 </button>
                             ` : ''}
+                            <button onclick="deleteNotification('${notif.id}')"
+                                    class="px-2 py-1 bg-red-500 hover:bg-red-600 text-white rounded text-sm"
+                                    title="Eliminar notificación">
+                                ✕
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -3383,6 +3388,11 @@
                                 Rechazar
                             </button>
                         ` : ''}
+                        <button onclick="deleteReceivedProposal('${proposal.id}', '${proposal.tradeId}')"
+                                class="px-2 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded text-sm"
+                                title="Eliminar propuesta">
+                            ✕
+                        </button>
                     </div>
                 </div>
             `).join('');
@@ -3464,12 +3474,19 @@
                         </div>
                     </div>
                     
-                    ${proposal.status === 'pending' ? `
-                        <button onclick="cancelProposal('${proposal.id}', '${proposal.originalTradeId}')"
-                                class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded text-sm">
-                            Cancelar Propuesta
+                    <div class="flex gap-2">
+                        ${proposal.status === 'pending' ? `
+                            <button onclick="cancelProposal('${proposal.id}', '${proposal.originalTradeId}')"
+                                    class="px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded text-sm">
+                                Cancelar Propuesta
+                            </button>
+                        ` : ''}
+                        <button onclick="deleteSentProposal('${proposal.id}', '${proposal.originalTradeId}')"
+                                class="px-2 py-2 bg-gray-500 hover:bg-gray-600 text-white rounded text-sm"
+                                title="Eliminar propuesta">
+                            ✕
                         </button>
-                    ` : ''}
+                    </div>
                 </div>
             `).join('');
         }
@@ -3504,6 +3521,76 @@
                 loadNotifications();
                 updateNotificationBadge();
             }
+        };
+        
+        // Función para eliminar notificación
+        window.deleteNotification = function(notifId) {
+            if (!currentUser) return;
+            
+            // Confirmar eliminación
+            if (!confirm('¿Estás seguro de que quieres eliminar esta notificación?')) {
+                return;
+            }
+            
+            const notificationsKey = `notifications_${currentUser.uid}`;
+            const notifications = JSON.parse(localStorage.getItem(notificationsKey) || '[]');
+            
+            // Filtrar la notificación a eliminar
+            const updatedNotifications = notifications.filter(n => n.id !== notifId);
+            localStorage.setItem(notificationsKey, JSON.stringify(updatedNotifications));
+            
+            // Recargar la lista de notificaciones
+            loadNotifications();
+            updateNotificationBadge();
+            
+            // Mostrar confirmación
+            showNotification('Notificación eliminada', 'success', 2000);
+        };
+        
+        // Función para eliminar propuesta recibida
+        window.deleteReceivedProposal = function(proposalId, tradeId) {
+            if (!currentUser) return;
+            
+            // Confirmar eliminación
+            if (!confirm('¿Estás seguro de que quieres eliminar esta propuesta recibida?')) {
+                return;
+            }
+            
+            const proposalsKey = `proposals_${tradeId}`;
+            const proposals = JSON.parse(localStorage.getItem(proposalsKey) || '[]');
+            
+            // Filtrar la propuesta a eliminar
+            const updatedProposals = proposals.filter(p => p.id !== proposalId);
+            localStorage.setItem(proposalsKey, JSON.stringify(updatedProposals));
+            
+            // Recargar la lista de propuestas recibidas
+            loadReceivedProposals();
+            
+            // Mostrar confirmación
+            showNotification('Propuesta recibida eliminada', 'success', 2000);
+        };
+        
+        // Función para eliminar propuesta enviada
+        window.deleteSentProposal = function(proposalId, tradeId) {
+            if (!currentUser) return;
+            
+            // Confirmar eliminación
+            if (!confirm('¿Estás seguro de que quieres eliminar esta propuesta enviada?')) {
+                return;
+            }
+            
+            const proposalsKey = `proposals_${tradeId}`;
+            const proposals = JSON.parse(localStorage.getItem(proposalsKey) || '[]');
+            
+            // Filtrar la propuesta a eliminar
+            const updatedProposals = proposals.filter(p => p.id !== proposalId);
+            localStorage.setItem(proposalsKey, JSON.stringify(updatedProposals));
+            
+            // Recargar la lista de propuestas enviadas
+            loadSentProposals();
+            
+            // Mostrar confirmación
+            showNotification('Propuesta enviada eliminada', 'success', 2000);
         };
         
         // Función para rechazar propuesta
