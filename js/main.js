@@ -3262,10 +3262,18 @@ async function fetchCards(query, searchMode = 'combined') {
     if (noResultsMessage) noResultsMessage.classList.add('hidden');
     if (errorMessage) errorMessage.classList.add('hidden');
 
-    // Si la query es muy corta, mostrar página inicial
+    // Si la query es muy corta, verificar si hay filtros activos
     if (query.length < 3) {
-        showInitialSections();
-        return;
+        const hasActiveFilters = searchFiltersState.set || 
+                                searchFiltersState.rarity || 
+                                searchFiltersState.type || 
+                                searchFiltersState.language;
+        
+        if (!hasActiveFilters) {
+            showInitialSections();
+            return;
+        }
+        // Si hay filtros activos, continuar con la búsqueda vacía
     }
 
     showLoadingSpinner();
@@ -5001,9 +5009,15 @@ document.addEventListener('DOMContentLoaded', () => {
             searchFiltersState.type = filterTypeSelect?.value || '';
             searchFiltersState.language = filterLanguageSelect?.value || '';
             const q = (searchInput?.value || '').trim();
+            
+            // Aplicar filtros incluso sin término de búsqueda específico
             if (q.length >= 3) {
                 const searchMode = 'combined'; // Siempre usar búsqueda combinada
                 fetchCards(q, searchMode);
+            } else {
+                // Si no hay término de búsqueda, hacer búsqueda con filtros únicamente
+                const searchMode = 'combined';
+                fetchCards('', searchMode); // Búsqueda vacía con filtros
             }
         });
     }
