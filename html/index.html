@@ -8868,8 +8868,8 @@
                     });
                     
                     // Verificar si hay sistema de chat inicializado
-                    if (window.chatUI && window.chatUI.toggleMinimizedBar) {
-                        window.chatUI.toggleMinimizedBar();
+                    if (window.chatUI && window.chatUI.showChatList) {
+                        window.chatUI.showChatList();
                     } else {
                         console.warn('⚠️ Sistema de chat no inicializado');
                         showNotification('Sistema de chat no disponible. Intentando reinicializar...', 'warning');
@@ -8919,8 +8919,11 @@
             
             if (window.chatUI) {
                 console.log('🎨 ChatUI:', {
-                    hasToggleMinimizedBar: typeof window.chatUI.toggleMinimizedBar === 'function',
-                    hasOpenChat: typeof window.chatUI.openChat === 'function'
+                    hasShowChatList: typeof window.chatUI.showChatList === 'function',
+                    hasOpenChat: typeof window.chatUI.openChat === 'function',
+                    hasUpdateMinimizedBar: typeof window.chatUI.updateMinimizedBar === 'function',
+                    activeChats: window.chatUI.activeChats?.size || 0,
+                    minimizedChats: window.chatUI.minimizedChats?.size || 0
                 });
             }
             
@@ -8983,18 +8986,20 @@
             
             try {
                 // Probar métodos básicos
-                const hasToggleMinimizedBar = typeof window.chatUI.toggleMinimizedBar === 'function';
+                const hasShowChatList = typeof window.chatUI.showChatList === 'function';
                 const hasOpenChat = typeof window.chatUI.openChat === 'function';
+                const hasUpdateMinimizedBar = typeof window.chatUI.updateMinimizedBar === 'function';
                 
                 console.log('✅ Métodos disponibles:', {
-                    toggleMinimizedBar: hasToggleMinimizedBar,
-                    openChat: hasOpenChat
+                    showChatList: hasShowChatList,
+                    openChat: hasOpenChat,
+                    updateMinimizedBar: hasUpdateMinimizedBar
                 });
                 
-                if (hasToggleMinimizedBar) {
-                    console.log('🎯 Probando toggleMinimizedBar...');
-                    window.chatUI.toggleMinimizedBar();
-                    console.log('✅ toggleMinimizedBar ejecutado correctamente');
+                if (hasShowChatList) {
+                    console.log('🎯 Probando showChatList...');
+                    window.chatUI.showChatList();
+                    console.log('✅ showChatList ejecutado correctamente');
                 }
                 
                 showNotification('Prueba de chat completada. Revisa la consola.', 'success');
