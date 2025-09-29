@@ -298,50 +298,10 @@ class PostgresCardDatabase {
         }
     }
 
-    // Agregar carta a la base de datos
+    // Agregar carta a la base de datos (no necesario - tabla ya migrada)
     async addCard(cardData) {
-        try {
-            const sql = `
-                INSERT INTO cards (
-                    id, name, set_name, set_id, series, number, rarity, 
-                    types, subtypes, images, tcgplayer, cardmarket, last_updated
-                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, CURRENT_TIMESTAMP)
-                ON CONFLICT (id) DO UPDATE SET
-                    name = EXCLUDED.name,
-                    set_name = EXCLUDED.set_name,
-                    set_id = EXCLUDED.set_id,
-                    series = EXCLUDED.series,
-                    number = EXCLUDED.number,
-                    rarity = EXCLUDED.rarity,
-                    types = EXCLUDED.types,
-                    subtypes = EXCLUDED.subtypes,
-                    images = EXCLUDED.images,
-                    tcgplayer = EXCLUDED.tcgplayer,
-                    cardmarket = EXCLUDED.cardmarket,
-                    last_updated = CURRENT_TIMESTAMP
-            `;
-            
-            const params = [
-                cardData.id,
-                cardData.name,
-                cardData.set_name || '',
-                cardData.set_id || '',
-                cardData.series || '',
-                cardData.number || '',
-                cardData.rarity || '',
-                cardData.types || '',
-                cardData.subtypes || '',
-                cardData.images || '',
-                cardData.tcgplayer || '',
-                cardData.cardmarket || ''
-            ];
-            
-            await this.pool.query(sql, params);
-            return true;
-        } catch (error) {
-            console.error('❌ Error agregando carta:', error);
-            throw error;
-        }
+        console.log('⚠️ addCard no implementado - tabla ya migrada');
+        return false;
     }
 
     // Obtener carta por ID
