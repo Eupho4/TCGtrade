@@ -2041,10 +2041,17 @@
 
             try {
                 console.log('🤝 Cargando intercambios del usuario...');
+                console.log('👤 Usuario actual:', currentUser.uid);
 
                 // Cargar intercambios guardados del usuario ACTUAL (usando su UID)
                 const userTradesKey = `userTrades_${currentUser.uid}`;
                 const savedTrades = JSON.parse(localStorage.getItem(userTradesKey) || '[]');
+                
+                console.log('📦 Intercambios en localStorage:', {
+                    key: userTradesKey,
+                    count: savedTrades.length,
+                    trades: savedTrades.map(t => ({ id: t.id, title: t.title, userId: t.userId }))
+                });
                 
                 // Usar solo los intercambios guardados reales, sin datos de ejemplo
                 let allTrades = [...savedTrades];
@@ -2055,6 +2062,7 @@
                     createdAt: typeof trade.createdAt === 'string' ? new Date(trade.createdAt) : trade.createdAt
                 }));
 
+                console.log('🎯 Llamando displayTrades con:', allTrades.length, 'intercambios');
                 displayTrades(allTrades, 'myTradesContainer');
 
             } catch (error) {
@@ -2111,6 +2119,12 @@
         function displayTrades(trades, containerId) {
             const container = document.getElementById(containerId);
             if (!container) return;
+
+            console.log('🖼️ displayTrades llamado:', {
+                containerId: containerId,
+                tradesCount: trades.length,
+                trades: trades.map(t => ({ id: t.id, title: t.title, userId: t.userId, type: t.type }))
+            });
 
             if (trades.length === 0) {
                 container.innerHTML = `
@@ -5517,8 +5531,11 @@
                 document.querySelector('.fixed.inset-0.bg-black.bg-opacity-50').remove(); // Cerrar modal
                 
                 // Recargar intercambios
+                console.log('🔄 Recargando intercambios después de crear/editar...');
                 if (typeof loadUserTrades === 'function') {
                     loadUserTrades();
+                } else {
+                    console.error('❌ loadUserTrades no está disponible');
                 }
                 
             } catch (error) {
@@ -9009,6 +9026,80 @@
                 console.error('❌ Error en prueba de chat:', error);
                 showNotification('Error en prueba de chat: ' + error.message, 'error');
                 return false;
+            }
+        };
+
+        // Función de diagnóstico para intercambios
+        window.diagnoseTrades = function() {
+            console.log('🔍 === DIAGNÓSTICO DE INTERCAMBIOS ===');
+            console.log('👤 Usuario actual:', currentUser?.uid);
+            
+            if (!currentUser) {
+                console.error('❌ No hay usuario autenticado');
+                return;
+            }
+            
+            const userTradesKey = `userTrades_${currentUser.uid}`;
+            const savedTrades = JSON.parse(localStorage.getItem(userTradesKey) || '[]');
+            
+            console.log('📦 Intercambios del usuario:', {
+                key: userTradesKey,
+                count: savedTrades.length,
+                trades: savedTrades.map(t => ({
+                    id: t.id,
+                    title: t.title,
+                    userId: t.userId,
+                    createdAt: t.createdAt
+                }))
+            });
+            
+            // Verificar todos los intercambios en localStorage
+            console.log('🌍 Todos los intercambios en localStorage:');
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key && key.startsWith('userTrades_')) {
+                    const trades = JSON.parse(localStorage.getItem(key) || '[]');
+                    console.log(`- ${key}: ${trades.length} intercambios`, trades.map(t => ({ id: t.id, title: t.title })));
+                }
+            }
+            
+            // Verificar contenedor
+            const container = document.getElementById('myTradesContainer');
+            console.log('📱 Contenedor myTradesContainer:', {
+                exists: !!container,
+                innerHTML: container?.innerHTML?.substring(0, 200) + '...'
+            });
+            
+            console.log('🔧 Acciones disponibles:');
+            console.log('- window.diagnoseTrades() - Este diagnóstico');
+            console.log('- window.clearAllTrades() - Limpiar todos los intercambios');
+            console.log('- window.reloadTrades() - Recargar intercambios');
+        };
+        
+        // Función para limpiar todos los intercambios
+        window.clearAllTrades = function() {
+            if (!currentUser) {
+                console.error('❌ No hay usuario autenticado');
+                return;
+            }
+            
+            const userTradesKey = `userTrades_${currentUser.uid}`;
+            localStorage.setItem(userTradesKey, JSON.stringify([]));
+            console.log('🗑️ Intercambios del usuario limpiados');
+            
+            // Recargar la vista
+            if (typeof loadUserTrades === 'function') {
+                loadUserTrades();
+            }
+        };
+        
+        // Función para recargar intercambios
+        window.reloadTrades = function() {
+            console.log('🔄 Recargando intercambios manualmente...');
+            if (typeof loadUserTrades === 'function') {
+                loadUserTrades();
+            } else {
+                console.error('❌ loadUserTrades no está disponible');
             }
         };
 
