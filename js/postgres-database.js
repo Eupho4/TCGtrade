@@ -1,0 +1,554 @@
+const { Pool } = require('pg');
+
+class PostgresCardDatabase {
+    constructor() {
+        // Usar DATABASE_PUBLIC_URL para conexiones externas
+        this.connectionString = process.env.DATABASE_PUBLIC_URL || process.env.DATABASE_URL;
+        
+        if (!this.connectionString) {
+            throw new Error('DATABASE_URL no está configurada en las variables de entorno');
+        }
+
+        this.pool = new Pool({
+            connectionString: this.connectionString,
+            ssl: {
+                rejectUnauthorized: false // Necesario para Railway
+            }
+        });
+        
+        this.isInitialized = false;
+    }
+
+    // Inicializar base de datos
+    async init() {
+        if (this.isInitialized) return;
+        
+        try {
+            console.log('🗄️ Conectando a PostgreSQL en Railway...');
+            
+            // Probar conexión
+            const client = await this.pool.connect();
+            console.log('✅ Conectado a PostgreSQL exitosamente');
+            client.release();
+            
+            // Verificar si las tablas existen
+            await this.ensureTablesExist();
+            
+            this.isInitialized = true;
+            console.log('✅ Base de datos PostgreSQL inicializada correctamente');
+        } catch (error) {
+            console.error('❌ Error conectando a PostgreSQL:', error);
+            throw error;
+        }
+    }
+
+    // Asegurar que las tablas existan
+    async ensureTablesExist() {
+        try {
+            // Crear tabla de cartas si no existe
+            await this.pool.query(`
+                CREATE TABLE IF NOT EXISTS cards (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    set_name TEXT,
+                    set_id TEXT,
+                    series TEXT,
+                    number TEXT,
+                    rarity TEXT,
+                    types TEXT,
+                    subtypes TEXT,
+                    images TEXT,
+                    tcgplayer TEXT,
+                    cardmarket TEXT,
+                    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                    search_vector TEXT
+                )
+            `);
+
+            // Crear tabla de sets si no existe
+            await this.pool.query(`
+                CREATE TABLE IF NOT EXISTS sets (
+                    id TEXT PRIMARY KEY,
+                    name TEXT NOT NULL,
+                    series TEXT,
+                    printed_total INTEGER,
+                    total INTEGER,
+                    legalities TEXT,
+                    ptcgo_code TEXT,
+                    release_date TEXT,
+                    updated_at TEXT,
+                    images TEXT
+                )
+            `);
+
+            // Crear índices para búsquedas rápidas
+            await this.createIndexes();
+            
+            console.log('✅ Tablas y índices verificados/creados');
+        } catch (error) {
+            console.error('❌ Error creando tablas:', error);
+            throw error;
+        }
+    }
+
+    // Crear índices para búsquedas rápidas
+    async createIndexes() {
+        const indexes = [
+            'CREATE INDEX IF NOT EXISTS idx_cards_name ON cards(name)',
+            'CREATE INDEX IF NOT EXISTS idx_cards_set ON cards(set_name)',
+            'CREATE INDEX IF NOT EXISTS idx_cards_series ON cards(series)',
+            'CREATE INDEX IF NOT EXISTS idx_cards_number ON cards(number)',
+            'CREATE INDEX IF NOT EXISTS idx_cards_rarity ON cards(rarity)',
+            'CREATE INDEX IF NOT EXISTS idx_cards_types ON cards(types)',
+            'CREATE INDEX IF NOT EXISTS idx_cards_updated ON cards(last_updated)',
+            'CREATE INDEX IF NOT EXISTS idx_sets_name ON sets(name)',
+            'CREATE INDEX IF NOT EXISTS idx_sets_series ON sets(series)'
+        ];
+
+        for (const indexSQL of indexes) {
+            try {
+                await this.pool.query(indexSQL);
+            } catch (error) {
+                console.warn(`⚠️ Error creando índice: ${error.message}`);
+            }
+        }
+    }
+
+    // Búsqueda de cartas optimizada
+    async searchCards(query, page = 1, pageSize = 20, filters = {}, sort = 'name', direction = 'asc') {
+        try {
+            await this.ensureInitialized();
+            
+            const queryStr = String(query || '').toLowerCase();
+            const queryLower = `%${queryStr}%`;
+            const pageNum = parseInt(page) || 1;
+            const pageSizeNum = parseInt(pageSize) || 20;
+            const offset = (pageNum - 1) * pageSizeNum;
+            
+            let whereClause = '';
+            let params = [];
+            let paramCount = 1;
+            
+            // Mapeo de categorías especiales a subtipos
+            const categoryMapping = {
+                'trainer': ['Item', 'Supporter', 'Stadium', 'Pokémon Tool', 'Technical Machine'],
+                'trainers': ['Item', 'Supporter', 'Stadium', 'Pokémon Tool', 'Technical Machine'],
+                'energy': ['Special'],
+                'energies': ['Special'],
+                'energia': ['Special'],
+                'energias': ['Special']
+            };
+            
+            // Si es búsqueda aleatoria (pokemon sin filtros específicos)
+            const hasFilters = filters.series || filters.set || filters.rarity || filters.type || filters.subtype || filters.language || filters.hasImage || filters.hasPrice;
+            const isRandomSearch = queryStr === 'pokemon' && !hasFilters;
+            
+            // Verificar si es una búsqueda por categoría especial
+            const isCategorySearch = categoryMapping[queryStr];
+            
+            if (isRandomSearch) {
+                // Búsqueda aleatoria - no usar WHERE clause
+                whereClause = '';
+            } else if (queryStr === 'pokemon' && hasFilters) {
+                // Búsqueda aleatoria con filtros - solo aplicar filtros, no búsqueda de texto
+                whereClause = '';
+            } else if (isCategorySearch) {
+                // Búsqueda por categoría especial (trainers, energies, etc.)
+                const subtypes = categoryMapping[queryStr];
+                const subtypeConditions = subtypes.map(() => `subtypes LIKE $${paramCount++}`).join(' OR ');
+                whereClause = `WHERE (${subtypeConditions})`;
+                params = subtypes.map(subtype => `%${subtype}%`);
+            } else if (queryStr) {
+                // Búsqueda normal - usar WHERE clause para búsquedas específicas
+                whereClause = `WHERE (name ILIKE $${paramCount++} OR set_name ILIKE $${paramCount++} OR series ILIKE $${paramCount++} OR subtypes ILIKE $${paramCount++})`;
+                params = [queryLower, queryLower, queryLower, queryLower];
+            }
+            
+            // Aplicar filtros adicionales
+            if (filters.series) {
+                if (whereClause) {
+                    whereClause += ` AND series = $${paramCount++}`;
+                } else {
+                    whereClause = `WHERE series = $${paramCount++}`;
+                }
+                params.push(String(filters.series));
+            }
+            
+            if (filters.set) {
+                if (whereClause) {
+                    whereClause += ` AND set_name = $${paramCount++}`;
+                } else {
+                    whereClause = `WHERE set_name = $${paramCount++}`;
+                }
+                params.push(String(filters.set));
+            }
+            
+            if (filters.rarity) {
+                if (whereClause) {
+                    whereClause += ` AND rarity = $${paramCount++}`;
+                } else {
+                    whereClause = `WHERE rarity = $${paramCount++}`;
+                }
+                params.push(String(filters.rarity));
+            }
+            
+            if (filters.type) {
+                if (whereClause) {
+                    whereClause += ` AND types ILIKE $${paramCount++}`;
+                } else {
+                    whereClause = `WHERE types ILIKE $${paramCount++}`;
+                }
+                params.push(`%${String(filters.type)}%`);
+            }
+            
+            if (filters.language) {
+                if (whereClause) {
+                    whereClause += ` AND id ILIKE $${paramCount++}`;
+                } else {
+                    whereClause = `WHERE id ILIKE $${paramCount++}`;
+                }
+                params.push(`%-${String(filters.language)}`);
+            }
+            
+            if (filters.subtype) {
+                if (whereClause) {
+                    whereClause += ` AND subtypes ILIKE $${paramCount++}`;
+                } else {
+                    whereClause = `WHERE subtypes ILIKE $${paramCount++}`;
+                }
+                params.push(`%${String(filters.subtype)}%`);
+            }
+            
+            if (filters.hasImage !== undefined) {
+                if (whereClause) {
+                    whereClause += filters.hasImage ? ' AND images IS NOT NULL AND images != \'null\' AND images != \'\'' : ' AND (images IS NULL OR images = \'null\' OR images = \'\')';
+                } else {
+                    whereClause = filters.hasImage ? 'WHERE images IS NOT NULL AND images != \'null\' AND images != \'\'' : 'WHERE (images IS NULL OR images = \'null\' OR images = \'\')';
+                }
+            }
+            
+            if (filters.hasPrice !== undefined) {
+                if (whereClause) {
+                    whereClause += filters.hasPrice ? ' AND tcgplayer IS NOT NULL AND tcgplayer != \'null\' AND tcgplayer != \'{}\'' : ' AND (tcgplayer IS NULL OR tcgplayer = \'null\' OR tcgplayer = \'{}\')';
+                } else {
+                    whereClause = filters.hasPrice ? 'WHERE images IS NOT NULL AND images != \'null\' AND images != \'\'' : 'WHERE (images IS NULL OR images = \'null\' OR images = \'\')';
+                }
+            }
+
+            // Construir cláusula de ordenamiento
+            let orderClause = '';
+            if (isRandomSearch) {
+                orderClause = 'ORDER BY RANDOM()';
+            } else {
+                // Mapear campos de ordenamiento
+                const sortField = {
+                    'name': 'name',
+                    'rarity': 'rarity',
+                    'number': 'number',
+                    'random': 'RANDOM()'
+                }[sort] || 'name';
+                
+                const sortDirection = direction === 'desc' ? 'DESC' : 'ASC';
+                
+                if (sort === 'random') {
+                    orderClause = 'ORDER BY RANDOM()';
+                } else {
+                    orderClause = `ORDER BY ${sortField} ${sortDirection}`;
+                }
+            }
+            
+            // Ejecutar consulta principal
+            const cardsQuery = `
+                SELECT * FROM cards 
+                ${whereClause}
+                ${orderClause}
+                LIMIT $${paramCount++} OFFSET $${paramCount++}
+            `;
+            
+            const cardsResult = await this.pool.query(cardsQuery, [...params, pageSizeNum, offset]);
+
+            // Obtener total de resultados
+            const countQuery = `
+                SELECT COUNT(*) as count FROM cards 
+                ${whereClause}
+            `;
+            const countResult = await this.pool.query(countQuery, params);
+
+            // Procesar imágenes JSON y formatear para compatibilidad con API externa
+            const processedCards = cardsResult.rows.map(card => {
+                // Procesar imágenes
+                let images = null;
+                try {
+                    images = card.images ? JSON.parse(card.images) : null;
+                } catch (e) {
+                    images = null;
+                }
+                
+                // Procesar set_id (evitar "undefined-ja")
+                let setId = card.set_id;
+                if (setId && setId.includes('undefined')) {
+                    setId = card.id.split('-').slice(0, -1).join('-');
+                }
+                
+                return {
+                    id: card.id,
+                    name: card.name || 'Carta sin nombre',
+                    number: card.number || '',
+                    rarity: card.rarity || 'Common',
+                    types: card.types ? card.types.split(',').filter(t => t.trim()) : [],
+                    subtypes: card.subtypes ? card.subtypes.split(',').filter(t => t.trim()) : [],
+                    images: images && images.small ? images : { 
+                        small: '/images/card-placeholder.svg', 
+                        large: '/images/card-placeholder.svg' 
+                    },
+                    tcgplayer: card.tcgplayer ? JSON.parse(card.tcgplayer) : {},
+                    cardmarket: card.cardmarket ? JSON.parse(card.cardmarket) : {},
+                    set: {
+                        id: setId || '',
+                        name: card.set_name || 'Set desconocido',
+                        series: card.series || ''
+                    }
+                };
+            });
+
+            return {
+                data: processedCards,
+                totalCount: parseInt(countResult.rows[0].count),
+                page,
+                pageSize,
+                totalPages: Math.ceil(parseInt(countResult.rows[0].count) / pageSize)
+            };
+        } catch (error) {
+            console.error('❌ Error en búsqueda PostgreSQL:', error);
+            throw error;
+        }
+    }
+
+    // Agregar carta a la base de datos
+    async addCard(cardData) {
+        try {
+            const sql = `
+                INSERT INTO cards (
+                    id, name, set_name, set_id, series, number, rarity, 
+                    types, subtypes, images, tcgplayer, cardmarket, last_updated
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, CURRENT_TIMESTAMP)
+                ON CONFLICT (id) DO UPDATE SET
+                    name = EXCLUDED.name,
+                    set_name = EXCLUDED.set_name,
+                    set_id = EXCLUDED.set_id,
+                    series = EXCLUDED.series,
+                    number = EXCLUDED.number,
+                    rarity = EXCLUDED.rarity,
+                    types = EXCLUDED.types,
+                    subtypes = EXCLUDED.subtypes,
+                    images = EXCLUDED.images,
+                    tcgplayer = EXCLUDED.tcgplayer,
+                    cardmarket = EXCLUDED.cardmarket,
+                    last_updated = CURRENT_TIMESTAMP
+            `;
+            
+            const params = [
+                cardData.id,
+                cardData.name,
+                cardData.set_name || '',
+                cardData.set_id || '',
+                cardData.series || '',
+                cardData.number || '',
+                cardData.rarity || '',
+                cardData.types || '',
+                cardData.subtypes || '',
+                cardData.images || '',
+                cardData.tcgplayer || '',
+                cardData.cardmarket || ''
+            ];
+            
+            await this.pool.query(sql, params);
+            return true;
+        } catch (error) {
+            console.error('❌ Error agregando carta:', error);
+            throw error;
+        }
+    }
+
+    // Obtener carta por ID
+    async getCardById(id) {
+        try {
+            const result = await this.pool.query('SELECT * FROM cards WHERE id = $1', [id]);
+            if (result.rows.length > 0) {
+                const card = result.rows[0];
+                return {
+                    ...card,
+                    images: card.images ? JSON.parse(card.images) : null,
+                    types: card.types ? card.types.split(',') : []
+                };
+            }
+            return null;
+        } catch (error) {
+            console.error('❌ Error obteniendo carta por ID:', error);
+            throw error;
+        }
+    }
+
+    // Obtener sets disponibles
+    async getSets() {
+        try {
+            const result = await this.pool.query('SELECT * FROM sets ORDER BY name');
+            return result.rows.map(set => ({
+                ...set,
+                images: set.images ? JSON.parse(set.images) : null
+            }));
+        } catch (error) {
+            console.error('❌ Error obteniendo sets:', error);
+            throw error;
+        }
+    }
+
+    // Obtener estadísticas de la base de datos
+    async getStats() {
+        try {
+            const cardCountResult = await this.pool.query('SELECT COUNT(*) as count FROM cards');
+            const setCountResult = await this.pool.query('SELECT COUNT(*) as count FROM sets');
+            const lastUpdateResult = await this.pool.query('SELECT MAX(last_updated) as last FROM cards');
+            
+            return {
+                totalCards: parseInt(cardCountResult.rows[0].count),
+                totalSets: parseInt(setCountResult.rows[0].count),
+                lastUpdated: lastUpdateResult.rows[0].last,
+                databaseSize: 'PostgreSQL en Railway'
+            };
+        } catch (error) {
+            console.error('❌ Error obteniendo estadísticas:', error);
+            throw error;
+        }
+    }
+
+    // Obtener todas las series únicas
+    async getAllSets() {
+        try {
+            const result = await this.pool.query('SELECT DISTINCT set_name FROM cards WHERE set_name IS NOT NULL AND set_name != \'\' ORDER BY set_name');
+            return result.rows.map(row => row.set_name);
+        } catch (error) {
+            console.error('❌ Error obteniendo sets:', error);
+            return [];
+        }
+    }
+
+    // Obtener todos los tipos únicos
+    async getAllTypes() {
+        try {
+            const result = await this.pool.query('SELECT DISTINCT types FROM cards WHERE types IS NOT NULL AND types != \'\'');
+            const types = new Set();
+            result.rows.forEach(row => {
+                if (row.types) {
+                    row.types.split(',').forEach(type => {
+                        if (type.trim()) types.add(type.trim());
+                    });
+                }
+            });
+            return Array.from(types).sort();
+        } catch (error) {
+            console.error('❌ Error obteniendo tipos:', error);
+            return [];
+        }
+    }
+
+    // Obtener todas las rarezas únicas
+    async getAllRarities() {
+        try {
+            const result = await this.pool.query('SELECT DISTINCT rarity FROM cards WHERE rarity IS NOT NULL AND rarity != \'\' ORDER BY rarity');
+            return result.rows.map(row => row.rarity);
+        } catch (error) {
+            console.error('❌ Error obteniendo rarezas:', error);
+            return [];
+        }
+    }
+
+    // Obtener todos los subtipos únicos
+    async getAllSubtypes() {
+        try {
+            const result = await this.pool.query('SELECT DISTINCT subtypes FROM cards WHERE subtypes IS NOT NULL AND subtypes != \'\'');
+            const subtypes = new Set();
+            result.rows.forEach(row => {
+                if (row.subtypes) {
+                    row.subtypes.split(',').forEach(subtype => {
+                        if (subtype.trim()) subtypes.add(subtype.trim());
+                    });
+                }
+            });
+            return Array.from(subtypes).sort();
+        } catch (error) {
+            console.error('❌ Error obteniendo subtipos:', error);
+            return [];
+        }
+    }
+
+    // Obtener todos los idiomas únicos
+    async getAllLanguages() {
+        try {
+            // Idiomas disponibles en los datos
+            const result = await this.pool.query('SELECT DISTINCT id FROM cards WHERE id LIKE \'%-%\'');
+            const dataLanguages = new Set();
+            result.rows.forEach(row => {
+                const parts = row.id.split('-');
+                if (parts.length > 1) {
+                    dataLanguages.add(parts[parts.length - 1]);
+                }
+            });
+            
+            // Lista completa de idiomas de Pokémon TCG
+            const allLanguages = [
+                { code: 'en', name: 'English', category: 'western' },
+                { code: 'es', name: 'Español', category: 'western' },
+                { code: 'fr', name: 'Français', category: 'western' },
+                { code: 'de', name: 'Deutsch', category: 'western' },
+                { code: 'it', name: 'Italiano', category: 'western' },
+                { code: 'pt', name: 'Português', category: 'western' },
+                { code: 'ja', name: 'Japonés', category: 'asian' },
+                { code: 'ko', name: 'Coreano', category: 'asian' },
+                { code: 'zh-cn', name: 'Chino (Simplificado)', category: 'asian' },
+                { code: 'zh-tw', name: 'Chino (Tradicional)', category: 'asian' }
+            ];
+            
+            // Marcar qué idiomas están disponibles
+            const languagesWithAvailability = allLanguages.map(lang => ({
+                ...lang,
+                available: lang.category === 'western' || dataLanguages.has(lang.code)
+            }));
+            
+            return languagesWithAvailability;
+        } catch (error) {
+            console.error('❌ Error obteniendo idiomas:', error);
+            return [];
+        }
+    }
+
+    // Obtener todas las series únicas
+    async getAllSeries() {
+        try {
+            const result = await this.pool.query('SELECT DISTINCT series FROM cards WHERE series IS NOT NULL AND series != \'\' ORDER BY series');
+            return result.rows.map(row => row.series);
+        } catch (error) {
+            console.error('❌ Error obteniendo series:', error);
+            return [];
+        }
+    }
+
+    // Asegurar que esté inicializado
+    async ensureInitialized() {
+        if (!this.isInitialized) {
+            await this.init();
+        }
+    }
+
+    // Cerrar conexión
+    async close() {
+        try {
+            await this.pool.end();
+            console.log('✅ Conexión PostgreSQL cerrada correctamente');
+        } catch (error) {
+            console.error('❌ Error cerrando conexión PostgreSQL:', error);
+        }
+    }
+}
+
+module.exports = PostgresCardDatabase;

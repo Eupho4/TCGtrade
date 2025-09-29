@@ -3,13 +3,23 @@ const express = require('express');
 const cors = require('cors');
 const path = require('path');
 const https = require('https');
+const PostgresSearchEngine = require('./js/postgres-search-engine');
 const LocalSearchEngine = require('./js/local-search-engine');
 const DataMigrator = require('./js/data-migrator');
 
 class HybridAPIServer {
     constructor() {
         this.app = express();
-        this.searchEngine = new LocalSearchEngine();
+        
+        // Usar PostgreSQL si está disponible, sino SQLite local
+        if (process.env.DATABASE_URL || process.env.DATABASE_PUBLIC_URL) {
+            console.log('🗄️ Usando PostgreSQL en Railway');
+            this.searchEngine = new PostgresSearchEngine();
+        } else {
+            console.log('🗄️ Usando SQLite local (fallback)');
+            this.searchEngine = new LocalSearchEngine();
+        }
+        
         this.migrator = new DataMigrator();
         this.port = process.env.PORT || 3000;
         this.isInitialized = false;
@@ -84,9 +94,10 @@ class HybridAPIServer {
                 res.json({
                     status: 'online',
                     timestamp: new Date().toISOString(),
-                    searchEngine: 'Local SQLite',
+                    searchEngine: process.env.DATABASE_URL ? 'PostgreSQL en Railway' : 'Local SQLite',
                     totalCards: stats.totalCards,
-                    pokemonApiKey: !!process.env.POKEMON_TCG_API_KEY
+                    pokemonApiKey: !!process.env.POKEMON_TCG_API_KEY,
+                    databaseType: process.env.DATABASE_URL ? 'PostgreSQL' : 'SQLite'
                 });
             } catch (error) {
                 console.error('Error obteniendo estadísticas:', error);
