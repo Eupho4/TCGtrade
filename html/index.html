@@ -4728,6 +4728,13 @@
             console.log('🚀 === ABRIENDO MODAL ===');
             console.log('📥 Parámetro existingTrade recibido:', existingTrade);
             
+            // Verificar si ya existe un modal abierto
+            const existingModal = document.querySelector('#createTradeModal');
+            if (existingModal) {
+                console.log('⚠️ Modal ya existe, cerrando el anterior');
+                existingModal.remove();
+            }
+            
             if (!currentUser) {
                 showNotification('Debes iniciar sesión para crear intercambios', 'warning', 4000);
                 showAuthModal('login');
@@ -4746,6 +4753,7 @@
             }
 
             const modal = document.createElement('div');
+            modal.id = 'createTradeModal';
             modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4';
             modal.innerHTML = `
                 <div class="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-4xl w-full max-h-[90vh] overflow-y-auto shadow-xl">
@@ -7927,11 +7935,19 @@
 
             // Event listeners para botones de intercambios
             const createTradeBtn = document.getElementById('createTradeBtn');
+            const createFirstTradeBtn = document.getElementById('createFirstTradeBtn');
             const findTradesBtn = document.getElementById('findTradesBtn');
 
             if (createTradeBtn) {
                 createTradeBtn.addEventListener('click', () => {
                     console.log('➕ Crear intercambio clicked');
+                    showCreateTradeModal();
+                });
+            }
+
+            if (createFirstTradeBtn) {
+                createFirstTradeBtn.addEventListener('click', () => {
+                    console.log('➕ Crear primer intercambio clicked');
                     showCreateTradeModal();
                 });
             }
@@ -14113,7 +14129,7 @@
                                 <!-- Los intercambios se cargarán dinámicamente aquí -->
                                 <div class="text-center text-gray-500 dark:text-gray-400 py-8">
                                     <p>No tienes intercambios activos</p>
-                                    <button onclick="showCreateTradeModal()" class="btn-primary mt-4 px-4 py-2 rounded-lg text-sm font-semibold">
+                                    <button id="createFirstTradeBtn" class="btn-primary mt-4 px-4 py-2 rounded-lg text-sm font-semibold">
                                         Crear mi primer intercambio
                                     </button>
                                 </div>
