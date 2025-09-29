@@ -1327,7 +1327,7 @@ window.addFromMyCards = async function(type) {
             userCardsCache = [];
             
             querySnapshot.forEach(doc => {
-                userCardsCache.push(doc.data());
+                userCardsCache.push({ id: doc.id, ...doc.data() });
             });
         } catch (error) {
             console.error('Error cargando cartas:', error);
@@ -3647,7 +3647,7 @@ async function loadMyCollection(userId) {
         userCardsCache = [];
 
         querySnapshot.forEach(doc => {
-            userCardsCache.push(doc.data());
+            userCardsCache.push({ id: doc.id, ...doc.data() });
         });
 
         // Aplicar filtros
