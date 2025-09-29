@@ -3837,7 +3837,17 @@ window.removeCardFromCollection = async (cardId) => {
     try {
         await db.collection('users').doc(currentUser.uid).collection('my_cards').doc(cardId).delete();
         showNotification('Carta eliminada de tu colección', 'success', 3000);
+        
+        // Actualizar ambas vistas: Mis Cartas y Mi Colección del perfil
         await loadMyCollection(currentUser.uid);
+        if (typeof loadUserCollection === 'function') {
+            await loadUserCollection();
+        }
+        
+        // También actualizar las estadísticas del perfil
+        if (typeof loadProfileStats === 'function') {
+            await loadProfileStats();
+        }
     } catch (error) {
         console.error('Error al eliminar carta:', error);
         showNotification('Error al eliminar la carta. Inténtalo de nuevo.', 'error', 5000);
