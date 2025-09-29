@@ -258,13 +258,15 @@ class PostgresCardDatabase {
                 const types = Array.isArray(card.types) ? card.types : [];
                 const subtypes = Array.isArray(card.subtypes) ? card.subtypes : [];
                 
-                // Crear objeto de imágenes usando image_url
-                const images = card.image_url ? {
-                    small: card.image_url,
-                    large: card.image_url
-                } : {
-                    small: '/images/card-placeholder.svg',
-                    large: '/images/card-placeholder.svg'
+                // Generar URL de imagen usando la API de Pokemon TCG
+                // Formato: https://images.pokemontcg.io/{set_id}/{number}.png
+                const setId = card.id.split('-').slice(0, -1).join('-');
+                const cardNumber = card.number || card.id.split('-').pop();
+                const imageUrl = `https://images.pokemontcg.io/${setId}/${cardNumber}.png`;
+                
+                const images = {
+                    small: imageUrl,
+                    large: imageUrl
                 };
                 
                 return {
