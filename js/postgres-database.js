@@ -282,7 +282,7 @@ class PostgresCardDatabase {
                     set: {
                         id: card.id.split('-').slice(0, -1).join('-') || '',
                         name: card.set_name || 'Set desconocido',
-                        series: card.set_series || ''
+                        series: this.extractSeriesFromSetName(card.set_name) || ''
                     }
                 };
             });
@@ -451,6 +451,204 @@ class PostgresCardDatabase {
             console.error('❌ Error obteniendo series:', error);
             return [];
         }
+    }
+
+    // Extraer serie del nombre del set
+    extractSeriesFromSetName(setName) {
+        if (!setName) return '';
+        
+        // Mapeo de sets conocidos a sus series
+        const setToSeriesMap = {
+            // Base Set
+            'Base': 'Base',
+            'Base Set': 'Base',
+            'Base Set 2': 'Base',
+            'Base Set 2': 'Base',
+            
+            // Jungle
+            'Jungle': 'Jungle',
+            
+            // Fossil
+            'Fossil': 'Fossil',
+            
+            // Team Rocket
+            'Team Rocket': 'Team Rocket',
+            
+            // Gym Series
+            'Gym Heroes': 'Gym',
+            'Gym Challenge': 'Gym',
+            
+            // Neo Series
+            'Neo Genesis': 'Neo',
+            'Neo Discovery': 'Neo',
+            'Neo Revelation': 'Neo',
+            'Neo Destiny': 'Neo',
+            
+            // e-Card Series
+            'Expedition': 'e-Card',
+            'Aquapolis': 'e-Card',
+            'Skyridge': 'e-Card',
+            
+            // EX Series
+            'Ruby & Sapphire': 'EX',
+            'Sandstorm': 'EX',
+            'Dragon': 'EX',
+            'Team Magma vs Team Aqua': 'EX',
+            'Hidden Legends': 'EX',
+            'FireRed & LeafGreen': 'EX',
+            'Team Rocket Returns': 'EX',
+            'Deoxys': 'EX',
+            'Emerald': 'EX',
+            'Unseen Forces': 'EX',
+            'Delta Species': 'EX',
+            'Legend Maker': 'EX',
+            'Holon Phantoms': 'EX',
+            'Crystal Guardians': 'EX',
+            'Dragon Frontiers': 'EX',
+            'Power Keepers': 'EX',
+            
+            // Diamond & Pearl Series
+            'Diamond & Pearl': 'Diamond & Pearl',
+            'Mysterious Treasures': 'Diamond & Pearl',
+            'Secret Wonders': 'Diamond & Pearl',
+            'Great Encounters': 'Diamond & Pearl',
+            'Majestic Dawn': 'Diamond & Pearl',
+            'Legends Awakened': 'Diamond & Pearl',
+            'Stormfront': 'Diamond & Pearl',
+            
+            // Platinum Series
+            'Platinum': 'Platinum',
+            'Rising Rivals': 'Platinum',
+            'Supreme Victors': 'Platinum',
+            'Arceus': 'Platinum',
+            
+            // HeartGold & SoulSilver Series
+            'HeartGold & SoulSilver': 'HeartGold & SoulSilver',
+            'Unleashed': 'HeartGold & SoulSilver',
+            'Undaunted': 'HeartGold & SoulSilver',
+            'Triumphant': 'HeartGold & SoulSilver',
+            'Call of Legends': 'HeartGold & SoulSilver',
+            
+            // Black & White Series
+            'Black & White': 'Black & White',
+            'Emerging Powers': 'Black & White',
+            'Noble Victories': 'Black & White',
+            'Next Destinies': 'Black & White',
+            'Dark Explorers': 'Black & White',
+            'Dragons Exalted': 'Black & White',
+            'Boundaries Crossed': 'Black & White',
+            'Plasma Storm': 'Black & White',
+            'Plasma Freeze': 'Black & White',
+            'Plasma Blast': 'Black & White',
+            'Legendary Treasures': 'Black & White',
+            
+            // XY Series
+            'XY': 'XY',
+            'Flashfire': 'XY',
+            'Furious Fists': 'XY',
+            'Phantom Forces': 'XY',
+            'Primal Clash': 'XY',
+            'Roaring Skies': 'XY',
+            'Ancient Origins': 'XY',
+            'BREAKthrough': 'XY',
+            'BREAKpoint': 'XY',
+            'Fates Collide': 'XY',
+            'Steam Siege': 'XY',
+            'Evolutions': 'XY',
+            
+            // Sun & Moon Series
+            'Sun & Moon': 'Sun & Moon',
+            'Guardians Rising': 'Sun & Moon',
+            'Burning Shadows': 'Sun & Moon',
+            'Crimson Invasion': 'Sun & Moon',
+            'Ultra Prism': 'Sun & Moon',
+            'Forbidden Light': 'Sun & Moon',
+            'Celestial Storm': 'Sun & Moon',
+            'Lost Thunder': 'Sun & Moon',
+            'Team Up': 'Sun & Moon',
+            'Detective Pikachu': 'Sun & Moon',
+            'Unbroken Bonds': 'Sun & Moon',
+            'Unified Minds': 'Sun & Moon',
+            'Hidden Fates': 'Sun & Moon',
+            'Cosmic Eclipse': 'Sun & Moon',
+            
+            // Sword & Shield Series
+            'Sword & Shield': 'Sword & Shield',
+            'Rebel Clash': 'Sword & Shield',
+            'Darkness Ablaze': 'Sword & Shield',
+            'Champion\'s Path': 'Sword & Shield',
+            'Vivid Voltage': 'Sword & Shield',
+            'Battle Styles': 'Sword & Shield',
+            'Chilling Reign': 'Sword & Shield',
+            'Evolving Skies': 'Sword & Shield',
+            'Celebrations': 'Sword & Shield',
+            'Fusion Strike': 'Sword & Shield',
+            'Brilliant Stars': 'Sword & Shield',
+            'Astral Radiance': 'Sword & Shield',
+            'Lost Origin': 'Sword & Shield',
+            'Silver Tempest': 'Sword & Shield',
+            'Crown Zenith': 'Sword & Shield',
+            
+            // Scarlet & Violet Series
+            'Scarlet & Violet': 'Scarlet & Violet',
+            'Paldea Evolved': 'Scarlet & Violet',
+            'Obsidian Flames': 'Scarlet & Violet',
+            '151': 'Scarlet & Violet',
+            'Paradox Rift': 'Scarlet & Violet',
+            'Paldean Fates': 'Scarlet & Violet',
+            'Temporal Forces': 'Scarlet & Violet',
+            'Twilight Masquerade': 'Scarlet & Violet',
+            'Shrouded Fable': 'Scarlet & Violet',
+            'Ancient Roar': 'Scarlet & Violet',
+            'Future Flash': 'Scarlet & Violet',
+            'Shining Treasure ex': 'Scarlet & Violet',
+            'Wild Force': 'Scarlet & Violet',
+            'Cyber Judge': 'Scarlet & Violet',
+            'Peach Moon': 'Scarlet & Violet',
+            'Mask of Change': 'Scarlet & Violet',
+            'Stellar Crown': 'Scarlet & Violet',
+            'Shrouded Fable': 'Scarlet & Violet',
+            'Ancient Roar': 'Scarlet & Violet',
+            'Future Flash': 'Scarlet & Violet',
+            'Shining Treasure ex': 'Scarlet & Violet',
+            'Wild Force': 'Scarlet & Violet',
+            'Cyber Judge': 'Scarlet & Violet',
+            'Peach Moon': 'Scarlet & Violet',
+            'Mask of Change': 'Scarlet & Violet',
+            'Stellar Crown': 'Scarlet & Violet'
+        };
+        
+        // Buscar coincidencia exacta
+        if (setToSeriesMap[setName]) {
+            return setToSeriesMap[setName];
+        }
+        
+        // Buscar coincidencia parcial para sets con variaciones
+        for (const [set, series] of Object.entries(setToSeriesMap)) {
+            if (setName.includes(set) || set.includes(setName)) {
+                return series;
+            }
+        }
+        
+        // Si no se encuentra, intentar extraer del nombre
+        if (setName.includes('Base')) return 'Base';
+        if (setName.includes('Jungle')) return 'Jungle';
+        if (setName.includes('Fossil')) return 'Fossil';
+        if (setName.includes('Team Rocket')) return 'Team Rocket';
+        if (setName.includes('Gym')) return 'Gym';
+        if (setName.includes('Neo')) return 'Neo';
+        if (setName.includes('Expedition') || setName.includes('Aquapolis') || setName.includes('Skyridge')) return 'e-Card';
+        if (setName.includes('Ruby') || setName.includes('Sapphire') || setName.includes('EX')) return 'EX';
+        if (setName.includes('Diamond') || setName.includes('Pearl')) return 'Diamond & Pearl';
+        if (setName.includes('Platinum')) return 'Platinum';
+        if (setName.includes('HeartGold') || setName.includes('SoulSilver')) return 'HeartGold & SoulSilver';
+        if (setName.includes('Black') || setName.includes('White')) return 'Black & White';
+        if (setName.includes('XY')) return 'XY';
+        if (setName.includes('Sun') || setName.includes('Moon')) return 'Sun & Moon';
+        if (setName.includes('Sword') || setName.includes('Shield')) return 'Sword & Shield';
+        if (setName.includes('Scarlet') || setName.includes('Violet')) return 'Scarlet & Violet';
+        
+        return '';
     }
 
     // Asegurar que esté inicializado
