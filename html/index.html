@@ -3172,6 +3172,11 @@
             existingProposals.push(proposalData);
             localStorage.setItem(proposalsKey, JSON.stringify(existingProposals));
             
+            console.log('💾 Debug handleProposalSubmit:');
+            console.log('- Proposal saved with key:', proposalsKey);
+            console.log('- Proposal data:', proposalData);
+            console.log('- All proposals in key:', existingProposals);
+            
             // Cerrar modal y mostrar confirmación
             document.getElementById('proposalModal').remove();
             showNotification('✅ Propuesta enviada con éxito! El usuario será notificado.', 'success', 5000);
@@ -3410,13 +3415,21 @@
             // Buscar todas las propuestas enviadas por el usuario
             const proposalKeys = Object.keys(localStorage).filter(key => key.startsWith('proposals_'));
             
+            console.log('🔍 Debug loadSentProposals:');
+            console.log('- Current user ID:', currentUser.uid);
+            console.log('- Proposal keys found:', proposalKeys);
+            
             proposalKeys.forEach(key => {
                 const proposals = JSON.parse(localStorage.getItem(key) || '[]');
+                console.log(`- Key ${key}:`, proposals);
                 const userProposals = proposals.filter(p => p.fromUserId === currentUser.uid);
+                console.log(`- User proposals in ${key}:`, userProposals);
                 userProposals.forEach(proposal => {
                     sentProposals.push(proposal);
                 });
             });
+            
+            console.log('- Total sent proposals found:', sentProposals);
             
             if (sentProposals.length === 0) {
                 container.innerHTML = `
