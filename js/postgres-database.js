@@ -45,25 +45,9 @@ class PostgresCardDatabase {
     // Asegurar que las tablas existan
     async ensureTablesExist() {
         try {
-            // Crear tabla de cartas si no existe
-            await this.pool.query(`
-                CREATE TABLE IF NOT EXISTS cards (
-                    id TEXT PRIMARY KEY,
-                    name TEXT NOT NULL,
-                    set_name TEXT,
-                    set_id TEXT,
-                    series TEXT,
-                    number TEXT,
-                    rarity TEXT,
-                    types TEXT,
-                    subtypes TEXT,
-                    images TEXT,
-                    tcgplayer TEXT,
-                    cardmarket TEXT,
-                    last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    search_vector TEXT
-                )
-            `);
+            // La tabla cards ya existe con la estructura migrada
+            // No necesitamos crearla, solo verificar que existe
+            console.log('✅ Tabla cards ya existe con estructura migrada');
 
             // Crear tabla de sets si no existe
             await this.pool.query(`
@@ -160,16 +144,16 @@ class PostgresCardDatabase {
                 params = subtypes.map(subtype => `%${subtype}%`);
             } else if (queryStr) {
                 // Búsqueda normal - usar WHERE clause para búsquedas específicas
-                whereClause = `WHERE (name ILIKE $${paramCount++} OR set_name ILIKE $${paramCount++} OR series ILIKE $${paramCount++} OR subtypes ILIKE $${paramCount++})`;
+                whereClause = `WHERE (name ILIKE $${paramCount++} OR set_name ILIKE $${paramCount++} OR set_series ILIKE $${paramCount++} OR subtypes::text ILIKE $${paramCount++})`;
                 params = [queryLower, queryLower, queryLower, queryLower];
             }
             
             // Aplicar filtros adicionales
             if (filters.series) {
                 if (whereClause) {
-                    whereClause += ` AND series = $${paramCount++}`;
+                    whereClause += ` AND set_series = $${paramCount++}`;
                 } else {
-                    whereClause = `WHERE series = $${paramCount++}`;
+                    whereClause = `WHERE set_series = $${paramCount++}`;
                 }
                 params.push(String(filters.series));
             }
@@ -194,9 +178,9 @@ class PostgresCardDatabase {
             
             if (filters.type) {
                 if (whereClause) {
-                    whereClause += ` AND types ILIKE $${paramCount++}`;
+                    whereClause += ` AND types::text ILIKE $${paramCount++}`;
                 } else {
-                    whereClause = `WHERE types ILIKE $${paramCount++}`;
+                    whereClause = `WHERE types::text ILIKE $${paramCount++}`;
                 }
                 params.push(`%${String(filters.type)}%`);
             }
@@ -212,28 +196,22 @@ class PostgresCardDatabase {
             
             if (filters.subtype) {
                 if (whereClause) {
-                    whereClause += ` AND subtypes ILIKE $${paramCount++}`;
+                    whereClause += ` AND subtypes::text ILIKE $${paramCount++}`;
                 } else {
-                    whereClause = `WHERE subtypes ILIKE $${paramCount++}`;
+                    whereClause = `WHERE subtypes::text ILIKE $${paramCount++}`;
                 }
                 params.push(`%${String(filters.subtype)}%`);
             }
             
             if (filters.hasImage !== undefined) {
                 if (whereClause) {
-                    whereClause += filters.hasImage ? ' AND images IS NOT NULL AND images != \'null\' AND images != \'\'' : ' AND (images IS NULL OR images = \'null\' OR images = \'\')';
+                    whereClause += filters.hasImage ? ' AND image_url IS NOT NULL AND image_url != \'null\' AND image_url != \'\'' : ' AND (image_url IS NULL OR image_url = \'null\' OR image_url = \'\')';
                 } else {
-                    whereClause = filters.hasImage ? 'WHERE images IS NOT NULL AND images != \'null\' AND images != \'\'' : 'WHERE (images IS NULL OR images = \'null\' OR images = \'\')';
+                    whereClause = filters.hasImage ? 'WHERE image_url IS NOT NULL AND image_url != \'null\' AND image_url != \'\'' : 'WHERE (image_url IS NULL OR image_url = \'null\' OR image_url = \'\')';
                 }
             }
             
-            if (filters.hasPrice !== undefined) {
-                if (whereClause) {
-                    whereClause += filters.hasPrice ? ' AND tcgplayer IS NOT NULL AND tcgplayer != \'null\' AND tcgplayer != \'{}\'' : ' AND (tcgplayer IS NULL OR tcgplayer = \'null\' OR tcgplayer = \'{}\')';
-                } else {
-                    whereClause = filters.hasPrice ? 'WHERE images IS NOT NULL AND images != \'null\' AND images != \'\'' : 'WHERE (images IS NULL OR images = \'null\' OR images = \'\')';
-                }
-            }
+            // hasPrice no está disponible en la estructura migrada, omitir
 
             // Construir cláusula de ordenamiento
             let orderClause = '';
@@ -274,39 +252,35 @@ class PostgresCardDatabase {
             `;
             const countResult = await this.pool.query(countQuery, params);
 
-            // Procesar imágenes JSON y formatear para compatibilidad con API externa
+            // Procesar resultados y formatear para compatibilidad con API externa
             const processedCards = cardsResult.rows.map(card => {
-                // Procesar imágenes
-                let images = null;
-                try {
-                    images = card.images ? JSON.parse(card.images) : null;
-                } catch (e) {
-                    images = null;
-                }
+                // Procesar tipos y subtipos (son arrays en PostgreSQL)
+                const types = Array.isArray(card.types) ? card.types : [];
+                const subtypes = Array.isArray(card.subtypes) ? card.subtypes : [];
                 
-                // Procesar set_id (evitar "undefined-ja")
-                let setId = card.set_id;
-                if (setId && setId.includes('undefined')) {
-                    setId = card.id.split('-').slice(0, -1).join('-');
-                }
+                // Crear objeto de imágenes usando image_url
+                const images = card.image_url ? {
+                    small: card.image_url,
+                    large: card.image_url
+                } : {
+                    small: '/images/card-placeholder.svg',
+                    large: '/images/card-placeholder.svg'
+                };
                 
                 return {
                     id: card.id,
                     name: card.name || 'Carta sin nombre',
                     number: card.number || '',
                     rarity: card.rarity || 'Common',
-                    types: card.types ? card.types.split(',').filter(t => t.trim()) : [],
-                    subtypes: card.subtypes ? card.subtypes.split(',').filter(t => t.trim()) : [],
-                    images: images && images.small ? images : { 
-                        small: '/images/card-placeholder.svg', 
-                        large: '/images/card-placeholder.svg' 
-                    },
-                    tcgplayer: card.tcgplayer ? JSON.parse(card.tcgplayer) : {},
-                    cardmarket: card.cardmarket ? JSON.parse(card.cardmarket) : {},
+                    types: types,
+                    subtypes: subtypes,
+                    images: images,
+                    tcgplayer: {}, // No disponible en la estructura migrada
+                    cardmarket: {}, // No disponible en la estructura migrada
                     set: {
-                        id: setId || '',
+                        id: card.id.split('-').slice(0, -1).join('-') || '',
                         name: card.set_name || 'Set desconocido',
-                        series: card.series || ''
+                        series: card.set_series || ''
                     }
                 };
             });
@@ -436,16 +410,8 @@ class PostgresCardDatabase {
     // Obtener todos los tipos únicos
     async getAllTypes() {
         try {
-            const result = await this.pool.query('SELECT DISTINCT types FROM cards WHERE types IS NOT NULL AND types != \'\'');
-            const types = new Set();
-            result.rows.forEach(row => {
-                if (row.types) {
-                    row.types.split(',').forEach(type => {
-                        if (type.trim()) types.add(type.trim());
-                    });
-                }
-            });
-            return Array.from(types).sort();
+            const result = await this.pool.query('SELECT DISTINCT unnest(types) as type FROM cards WHERE types IS NOT NULL AND array_length(types, 1) > 0');
+            return result.rows.map(row => row.type).filter(type => type && type.trim()).sort();
         } catch (error) {
             console.error('❌ Error obteniendo tipos:', error);
             return [];
@@ -466,16 +432,8 @@ class PostgresCardDatabase {
     // Obtener todos los subtipos únicos
     async getAllSubtypes() {
         try {
-            const result = await this.pool.query('SELECT DISTINCT subtypes FROM cards WHERE subtypes IS NOT NULL AND subtypes != \'\'');
-            const subtypes = new Set();
-            result.rows.forEach(row => {
-                if (row.subtypes) {
-                    row.subtypes.split(',').forEach(subtype => {
-                        if (subtype.trim()) subtypes.add(subtype.trim());
-                    });
-                }
-            });
-            return Array.from(subtypes).sort();
+            const result = await this.pool.query('SELECT DISTINCT unnest(subtypes) as subtype FROM cards WHERE subtypes IS NOT NULL AND array_length(subtypes, 1) > 0');
+            return result.rows.map(row => row.subtype).filter(subtype => subtype && subtype.trim()).sort();
         } catch (error) {
             console.error('❌ Error obteniendo subtipos:', error);
             return [];
@@ -525,8 +483,8 @@ class PostgresCardDatabase {
     // Obtener todas las series únicas
     async getAllSeries() {
         try {
-            const result = await this.pool.query('SELECT DISTINCT series FROM cards WHERE series IS NOT NULL AND series != \'\' ORDER BY series');
-            return result.rows.map(row => row.series);
+            const result = await this.pool.query('SELECT DISTINCT set_series FROM cards WHERE set_series IS NOT NULL AND set_series != \'\' ORDER BY set_series');
+            return result.rows.map(row => row.set_series);
         } catch (error) {
             console.error('❌ Error obteniendo series:', error);
             return [];
