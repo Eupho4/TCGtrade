@@ -81,6 +81,13 @@
         import ChatUI from '/js/modules/chat-ui.js?v=33';
         import { ChatDebugger } from '/js/modules/chat-debug.js?v=33';
         
+        // Verificar que las importaciones se cargaron correctamente
+        console.log('🔍 Verificando importaciones de chat:', {
+            ChatManager: typeof ChatManager,
+            ChatUI: typeof ChatUI,
+            ChatDebugger: typeof ChatDebugger
+        });
+        
         // Importar módulos de migración y sincronización
         import DataMigration from '/js/modules/data-migration.js?v=34';
         import DataSync from '/js/modules/data-sync.js?v=34';
@@ -8429,7 +8436,25 @@
                 // Inicializar sistema de chat si el usuario está autenticado
                 if (user && !chatManager) {
                     console.log('💬 Inicializando sistema de chat...');
+                    console.log('🔍 Verificando clases disponibles:', {
+                        ChatManager: typeof ChatManager,
+                        ChatUI: typeof ChatUI,
+                        ChatDebugger: typeof ChatDebugger
+                    });
+                    
                     try {
+                        if (typeof ChatManager === 'undefined') {
+                            console.error('❌ ChatManager no está disponible');
+                            showNotification('Error: ChatManager no se cargó correctamente', 'error');
+                            return;
+                        }
+                        
+                        if (typeof ChatUI === 'undefined') {
+                            console.error('❌ ChatUI no está disponible');
+                            showNotification('Error: ChatUI no se cargó correctamente', 'error');
+                            return;
+                        }
+                        
                         chatManager = new ChatManager(auth, db);
                         chatUI = new ChatUI(chatManager);
                         const chatDebugger = new ChatDebugger(chatManager);
@@ -8439,8 +8464,15 @@
                         window.chatDebugger = chatDebugger; // Hacer disponible globalmente
                         
                         console.log('✅ Sistema de chat inicializado correctamente');
+                        console.log('📊 Instancias creadas:', {
+                            chatManager: !!window.chatManager,
+                            chatUI: !!window.chatUI,
+                            chatDebugger: !!window.chatDebugger
+                        });
                     } catch (error) {
                         console.error('❌ Error al inicializar chat:', error);
+                        console.error('❌ Stack trace:', error.stack);
+                        showNotification('Error al inicializar el chat: ' + error.message, 'error');
                     }
                     
                     // Inicializar sistema de migración y sincronización
