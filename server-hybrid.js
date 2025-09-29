@@ -171,7 +171,9 @@ class HybridAPIServer {
         // Endpoint para obtener sets únicos
         this.app.get('/api/pokemontcg/sets', async (req, res) => {
             try {
+                console.log('🔍 Obteniendo sets desde PostgreSQL...');
                 const sets = await this.searchEngine.getAllSets();
+                console.log('✅ Sets obtenidos:', sets.length, 'primer set:', sets[0]);
                 res.json({
                     success: true,
                     data: sets,
