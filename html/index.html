@@ -2037,7 +2037,14 @@
         
         // Función para cargar intercambios del usuario
         async function loadUserTrades() {
-            if (!currentUser) return;
+            console.log('🤝 === INICIANDO loadUserTrades ===');
+            console.log('👤 currentUser:', currentUser);
+            console.log('👤 currentUser?.uid:', currentUser?.uid);
+            
+            if (!currentUser) {
+                console.log('❌ No hay usuario actual, saliendo de loadUserTrades');
+                return;
+            }
 
             try {
                 console.log('🤝 Cargando intercambios del usuario...');
@@ -2063,6 +2070,20 @@
                 }));
 
                 console.log('🎯 Llamando displayTrades con:', allTrades.length, 'intercambios');
+                
+                // Verificar si el contenedor existe
+                const container = document.getElementById('myTradesContainer');
+                console.log('📱 Contenedor myTradesContainer:', {
+                    exists: !!container,
+                    visible: container ? container.offsetParent !== null : false,
+                    innerHTML: container ? container.innerHTML.substring(0, 100) + '...' : 'N/A'
+                });
+                
+                if (!container) {
+                    console.error('❌ Contenedor myTradesContainer no encontrado');
+                    return;
+                }
+                
                 displayTrades(allTrades, 'myTradesContainer');
 
             } catch (error) {
@@ -8485,6 +8506,25 @@
                     }
                 }
 
+                // Cargar intercambios del usuario después del login
+                if (user) {
+                    console.log('🔄 === CARGANDO INTERCAMBIOS DESPUÉS DEL LOGIN ===');
+                    console.log('👤 Usuario logueado:', user.uid);
+                    
+                    // Verificar si loadUserTrades está disponible
+                    if (typeof loadUserTrades === 'function') {
+                        console.log('✅ loadUserTrades está disponible, ejecutando...');
+                        try {
+                            await loadUserTrades();
+                            console.log('✅ loadUserTrades ejecutado correctamente');
+                        } catch (error) {
+                            console.error('❌ Error al ejecutar loadUserTrades:', error);
+                        }
+                    } else {
+                        console.error('❌ loadUserTrades no está disponible');
+                    }
+                }
+
                 // Inicializar sistema de chat si el usuario está autenticado
                 if (user && !chatManager) {
                     console.log('💬 Inicializando sistema de chat...');
@@ -9183,6 +9223,43 @@
             }
         };
         
+        // Función para forzar la carga de intercambios
+        window.forceLoadTrades = function() {
+            console.log('🚀 === FORZANDO CARGA DE INTERCAMBIOS ===');
+            console.log('👤 Usuario actual:', currentUser?.uid);
+            
+            if (!currentUser) {
+                console.error('❌ No hay usuario autenticado');
+                return;
+            }
+            
+            // Verificar localStorage directamente
+            const userTradesKey = `userTrades_${currentUser.uid}`;
+            const savedTrades = JSON.parse(localStorage.getItem(userTradesKey) || '[]');
+            
+            console.log('📦 Intercambios en localStorage:', {
+                key: userTradesKey,
+                count: savedTrades.length,
+                trades: savedTrades.map(t => ({ id: t.id, title: t.title }))
+            });
+            
+            // Verificar contenedor
+            const container = document.getElementById('myTradesContainer');
+            console.log('📱 Estado del contenedor:', {
+                exists: !!container,
+                visible: container ? container.offsetParent !== null : false,
+                currentContent: container ? container.innerHTML.substring(0, 200) : 'N/A'
+            });
+            
+            // Forzar carga
+            if (typeof loadUserTrades === 'function') {
+                console.log('🔄 Ejecutando loadUserTrades...');
+                loadUserTrades();
+            } else {
+                console.error('❌ loadUserTrades no está disponible');
+            }
+        };
+
         // Función para limpiar intercambios de otros usuarios
         window.cleanGhostTrades = function() {
             console.log('🧹 === LIMPIANDO INTERCAMBIOS FANTASMA ===');
