@@ -1,6 +1,23 @@
 # TCGtrade - Intercambio de Cartas Pokémon TCG
 
-Una aplicación web para intercambio de cartas Pokémon TCG conectada a la API oficial de Pokémon TCG.
+Una aplicación web para intercambio de cartas Pokémon TCG con sistema de precios estimados y búsqueda avanzada.
+
+## ✨ Novedades - Sistema de Precios Estimados
+
+**Última actualización**: Octubre 3, 2025
+
+✅ **Sistema de precios estimados implementado**
+- Precios estimados para todas las cartas basados en rareza, condición e idioma
+- Indicadores visuales en la interfaz (badge "Estimado")
+- Formato EUR (€) para precios europeos
+- Preparado para integración con APIs reales (TCGPlayer/CardMarket)
+
+📚 **Documentación completa**:
+- [RESUMEN_CAMBIOS.md](RESUMEN_CAMBIOS.md) - Resumen de la implementación
+- [SISTEMA_PRECIOS_ESTIMADOS.md](SISTEMA_PRECIOS_ESTIMADOS.md) - Documentación técnica
+- [DEPLOYMENT_GUIDE.md](DEPLOYMENT_GUIDE.md) - Guía de deployment
+
+🚀 **Deployment rápido**: `./deploy.sh`
 
 ## 🚀 Configuración
 

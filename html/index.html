@@ -9374,7 +9374,7 @@
             const cardmarketPrices = card.cardmarket?.prices || {};
             
             // Función para formatear precios
-            const formatPrice = (price) => price ? `$${parseFloat(price).toFixed(2)}` : 'N/A';
+            const formatPrice = (price) => price ? `€${parseFloat(price).toFixed(2)}` : 'N/A';
             
             // Función para obtener color del tipo
             const getTypeColor = (type) => {
@@ -9515,9 +9515,16 @@
                         <!-- Precios -->
                         ${(Object.keys(tcgplayerPrices).length > 0 || Object.keys(cardmarketPrices).length > 0) ? `
                         <div class="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-lg border border-gray-200 dark:border-gray-700">
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center">
-                                <span class="mr-2">💰</span>
-                                Precios de Mercado
+                            <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-3 flex items-center justify-between">
+                                <div class="flex items-center">
+                                    <span class="mr-2">💰</span>
+                                    Precios de Mercado
+                                </div>
+                                ${(tcgplayerPrices.isEstimated || cardmarketPrices.isEstimated) ? `
+                                <span class="text-xs bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-200 px-2 py-1 rounded-full">
+                                    📊 Estimado
+                                </span>
+                                ` : ''}
                             </h3>
                             <div class="space-y-4">
                                 ${Object.keys(tcgplayerPrices).length > 0 ? `
@@ -9562,6 +9569,12 @@
                                 </div>
                                 ` : ''}
                             </div>
+                            ${(tcgplayerPrices.isEstimated || cardmarketPrices.isEstimated) ? `
+                            <div class="mt-3 text-xs text-gray-500 dark:text-gray-400 bg-yellow-50 dark:bg-yellow-900/20 p-2 rounded border-l-4 border-yellow-400">
+                                <strong>ℹ️ Nota:</strong> Estos son precios estimados basados en rareza y condición. 
+                                Los precios reales pueden variar según el mercado.
+                            </div>
+                            ` : ''}
                         </div>
                         ` : ''}
                     </div>
