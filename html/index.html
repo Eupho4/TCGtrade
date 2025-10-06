@@ -10463,62 +10463,386 @@
             const withFilters = buildCardsQuery(baseQuery);
             const qParam = encodeURIComponent(withFilters);
             const pageParam = page ? `&page=${page}` : '';
-            const seriesParam = searchFiltersState.series ? `&series=${encodeURIComponent(searchFiltersState.series)}` : '';
-            const setParam = searchFiltersState.set ? `&set=${encodeURIComponent(searchFiltersState.set)}` : '';
-            const rarityParam = searchFiltersState.rarity ? `&rarity=${encodeURIComponent(searchFiltersState.rarity)}` : '';
-            const typeParam = searchFiltersState.type ? `&type=${encodeURIComponent(searchFiltersState.type)}` : '';
-            const languageParam = searchFiltersState.language ? `&language=${encodeURIComponent(searchFiltersState.language)}` : '';
-            const subtypeParam = searchFiltersState.subtype ? `&subtype=${encodeURIComponent(searchFiltersState.subtype)}` : '';
-            const hasImageParam = searchFiltersState.hasImage ? `&hasImage=${searchFiltersState.hasImage}` : '';
-            const hasPriceParam = searchFiltersState.hasPrice ? `&hasPrice=${searchFiltersState.hasPrice}` : '';
-            
-            // Usar URL relativa para que funcione tanto en local como en producción
-            const baseUrl = window.location.origin;
-            const finalUrl = `${baseUrl}/api/pokemontcg/cards?q=${qParam}${pageParam}&pageSize=${pageSize}${seriesParam}${setParam}${rarityParam}${typeParam}${languageParam}${subtypeParam}${hasImageParam}${hasPriceParam}`;
-            
-            console.log('🔗 buildCardsApiUrl generando URL:');
-            console.log('  - Base query:', baseQuery);
-            console.log('  - With filters:', withFilters);
-            console.log('  - searchFiltersState:', searchFiltersState);
-            console.log('  - URL final:', finalUrl);
-            
-            return finalUrl;
+            const seriesParam = searchFiltersState.series ? `&series=${encodeURIComponent(searchFilter        // Función para formatear precios
+        function formatPrice(price) {
+            return price ? `$${parseFloat(price).toFixed(2)}` : 'N/A';
         }
 
-        function renderPagination(totalCount, page, pageSize) {
-            const pagination = document.getElementById('searchPagination');
-            if (!pagination) return;
-            pagination.innerHTML = '';
-            if (!totalCount || totalCount <= pageSize) return;
+        // Función para obtener el precio más relevante de una carta
+        function getBestPrice(card) {
+            const tcgplayerPrices = card.tcgplayer?.prices || {};
+            const cardmarketPrices = card.cardmarket?.prices || {};
+            
+            // Priorizar TCGPlayer market price, luego mid, luego low
+            if (tcgplayerPrices.normal?.market) return { price: tcgplayerPrices.normal.market, source: 'TCGPlayer', condition: 'Normal' };
+            if (tcgplayerPrices.normal?.mid) return { price: tcgplayerPrices.normal.mid, source: 'TCGPlayer', condition: 'Normal' };
+            if (tcgplayerPrices.normal?.low) return { price: tcgplayerPrices.normal.low, source: 'TCGPlayer', condition: 'Normal' };
+            
+            // Si no hay TCGPlayer, usar Cardmarket
+            if (cardmarketPrices.averageSellPrice) return { price: cardmarketPrices.averageSellPrice, source: 'Cardmarket', condition: 'Promedio' };
+            if (cardmarketPrices.lowPrice) return { price: cardmarketPrices.lowPrice, source: 'Cardmarket', condition: 'Bajo' };
+            if (cardmarketPrices.trendPrice) return { price: cardmarketPrices.trendPrice, source: 'Cardmarket', condition: 'Tendencia' };
+            
+            return null;
+        }
 
-            const totalPages = Math.ceil(totalCount / pageSize);
-            const maxButtons = 7;
-            const start = Math.max(1, page - 3);
-            const end = Math.min(totalPages, start + maxButtons - 1);
+        // Función para renderizar cartas desde datos (reutilizable)
+        function renderCardsFromData(cards) {
+            console.log('🎴 Renderizando', cards.length, 'cartas...');
+            cardsContainer.innerHTML = '';
+            cards.forEach((card) => {
+                // Función para escapar caracteres especiales
+                const escapeForOnclick = (str) => {
+                    return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+                };
+                
+                const safeCardId = escapeForOnclick(card.id);
+                const safeCardName = escapeForOnclick(card.name);
+                const safeSetName = escapeForOnclick(card.set?.name || 'N/A');
+                const safeSeries = escapeForOnclick(card.set?.series || 'N/A');
+                const safeNumber = escapeForOnclick(card.number || 'N/A');
+                const safeImageUrl = escapeForOnclick(card.images?.small);
 
-            const makeBtn = (label, targetPage, isActive = false, disabled = false) => {
-                const btn = document.createElement('button');
-                btn.textContent = label;
-                btn.className = `px-3 py-1 rounded ${isActive ? 'bg-orange-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`;
-                if (!disabled && !isActive) {
-                    btn.addEventListener('click', () => goToSearchPage(targetPage));
+                // Obtener precio más relevante
+                const bestPrice = getBestPrice(card);
+
+                const row = document.createElement('div');
+                row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 min-h-[80px] overflow-visible';
+                const imgWrapper = document.createElement('div');
+                imgWrapper.className = 'w-10 h-10 flex items-center justify-center bg-transparent rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2 z-10';
+                imgWrapper.title = 'Pasa el mouse para ver imagen';
+                imgWrapper.innerHTML = '<span class="text-xl">🎴</span>';
+                
+                // Crear contenedor de imagen con hover
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'hidden absolute left-14 top-1/2 -translate-y-1/2 z-30';
+                imgContainer.style.pointerEvents = 'none';
+                
+                const imgEl = document.createElement('img');
+                imgEl.src = (card.images?.large || card.images?.small) || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen';
+                imgEl.alt = card.name || 'Carta';
+                imgEl.className = 'w-64 h-auto object-contain rounded-lg shadow-2xl border-2 border-gray-200';
+                imgEl.onerror = () => { imgEl.src = 'https://placehold.co/400x550/a0aec0/ffffff?text=Error'; };
+                
+                imgContainer.appendChild(imgEl);
+                row.appendChild(imgContainer);
+                
+                // Eventos de hover
+                imgWrapper.addEventListener('mouseenter', () => { 
+                    imgContainer.classList.remove('hidden');
+                });
+                
+                imgWrapper.addEventListener('mouseleave', () => { 
+                    imgContainer.classList.add('hidden');
+                });
+
+                const info = document.createElement('div');
+                info.className = 'flex-1 min-w-0 pl-16';
+                
+                // Crear sección de precios si están disponibles
+                let priceSection = '';
+                if (bestPrice) {
+                    const priceColor = bestPrice.source === 'TCGPlayer' ? 'text-blue-600' : 'text-orange-600';
+                    const sourceIcon = bestPrice.source === 'TCGPlayer' ? 'T' : 'C';
+                    const sourceBg = bestPrice.source === 'TCGPlayer' ? 'bg-blue-500' : 'bg-orange-500';
+                    
+                    priceSection = `
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="flex items-center gap-1">
+                                <div class="w-4 h-4 ${sourceBg} rounded-full flex items-center justify-center">
+                                    <span class="text-white text-xs font-bold">${sourceIcon}</span>
+                                </div>
+                                <span class="text-xs text-gray-500">${bestPrice.source}</span>
+                            </div>
+                            <div class="text-sm font-semibold ${priceColor}">
+                                ${formatPrice(bestPrice.price)}
+                            </div>
+                            <div class="text-xs text-gray-400">${bestPrice.condition}</div>
+                        </div>
+                    `;
+                } else {
+                    priceSection = `
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="text-xs text-gray-400">💰 Precio no disponible</div>
+                        </div>
+                    `;
                 }
-                return btn;
-            };
+                
+                info.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="truncate flex-1">
+                            <div class="font-semibold text-gray-900 dark:text-white truncate">${card.name || 'Nombre no disponible'}</div>
+                            <div class="text-xs text-gray-600 dark:text-gray-300 truncate mb-1">Set: ${card.set?.name || 'N/A'} · Serie: ${card.set?.series || 'N/A'} · Nº: ${card.number || 'N/A'}</div>
+                            ${priceSection}
+                        </div>
+                        <div class="flex gap-2 items-center ml-4">
+                            <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs"
+                                onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">Ver Detalles</button>
+                            <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs"
+                                onclick="addCardDirectly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">+ Añadir</button>
+                        </div>
+                    </div>
+                `;
 
-            pagination.appendChild(makeBtn('«', 1, false, page === 1));
-            pagination.appendChild(makeBtn('‹', Math.max(1, page - 1), false, page === 1));
-
-            for (let p = start; p <= end; p++) {
-                pagination.appendChild(makeBtn(String(p), p, p === page));
-            }
-
-            pagination.appendChild(makeBtn('›', Math.min(totalPages, page + 1), false, page === totalPages));
-            pagination.appendChild(makeBtn('»', totalPages, false, page === totalPages));
+                row.appendChild(imgWrapper);
+                row.appendChild(info);
+                cardsContainer.appendChild(row);
+                console.log('✅ Carta renderizada:', card.name, bestPrice ? `(${bestPrice.source}: ${formatPrice(bestPrice.price)})` : '(sin precio)');
+            });
+            
         }
 
-        async function goToSearchPage(targetPage) {
-            // Verificar si ya tenemos esta página en cache
+        // Funciones para mostrar/ocultar loading de página
+        function showPageLoading() {
+            const loadingIndicator = document.createElement('div');
+            loadingIndicator.id = 'pageLoadingIndicator';
+            loadingIndicator.className = 'absolute inset-0 bg-white dark:bg-gray-800 bg-opacity-90 flex items-center justify-center z-10';
+            loadingIndicator.innerHTML = `
+                <div class="flex flex-col items-center">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
+                    <p class="text-sm text-gray-600 dark:text-gray-400">Cambiando página...</p>
+                </div>
+            `;
+            cardsContainer.style.position = 'relative';
+            cardsContainer.appendChild(loadingIndicator);
+        }
+
+        function hidePageLoading() {
+            const loadingIndicator = document.getElementById('pageLoadingIndicator');
+            if (loadingIndicator) {
+                loadingIndicator.remove();
+            }
+        }
+
+        function showPageError() {
+            const errorIndicator = document.createElement('div');
+            errorIndicator.className = 'text-center text-red-500 py-8';
+            errorIndicator.innerHTML = '❌ Error al cargar la página. Intenta de nuevo.';
+            cardsContainer.appendChild(errorIndicator);
+        }
+
+        // Función para cargar más resultados
+        window.loadMoreResults = async function(query) {
+            console.log('🔄 Cargando más resultados para:', query);
+            showLoadingSpinner();
+            
+            try {
+                const apiUrl = buildCardsApiUrl(query, searchPage + 1, searchPageSize);
+                console.log('🌐 Loading more from:', apiUrl);
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 20000);
+                
+                const response = await fetch(apiUrl, { 
+                    signal: controller.signal, 
+                    headers: { 'Content-Type': 'application/json' } 
+                });
+                clearTimeout(timeoutId);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    const cards = data.data || [];
+                    const totalCount = data.totalCount || 0;
+                    
+                    console.log('✅ More results loaded:', cards.length, 'cards');
+                    
+                    // Actualizar página actual
+                    searchPage++;
+                    
+                    // Agregar nuevas cartas a las existentes
+                    const existingCards = Array.from(cardsContainer.children).map(row => {
+                        // Extraer datos de la carta desde el DOM (esto es un workaround)
+                        const nameEl = row.querySelector('.font-semibold');
+                        const detailsEl = row.querySelector('.text-xs');
+                        return {
+                            name: nameEl?.textContent || 'Unknown',
+                            // Aquí podrías extraer más datos si es necesario
+                        };
+                    });
+                    
+                    // Limpiar contenedor y mostrar nuevos resultados
+                    cardsContainer.innerHTML = '';
+                    
+                    if (cards.length > 0) {
+                        // Usar la función de renderizado estándar para consistencia
+                        renderCardsFromData(cards);
+                        
+                        if (errorMessage) {
+                            errorMessage.innerHTML = `✅ ¡Éxito! Cargadas ${cards.length} cartas adicionales.`;
+                            errorMessage.classList.remove('hidden');
+                        }
+                    }
+                } else {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+            } catch (error) {
+                console.error('Error al cargar más resultados:', error);
+                if (errorMessage) {
+                    errorMessage.textContent = '❌ No se pudieron cargar más resultados. La API está muy lenta en este momento.';
+                    errorMessage.classList.remove('hidden');
+                }
+            } finally {
+                hideLoadingSpinner();
+            }
+        };
+
+        // Función para búsqueda rápida (fallback)
+        window.quickSearch = async function(query) {
+            console.log('⚡ Quick search for:', query);
+            showLoadingSpinner();
+            
+            try {
+                // Usar una búsqueda más simple y rápida
+                const simpleUrl = `/api/pokemontcg/cards?q=name:*${encodeURIComponent(query.toLowerCase())}*&pageSize=10`;
+                console.log('⚡ Quick search URL:', simpleUrl);
+                
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // Timeout más corto
+                
+                const response = await fetch(simpleUrl, { 
+                    signal: controller.signal, 
+                    headers: { 'Content-Type': 'application/json' } 
+           }
+
+        // Función para renderizar paginación
+        function renderPagination(totalCount, currentPage, pageSize) {
+            const totalPages = Math.ceil(totalCount / pageSize);
+            const paginationContainer = document.getElementById('paginationContainer');
+            
+            if (!paginationContainer || totalPages <= 1) {
+                if (paginationContainer) paginationContainer.innerHTML = '';
+                return;
+            }
+            
+            let paginationHTML = '<div class="flex justify-center items-center gap-2 mt-6">';
+            
+            // Botón anterior
+            if (currentPage > 1) {
+                paginationHTML += `<button onclick="changePage(${currentPage - 1})" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm">← Anterior</button>`;
+            }
+            
+            // Números de página
+            const startPage = Math.max(1, currentPage - 2);
+            const endPage = Math.min(totalPages, currentPage + 2);
+            
+            if (startPage > 1) {
+                paginationHTML += `<button onclick="changePage(1)" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm">1</button>`;
+                if (startPage > 2) {
+                    paginationHTML += `<span class="px-2 text-gray-500">...</span>`;
+                }
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const isActive = i === currentPage;
+                paginationHTML += `<button onclick="changePage(${i})" class="px-3 py-2 ${isActive ? 'bg-blue-500 text-white' : 'bg-gray-200 hover:bg-gray-300'} rounded-lg text-sm">${i}</button>`;
+            }
+            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) {
+                    paginationHTML += `<span class="px-2 text-gray-500">...</span>`;
+                }
+                paginationHTML += `<button onclick="changePage(${totalPages})" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm">${totalPages}</button>`;
+            }
+            
+            // Botón siguiente
+            if (currentPage < totalPages) {
+                paginationHTML += `<button onclick="changePage(${currentPage + 1})" class="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded-lg text-sm">Siguiente →</button>`;
+            }
+            
+            paginationHTML += '</div>';
+            paginationContainer.innerHTML = paginationHTML;
+        }
+
+        // Función para mostrar notificaciones
+        function showNotification(message, type = 'info', duration = 3000) {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 z-50 px-6 py-3 rounded-lg shadow-lg text-white max-w-sm transform transition-all duration-300 translate-x-full`;
+            
+            const colors = {
+                success: 'bg-green-500',
+                error: 'bg-red-500',
+                warning: 'bg-yellow-500',
+                info: 'bg-blue-500'
+            };
+            
+            notification.className += ` ${colors[type] || colors.info}`;
+            notification.textContent = message;
+            
+            document.body.appendChild(notification);
+            
+            // Animar entrada
+            setTimeout(() => {
+                notification.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Auto-remover
+            setTimeout(() => {
+                notification.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (notification.parentNode) {
+                        notification.parentNode.removeChild(notification);
+                    }
+                }, 300);
+            }, duration);
+        }
+
+        // Función para mostrar/ocultar loading spinner
+        function showLoadingSpinner() {
+            const spinner = document.getElementById('loadingSpinner');
+            if (spinner) {
+                spinner.classList.remove('hidden');
+            }
+        }
+
+        function hideLoadingSpinner() {
+            const spinner = document.getElementById('loadingSpinner');
+            if (spinner) {
+                spinner.classList.add('hidden');
+            }
+        }
+
+        // Función para mostrar secciones iniciales
+        function showInitialSections() {
+            const sections = ['hero', 'features', 'stats'];
+            sections.forEach(sectionId => {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.classList.remove('hidden');
+                }
+            });
+            
+            if (cardsContainer) {
+                cardsContainer.innerHTML = '';
+            }
+            
+            if (noResultsMessage) {
+                noResultsMessage.classList.add('hidden');
+            }
+            
+            if (errorMessage) {
+                errorMessage.classList.add('hidden');
+            }
+        }
+
+        // Función para mostrar resultados de búsqueda
+        function showSearchResults() {
+            const sections = ['hero', 'features', 'stats'];
+            sections.forEach(sectionId => {
+                const section = document.getElementById(sectionId);
+                if (section) {
+                    section.classList.add('hidden');
+                }
+            });
+        }
+
+        // Función para cambiar página
+        window.changePage = async function(targetPage) {
+            if (targetPage < 1) return;
+            
+            console.log('📄 Cambiando a página:', targetPage);
+            
+            // Verificar cache primero
             const cacheKey = `${currentSearchId}_${targetPage}`;
             if (searchCache.has(cacheKey)) {
                 console.log('⚡ Loading from cache:', targetPage);
@@ -10541,6 +10865,139 @@
             const timeoutId = setTimeout(() => controller.abort(), 20000);
             try {
                 const response = await fetch(apiUrl, { signal: controller.signal, headers: { 'Content-Type': 'application/json' } });
+                clearTimeout(timeoutId);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                const data = await response.json();
+                const cards = data.data || [];
+                const totalCount = data.totalCount || 0;
+                
+                // Guardar en cache
+                searchCache.set(cacheKey, { cards, totalCount });
+                
+                // Limitar cache a 50 entradas
+                if (searchCache.size > 50) {
+                    const firstKey = searchCache.keys().next().value;
+                    searchCache.delete(firstKey);
+                }
+
+                renderCardsFromData(cards);
+                renderPagination(totalCount, searchPage, searchPageSize);
+                hidePageLoading();
+            } catch (e) {
+                clearTimeout(timeoutId);
+                console.error('❌ Error al cargar página:', e);
+                hidePageLoading();
+                showPageError();
+            }
+        }
+
+        // Función para renderizar cartas desde datos (reutilizable)
+        function renderCardsFromData(cards) {
+            console.log('🎴 Renderizando', cards.length, 'cartas...');
+            cardsContainer.innerHTML = '';
+            cards.forEach((card) => {
+                // Función para escapar caracteres especiales
+                const escapeForOnclick = (str) => {
+                    return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
+                };
+                
+                const safeCardId = escapeForOnclick(card.id);
+                const safeCardName = escapeForOnclick(card.name);
+                const safeSetName = escapeForOnclick(card.set?.name || 'N/A');
+                const safeSeries = escapeForOnclick(card.set?.series || 'N/A');
+                const safeNumber = escapeForOnclick(card.number || 'N/A');
+                const safeImageUrl = escapeForOnclick(card.images?.small);
+
+                // Obtener precio más relevante
+                const bestPrice = getBestPrice(card);
+
+                const row = document.createElement('div');
+                row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 min-h-[80px] overflow-visible';
+                const imgWrapper = document.createElement('div');
+                imgWrapper.className = 'w-10 h-10 flex items-center justify-center bg-transparent rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2 z-10';
+                imgWrapper.title = 'Pasa el mouse para ver imagen';
+                imgWrapper.innerHTML = '<span class="text-xl">🎴</span>';
+                
+                // Crear contenedor de imagen con hover
+                const imgContainer = document.createElement('div');
+                imgContainer.className = 'hidden absolute left-14 top-1/2 -translate-y-1/2 z-30';
+                imgContainer.style.pointerEvents = 'none';
+                
+                const imgEl = document.createElement('img');
+                imgEl.src = (card.images?.large || card.images?.small) || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen';
+                imgEl.alt = card.name || 'Carta';
+                imgEl.className = 'w-64 h-auto object-contain rounded-lg shadow-2xl border-2 border-gray-200';
+                imgEl.onerror = () => { imgEl.src = 'https://placehold.co/400x550/a0aec0/ffffff?text=Error'; };
+                
+                imgContainer.appendChild(imgEl);
+                row.appendChild(imgContainer);
+                
+                // Eventos de hover
+                imgWrapper.addEventListener('mouseenter', () => { 
+                    imgContainer.classList.remove('hidden');
+                });
+                
+                imgWrapper.addEventListener('mouseleave', () => { 
+                    imgContainer.classList.add('hidden');
+                });
+
+                const info = document.createElement('div');
+                info.className = 'flex-1 min-w-0 pl-16';
+                
+                // Crear sección de precios si están disponibles
+                let priceSection = '';
+                if (bestPrice) {
+                    const priceColor = bestPrice.source === 'TCGPlayer' ? 'text-blue-600' : 'text-orange-600';
+                    const sourceIcon = bestPrice.source === 'TCGPlayer' ? 'T' : 'C';
+                    const sourceBg = bestPrice.source === 'TCGPlayer' ? 'bg-blue-500' : 'bg-orange-500';
+                    
+                    priceSection = `
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="flex items-center gap-1">
+                                <div class="w-4 h-4 ${sourceBg} rounded-full flex items-center justify-center">
+                                    <span class="text-white text-xs font-bold">${sourceIcon}</span>
+                                </div>
+                                <span class="text-xs text-gray-500">${bestPrice.source}</span>
+                            </div>
+                            <div class="text-sm font-semibold ${priceColor}">
+                                ${formatPrice(bestPrice.price)}
+                            </div>
+                            <div class="text-xs text-gray-400">${bestPrice.condition}</div>
+                        </div>
+                    `;
+                } else {
+                    priceSection = `
+                        <div class="flex items-center gap-2 mb-1">
+                            <div class="text-xs text-gray-400">💰 Precio no disponible</div>
+                        </div>
+                    `;
+                }
+                
+                info.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="truncate flex-1">
+                            <div class="font-semibold text-gray-900 dark:text-white truncate">${card.name || 'Nombre no disponible'}</div>
+                            <div class="text-xs text-gray-600 dark:text-gray-300 truncate mb-1">Set: ${card.set?.name || 'N/A'} · Serie: ${card.set?.series || 'N/A'} · Nº: ${card.number || 'N/A'}</div>
+                            ${priceSection}
+                        </div>
+                        <div class="flex gap-2 items-center ml-4">
+                            <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs"
+                                onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">Ver Detalles</button>
+                            <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs"
+                                onclick="addCardDirectly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">+ Añadir</button>
+                        </div>
+                    </div>
+                `;
+
+                row.appendChild(imgWrapper);
+                row.appendChild(info);
+                cardsContainer.appendChild(row);
+                console.log('✅ Carta renderizada:', card.name, bestPrice ? `(${bestPrice.source}: ${formatPrice(bestPrice.price)})` : '(sin precio)');
+            });
+            
+        }ype': 'application/json' } });
                 clearTimeout(timeoutId);
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
