@@ -10379,8 +10379,18 @@
                 const language = card.language || 'Español';
                 const condition = card.condition || 'NM';
                 
-                const        // Función para renderizar cartas desde datos (reutilizable)
-        function renderCardsFromData(cards) { 
+                const row = document.createElement('div');
+                row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 h-16 overflow-visible';
+                if (index < cards.length - 1) {
+                    row.className += ' border-b';
+                }
+                
+                // Icono de imagen con hover
+                const imgWrapper = document.createElement('div');
+                imgWrapper.className = 'w-10 h-10 flex items-center justify-center bg-transparent rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2 z-10';
+                imgWrapper.title = 'Pasa el mouse para ver imagen';
+                imgWrapper.innerHTML = '<span class="text-xl">🎴</span>';
+                
                 // Contenedor de imagen con hover
                 const imgContainer = document.createElement('div');
                 imgContainer.className = 'hidden absolute left-14 top-1/2 -translate-y-1/2 z-30';
@@ -10453,244 +10463,84 @@
             const withFilters = buildCardsQuery(baseQuery);
             const qParam = encodeURIComponent(withFilters);
             const pageParam = page ? `&page=${page}` : '';
-            const seriesParam = searchFiltersState.series ? `&series=${encodeURIComponent(searchFilter        // Función para formatear precios
-        function formatPrice(price) {
-            return price ? `$${parseFloat(price).toFixed(2)}` : 'N/A';
+            const seriesParam = searchFiltersState.series ? `&series=${encodeURIComponent(searchFiltersState.series)}` : '';
+            const setParam = searchFiltersState.set ? `&set=${encodeURIComponent(searchFiltersState.set)}` : '';
+            const rarityParam = searchFiltersState.rarity ? `&rarity=${encodeURIComponent(searchFiltersState.rarity)}` : '';
+            const typeParam = searchFiltersState.type ? `&type=${encodeURIComponent(searchFiltersState.type)}` : '';
+            const languageParam = searchFiltersState.language ? `&language=${encodeURIComponent(searchFiltersState.language)}` : '';
+            const subtypeParam = searchFiltersState.subtype ? `&subtype=${encodeURIComponent(searchFiltersState.subtype)}` : '';
+            const hasImageParam = searchFiltersState.hasImage ? `&hasImage=${searchFiltersState.hasImage}` : '';
+            const hasPriceParam = searchFiltersState.hasPrice ? `&hasPrice=${searchFiltersState.hasPrice}` : '';
+            
+            // Usar URL relativa para que funcione tanto en local como en producción
+            const baseUrl = window.location.origin;
+            const finalUrl = `${baseUrl}/api/pokemontcg/cards?q=${qParam}${pageParam}&pageSize=${pageSize}${seriesParam}${setParam}${rarityParam}${typeParam}${languageParam}${subtypeParam}${hasImageParam}${hasPriceParam}`;
+            
+            console.log('🔗 buildCardsApiUrl generando URL:');
+            console.log('  - Base query:', baseQuery);
+            console.log('  - With filters:', withFilters);
+            console.log('  - searchFiltersState:', searchFiltersState);
+            console.log('  - URL final:', finalUrl);
+            
+            return finalUrl;
         }
 
-        // Función para generar precios estimados basados en rareza y otros factores
-        function generateEstimatedPrice(card) {
-            // Base de precios por rareza
-            const rarityPrices = {
-                'Common': { min: 0.10, max: 0.50 },
-                'Uncommon': { min: 0.25, max: 1.00 },
-                'Rare': { min: 0.50, max: 3.00 },
-                'Rare Holo': { min: 1.00, max: 8.00 },
-                'Rare Ultra': { min: 2.00, max: 15.00 },
-                'Rare Secret': { min: 5.00, max: 50.00 },
-                'Rare Rainbow': { min: 10.00, max: 100.00 },
-                'Rare Shiny': { min: 3.00, max: 25.00 },
-                'Rare Shiny GX': { min: 5.00, max: 40.00 },
-                'Rare Shiny V': { min: 8.00, max: 60.00 },
-                'Rare Shiny VMAX': { min: 15.00, max: 120.00 },
-                'Rare Shiny VSTAR': { min: 12.00, max: 100.00 },
-                'Rare Shiny ex': { min: 10.00, max: 80.00 },
-                'Rare Shiny Tera ex': { min: 15.00, max: 150.00 },
-                'Rare Prime': { min: 3.00, max: 20.00 },
-                'Rare BREAK': { min: 2.00, max: 12.00 },
-                'Rare GX': { min: 4.00, max: 30.00 },
-                'Rare V': { min: 6.00, max: 45.00 },
-                'Rare VMAX': { min: 12.00, max: 90.00 },
-                'Rare VSTAR': { min: 10.00, max: 75.00 },
-                'Rare ex': { min: 8.00, max: 60.00 },
-                'Rare Tera ex': { min: 15.00, max: 120.00 },
-                'Rare Radiant': { min: 2.00, max: 15.00 },
-                'Rare Special': { min: 1.00, max: 8.00 },
-                'Rare Promo': { min: 0.50, max: 5.00 },
-                'Rare Trainer': { min: 0.25, max: 2.00 },
-                'Rare Energy': { min: 0.10, max: 1.00 }
+        function renderPagination(totalCount, page, pageSize) {
+            const pagination = document.getElementById('searchPagination');
+            if (!pagination) return;
+            pagination.innerHTML = '';
+            if (!totalCount || totalCount <= pageSize) return;
+
+            const totalPages = Math.ceil(totalCount / pageSize);
+            const maxButtons = 7;
+            const start = Math.max(1, page - 3);
+            const end = Math.min(totalPages, start + maxButtons - 1);
+
+            const makeBtn = (label, targetPage, isActive = false, disabled = false) => {
+                const btn = document.createElement('button');
+                btn.textContent = label;
+                btn.className = `px-3 py-1 rounded ${isActive ? 'bg-orange-500 text-white' : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-white hover:bg-gray-200 dark:hover:bg-gray-600'} ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`;
+                if (!disabled && !isActive) {
+                    btn.addEventListener('click', () => goToSearchPage(targetPage));
+                }
+                return btn;
             };
 
-            // Obtener rareza de la carta
-            const rarity = card.rarity        }
+            pagination.appendChild(makeBtn('«', 1, false, page === 1));
+            pagination.appendChild(makeBtn('‹', Math.max(1, page - 1), false, page === 1));
 
-        // Funciones para mostrar/ocultar loading de página
-        function showPageLoading() {
-            const loadingIndicator = document.createElement('div');
-            loadingIndicator.id = 'pageLoadingIndicator';
-            loadingIndicator.className = 'absolute inset-0 bg-white dark:bg-gray-800 bg-opacity-90 flex items-center justify-center z-10';
-            loadingIndicator.innerHTML = `
-                <div class="flex flex-col items-center">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-3"></div>
-                    <p class="text-sm text-gray-600 dark:text-gray-400">Cambiando página...</p>
-                </div>
-            `;
-            cardsContainer.style.position = 'relative';
-            cardsContainer.appendChild(loadingIndicator);
-        }
-
-        function hidePageLoading() {
-            const loadingIndicator = document.getElementById('pageLoadingIndicator');
-            if (loadingIndicator) {
-                loadingIndicator.remove();
+            for (let p = start; p <= end; p++) {
+                pagination.appendChild(makeBtn(String(p), p, p === page));
             }
+
+            pagination.appendChild(makeBtn('›', Math.min(totalPages, page + 1), false, page === totalPages));
+            pagination.appendChild(makeBtn('»', totalPages, false, page === totalPages));
         }
 
-        function showPageError() {
-            const errorIndicator = document.createElement('div');
-            errorIndicator.className = 'text-center text-red-500 py-8';
-            errorIndicator.innerHTML = '❌ Error al cargar la página. Intenta de nuevo.';
-            cardsContainer.appendChild(errorIndicator);
-        }ate(card.set.releaseDate).getFullYear() : 2020;
-            const currentYear = new Date().getFullYear();
-            const yearsOld = currentYear - setYear;
-            
-            if (yearsOld <= 1) multiplier *= 1.2; // Sets muy nuevos
-            else if (yearsOld <= 3) multiplier *= 1.0; // Sets recientes
-            else if (yearsOld <= 5) multiplier *= 0.8; // Sets medianos
-            else multiplier *= 0.6; // Sets antiguos
-            
-            // Factor por popularidad del Pokémon (nombres conocidos)
-            const popularPokemon = ['pikachu', 'charizard', 'mewtwo', 'mew', 'lucario', 'garchomp', 'rayquaza', 'lugia', 'ho-oh', 'dialga', 'palkia', 'giratina'];
-            const cardName = card.name?.toLowerCase() || '';
-            if (popularPokemon.some(pokemon => cardName.includes(pokemon))) {
-                multiplier *= 1.5;
+        async function goToSearchPage(targetPage) {
+            // Verificar si ya tenemos esta página en cache
+            const cacheKey = `${currentSearchId}_${targetPage}`;
+            if (searchCache.has(cacheKey)) {
+                console.log('⚡ Loading from cache:', targetPage);
+                const cachedData = searchCache.get(cacheKey);
+                searchPage = targetPage;
+                renderCardsFromData(cachedData.cards);
+                renderPagination(cachedData.totalCount, searchPage, searchPageSize);
+                return;
             }
-            
-            // Factor por tipo de carta especial
-            if (cardName.includes('vmax') || cardName.includes('v-star') || cardName.includes('tera ex')) {
-                multiplier *= 1.3;
-            } else if (cardName.includes('v') || cardName.includes('ex') || cardName.includes('gx')) {
-                multiplier *= 1.1;
-            }
-            
-            // Generar precio aleatorio dentro del rango
-            const minPrice = rarityData.min * multiplier;
-            const maxPrice = rarityData.max * multiplier;
-            const estimatedPrice = minPrice + Math.random() * (maxPrice - minPrice);
-            
-            // Redondear a centavos
-            const roundedPrice = Math.round(estimatedPrice * 100) / 100;
-            
-            return {
-                price: roundedPrice,
-                source: 'Estimado',
-                condition: 'Promedio',
-                rarity: rarity,
-                factors: {
-                    baseRarity: rarity,
-                    setAge: yearsOld,
-                    popularity: popularPokemon.some(pokemon => cardName.includes(pokemon)),
-                    specialType: cardName.includes('vmax') || cardName.includes('v-star') || cardName.includes('tera ex') || cardName.includes('v') || cardName.includes('ex') || cardName.includes('gx')
-                }
-            };
-        }
 
-        // Función para obtener el precio de una carta (estimado o real si está disponible)
-        function getBestPrice(card) {
-            // Primero intentar obtener precios reales si están disponibles
-            const tcgplayerPrices = card.tcgplayer?.prices || {};
-            const cardmarketPrices = card.cardmarket?.prices || {};
-            
-            // Priorizar TCGPlayer market price, luego mid, luego low
-            if (tcgplayerPrices.normal?.market) return { price: tcgplayerPrices.normal.market, source: 'TCGPlayer', condition: 'Normal' };
-            if (tcgplayerPrices.normal?.mid) return { price: tcgplayerPrices.normal.mid, source: 'TCGPlayer', condition: 'Normal' };
-            if (tcgplayerPrices.normal?.low) return { price: tcgplayerPrices.normal.low, source: 'TCGPlayer', condition: 'Normal' };
-            
-            // Si no hay TCGPlayer, usar Cardmarket
-            if (cardmarketPrices.averageSellPrice) return { price: cardmarketPrices.averageSellPrice, source: 'Cardmarket', condition: 'Promedio' };
-            if (cardmarketPrices.lowPrice) return { price: cardmarketPrices.lowPrice, source: 'Cardmarket', condition: 'Bajo' };
-            if (cardmarketPrices.trendPrice) return { price: cardmarketPrices.trendPrice, source: 'Cardmarket', condition: 'Tendencia' };
-            
-            // Si no hay precios reales, generar estimación
-            return generateEstimatedPrice(card);
-        }
+            // Si no está en cache, hacer la llamada a la API
+            searchPage = targetPage;
+            const apiUrl = buildCardsApiUrl(lastSearchBase, searchPage, searchPageSize);
+            console.log('🌐 Fetching page:', searchPage, apiUrl);
 
-        // Función para renderizar cartas desde datos (reutilizable)
-        func        function renderCardsFromData(cards) {
-            console.log('🎴 Renderizando', cards.length, 'cartas...');
-            cardsContainer.innerHTML = '';
-            cards.forEach((card) => {
-                // Función para escapar caracteres especiales
-                const escapeForOnclick = (str) => {
-                    return String(str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"');
-                };
-                
-                const safeCardId = escapeForOnclick(card.id);
-                const safeCardName = escapeForOnclick(card.name);
-                const safeSetName = escapeForOnclick(card.set?.name || 'N/A');
-                const safeSeries = escapeForOnclick(card.set?.series || 'N/A');
-                const safeNumber = escapeForOnclick(card.number || 'N/A');
-                const safeImageUrl = escapeForOnclick(card.images?.small);
+            // Mostrar loading instantáneo
+            showPageLoading();
 
-                // Obtener precio estimado
-                const bestPrice = getBestPrice(card);
-
-                const row = document.createElement('div');
-                row.className = 'relative flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-700 min-h-[80px] overflow-visible';
-                const imgWrapper = document.createElement('div');
-                imgWrapper.className = 'w-10 h-10 flex items-center justify-center bg-transparent rounded cursor-pointer absolute left-3 top-1/2 -translate-y-1/2 z-10';
-                imgWrapper.title = 'Pasa el mouse para ver imagen';
-                imgWrapper.innerHTML = '<span class="text-xl">🎴</span>';
-                
-                // Crear contenedor de imagen con hover
-                const imgContainer = document.createElement('div');
-                imgContainer.className = 'hidden absolute left-14 top-1/2 -translate-y-1/2 z-30';
-                imgContainer.style.pointerEvents = 'none';
-                
-                const imgEl = document.createElement('img');
-                imgEl.src = (card.images?.large || card.images?.small) || 'https://placehold.co/400x550/a0aec0/ffffff?text=Sin+imagen';
-                imgEl.alt = card.name || 'Carta';
-                imgEl.className = 'w-64 h-auto object-contain rounded-lg shadow-2xl border-2 border-gray-200';
-                imgEl.onerror = () => { imgEl.src = 'https://placehold.co/400x550/a0aec0/ffffff?text=Error'; };
-                
-                imgContainer.appendChild(imgEl);
-                row.appendChild(imgContainer);
-                
-                // Eventos de hover
-                imgWrapper.addEventListener('mouseenter', () => { 
-                    imgContainer.classList.remove('hidden');
-                });
-                
-                imgWrapper.addEventListener('mouseleave', () => { 
-                    imgContainer.classList.add('hidden');
-                });
-
-                const info = document.createElement('div');
-                info.className = 'flex-1 min-w-0 pl-16';
-                
-                // Crear sección de precios
-                let priceSection = '';
-                if (bestPrice) {
-                    const priceColor = bestPrice.source === 'Estimado' ? 'text-purple-600' : (bestPrice.source === 'TCGPlayer' ? 'text-blue-600' : 'text-orange-600');
-                    const sourceIcon = bestPrice.source === 'Estimado' ? 'E' : (bestPrice.source === 'TCGPlayer' ? 'T' : 'C');
-                    const sourceBg = bestPrice.source === 'Estimado' ? 'bg-purple-500' : (bestPrice.source === 'TCGPlayer' ? 'bg-blue-500' : 'bg-orange-500');
-                    
-                    priceSection = `
-                        <div class="flex items-center gap-2 mb-1">
-                            <div class="flex items-center gap-1">
-                                <div class="w-4 h-4 ${sourceBg} rounded-full flex items-center justify-center">
-                                    <span class="text-white text-xs font-bold">${sourceIcon}</span>
-                                </div>
-                                <span class="text-xs text-gray-500">${bestPrice.source}</span>
-                            </div>
-                            <div class="text-sm font-semibold ${priceColor}">
-                                ${formatPrice(bestPrice.price)}
-                            </div>
-                            <div class="text-xs text-gray-400">${bestPrice.condition}</div>
-                        </div>
-                    `;
-                } else {
-                    priceSection = `
-                        <div class="flex items-center gap-2 mb-1">
-                            <div class="text-xs text-gray-400">💰 Precio no disponible</div>
-                        </div>
-                    `;
-                }
-                
-                info.innerHTML = `
-                    <div class="flex items-center justify-between">
-                        <div class="truncate flex-1">
-                            <div class="font-semibold text-gray-900 dark:text-white truncate">${card.name || 'Nombre no disponible'}</div>
-                            <div class="text-xs text-gray-600 dark:text-gray-300 truncate mb-1">Set: ${card.set?.name || 'N/A'} · Serie: ${card.set?.series || 'N/A'} · Nº: ${card.number || 'N/A'}</div>
-                            ${priceSection}
-                        </div>
-                        <div class="flex gap-2 items-center ml-4">
-                            <button class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-xs"
-                                onclick="showCardDetailsOnly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">Ver Detalles</button>
-                            <button class="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded text-xs"
-                                onclick="addCardDirectly('${safeCardId}', '${safeCardName}', '${safeImageUrl}', '${safeSetName}', '${safeSeries}', '${safeNumber}')">+ Añadir</button>
-                        </div>
-                    </div>
-                `;
-
-                row.appendChild(imgWrapper);
-                row.appendChild(info);
-                cardsContainer.appendChild(row);
-                console.log('✅ Carta renderizada:', card.name, bestPrice ? `(${bestPrice.source}: ${formatPrice(bestPrice.price)})` : '(sin precio)');
-            });
-            
-        } fetch(apiUrl, { signal: controller.signal, headers: { 'Content-Type': 'application/json' } });
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 20000);
+            try {
+                const response = await fetch(apiUrl, { signal: controller.signal, headers: { 'Content-Type': 'application/json' } });
                 clearTimeout(timeoutId);
                 if (!response.ok) {
                     throw new Error(`HTTP ${response.status}`);
