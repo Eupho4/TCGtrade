@@ -20,8 +20,13 @@ async function loadApp() {
         // Mostrar loading inicial
         showInitialLoading();
         
-        // Cargar módulos de forma asíncrona
-        const { default: App } = await import('./core/app.js');
+        // Cargar módulos de forma asíncrona con timeout
+        const loadPromise = import('./core/app.js');
+        const timeoutPromise = new Promise((_, reject) => 
+            setTimeout(() => reject(new Error('Timeout loading app')), 10000)
+        );
+        
+        const { default: App } = await Promise.race([loadPromise, timeoutPromise]);
         app = new App();
         
         // Inicializar aplicación
@@ -101,6 +106,7 @@ function showLoadingError() {
                 <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
                 <h2 style="margin: 0 0 10px 0; font-size: 24px; font-weight: 600;">Error de Carga</h2>
                 <p style="margin: 0 0 20px 0; opacity: 0.8;">No se pudo cargar la aplicación</p>
+                <p style="margin: 0 0 20px 0; opacity: 0.6; font-size: 14px;">Verifica tu conexión a internet</p>
                 <button onclick="location.reload()" style="
                     background: white;
                     color: #667eea;
@@ -109,7 +115,17 @@ function showLoadingError() {
                     border-radius: 6px;
                     font-weight: 600;
                     cursor: pointer;
+                    margin-right: 10px;
                 ">Reintentar</button>
+                <button onclick="loadApp()" style="
+                    background: #667eea;
+                    color: white;
+                    border: none;
+                    padding: 12px 24px;
+                    border-radius: 6px;
+                    font-weight: 600;
+                    cursor: pointer;
+                ">Cargar Nuevamente</button>
             </div>
         `;
     }
@@ -124,3 +140,4 @@ if (document.readyState === 'loading') {
 
 // Exportar para uso global si es necesario
 window.TCGtradeApp = app;
+window.loadApp = loadApp; // Para el botón de error
