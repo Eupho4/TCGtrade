@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "description": "Aplicación de intercambio de cartas Pokémon",
   "main": "server.js",
-  "type": "commonjs",
+  "type": "module",
   "scripts": {
-    "start": "node server-hybrid.js",
-    "dev": "node server-hybrid.js",
+    "start": "node server-hybrid-es6.js",
+    "dev": "node server-hybrid-es6.js",
     "build": "echo 'Build completed for Railway'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
