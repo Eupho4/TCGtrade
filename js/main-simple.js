@@ -543,6 +543,27 @@ if (document.readyState === 'loading') {
     initializeApp();
 }
 
+// Función para ir a la página de inicio
+function goToHome() {
+    console.log('🏠 Navegando a la página de inicio');
+    showInitialSections();
+    
+    // Limpiar búsqueda si existe
+    if (searchInput) {
+        searchInput.value = '';
+    }
+    
+    // Limpiar resultados de búsqueda
+    if (cardsContainer) {
+        cardsContainer.innerHTML = '';
+    }
+    
+    // Ocultar mensajes
+    hideLoadingSpinner();
+    if (noResultsMessage) noResultsMessage.style.display = 'none';
+    if (errorMessage) errorMessage.style.display = 'none';
+}
+
 // Exportar para uso global
 window.TCGtradeApp = {
     initializeApp,
@@ -550,5 +571,9 @@ window.TCGtradeApp = {
     showAuthModal,
     hideAuthModal,
     handleSearch,
-    renderCards
+    renderCards,
+    goToHome
 };
+
+// Hacer la función global para el onclick
+window.goToHome = goToHome;
