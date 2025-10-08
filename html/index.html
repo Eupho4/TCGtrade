@@ -12,6 +12,7 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <script src="/js/main-simple.js"></script>
+    <script src="/js/ux-improvements.js"></script>
     <script>
         tailwind.config = {
             darkMode: 'class',
@@ -28,12 +29,188 @@
         }
     </script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
-    
+    <link href="/css/animations.css" rel="stylesheet">
     <style>
         /* Estilos para modo oscuro */
         .dark-mode {
             background-color: #1a1a1a;
             color: #ffffff;
+        }
+        
+        /* Animaciones suaves */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        .slide-in-up {
+            animation: slideInUp 0.6s ease-out;
+        }
+        
+        .slide-in-right {
+            animation: slideInRight 0.5s ease-out;
+        }
+        
+        .scale-in {
+            animation: scaleIn 0.4s ease-out;
+        }
+        
+        .bounce-in {
+            animation: bounceIn 0.8s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        @keyframes slideInUp {
+            from { 
+                opacity: 0; 
+                transform: translateY(30px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateY(0); 
+            }
+        }
+        
+        @keyframes slideInRight {
+            from { 
+                opacity: 0; 
+                transform: translateX(30px); 
+            }
+            to { 
+                opacity: 1; 
+                transform: translateX(0); 
+            }
+        }
+        
+        @keyframes scaleIn {
+            from { 
+                opacity: 0; 
+                transform: scale(0.9); 
+            }
+            to { 
+                opacity: 1; 
+                transform: scale(1); 
+            }
+        }
+        
+        @keyframes bounceIn {
+            0% { 
+                opacity: 0; 
+                transform: scale(0.3); 
+            }
+            50% { 
+                opacity: 1; 
+                transform: scale(1.05); 
+            }
+            70% { 
+                transform: scale(0.9); 
+            }
+            100% { 
+                opacity: 1; 
+                transform: scale(1); 
+            }
+        }
+        
+        /* Loading Skeleton */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .skeleton-card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+        
+        .skeleton-image {
+            height: 200px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        .skeleton-content {
+            padding: 16px;
+        }
+        
+        .skeleton-title {
+            height: 20px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        
+        .skeleton-text {
+            height: 16px;
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+            border-radius: 4px;
+            margin-bottom: 8px;
+        }
+        
+        .skeleton-text.short {
+            width: 60%;
+        }
+        
+        /* Micro-interacciones */
+        .btn-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .btn-hover:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .card-hover {
+            transition: all 0        .card-hover:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Filtros visuales */
+        .filter-chip {
+            display: inline-block;
+            padding: 8px 16px;
+            margin: 4px;
+            background: #f3f4f6;
+            border: 2px solid transparent;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .filter-chip:hover {
+            background: #e5e7eb;
+            transform: translateY(-1px);
+        }
+        
+        .filter-chip.active {
+            background: #3b82f6;
+            color: white;
+            border-color: #2563eb;
+        }
+        
+        .filter-chip.active:hover {
+            background: #2563eb;
+        }    color: #ffffff;
         }
         
         .dark-mode .bg-white {
@@ -11893,15 +12070,9 @@
                 display: none;
             }
             
-            .search-btn-text,
-            .login-text,
-            
-            .modern-search-container {
-                margin: 0 8px;
-            }
-        }
-        
-        @media (max-width: 640px) {
+        .condition-badge:hover {
+            transform: scale(1.05);
+        }ax-width: 640px) {
             .modern-header .container {
                 padding: 0 12px;
             }
@@ -12314,77 +12485,9 @@
                 grid-template-columns: repeat(2, 1fr);
                 gap: 0.75rem;
             }
-            
-            .stat-card {
-                padding: 0.75rem;
-            }
-            
-            .stat-icon {
-                width: 40px;
-                height: 40px;
-                font-size: 1.25rem;
-            }
-            
-            .stat-number {
-                font-size: 1.25rem;
-            }
-            
-            .modern-filters-panel {
-                padding: 1rem;
-            }
-            
-            .filters-grid {
-                grid-template-columns: 1fr;
-                gap: 0.75rem;
-            }
-            
-            .filters-actions {
-                flex-direction: column;
-                align-items: stretch;
-            }
-            
-            .cards-grid {
-                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-                gap: 1rem;
-            }
-        }
-        
-        @media (max-width: 640px) {
-            .modern-section-header {
-                padding: 0.75rem;
-            }
-            
-            .collection-icon {
-                width: 40px;
-                height: 40px;
-            }
-            
-            .stats-grid {
-                grid-template-columns: 1fr;
-                gap: 0.5rem;
-            }
-            
-            .stat-card {
-                padding: 0.75rem;
-            }
-            
-            .modern-filters-panel {
-                padding: 0.75rem;
-            }
-            
-            .cards-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .btn-primary {
-            background-color: #f97316;
-            color: white;
-            transition: background-color 0.3s ease, transform 0.2s ease;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        }
-        .btn-primary:hover {
-            background-color: #ea580c;
+                  .condition-badge:hover {
+            transform: scale(1.05);
+        }c;
             transform: translateY(-2px);
             box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
         }
@@ -12759,23 +12862,45 @@
 
         .condition-badge:hover {
             transform: scale(1.05);
-            cursor: help;
-        }
-
-        .condition-tooltip {
-            pointer-events: none;
-            animation: fadeIn 0.2s ease;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-5px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        /* Modo oscuro para selectores de condición */
-        .dark-mode .condition-selector {
-            background-color: #1f2937;
-            color: #f9fafb;
+                                       <div class="search-suggestions hidden" id="searchSuggestions"></div>
+                            </div>
+                            
+                            <!-- Filtros visuales -->
+                            <div class="filters-container mt-4" id="filtersContainer" style="display: none;">
+                                <div class="flex flex-wrap gap-2 justify-center">
+                                    <span class="filter-chip active" data-filter="all" onclick="toggleFilter(this)">Todas</span>
+                                    <span class="filter-chip" data-filter="fire" onclick="toggleFilter(this)">🔥 Fuego</span>
+                                    <span class="filter-chip" data-filter="water" onclick="toggleFilter(this)">💧 Agua</span>
+                                    <span class="filter-chip" data-filter="grass" onclick="toggleFilter(this)">🌱 Planta</span>
+                                    <span class="filter-chip" data-filter="electric" onclick="toggleFilter(this)">⚡ Eléctrico</span>
+                                    <span class="filter-chip" data-filter="psychic" onclick="toggleFilter(this)">🔮 Psíquico</span>
+                                    <span class="filter-chip" data-filter="fighting" onclick="toggleFilter(this)">👊 Lucha</span>
+                                    <span class="filter-chip" data-filter="darkness" onclick="toggleFilter(this)">🌑 Oscuridad</span>
+                                    <span class="filter-chip" data-filter="metal" onclick="toggleFilter(this)">⚙️ Metal</span>
+                                    <span class="filter-chip" data-filter="fairy" onclick="toggleFilter(this)">🧚 Hada</span>
+                                                     <div class="search-suggestions hidden" id="searchSuggestions"></div>
+                            </div>
+                            
+                            <!-- Filtros visuales -->
+                            <div class="filters-container mt-4" id="filtersContainer" style="display: none;">
+                                <div class="flex flex-wrap gap-2 justify-center">
+                                    <span class="filter-chip active" data-filter="all" onclick="toggleFilter(this)">Todas</span>
+                                    <span class="filter-chip" data-filter="fire" onclick="toggleFilter(this)">🔥 Fuego</span>
+                                    <span class="filter-chip" data-filter="water" onclick="toggleFilter(this)">💧 Agua</span>
+                                    <span class="filter-chip" data-filter="grass" onclick="toggleFilter(this)">🌱 Planta</span>
+                                    <span class="filter-chip" data-filter="electric" onclick="toggleFilter(this)">⚡ Eléctrico</span>
+                                    <span class="filter-chip" data-filter="psychic" onclick="toggleFilter(this)">🔮 Psíquico</span>
+                                    <span class="filter-chip" data-filter="fighting" onclick="toggleFilter(this)">👊 Lucha</span>
+                                    <span class="filter-chip" data-filter="darkness" onclick="toggleFilter(this)">🌑 Oscuridad</span>
+                                    <span class="filter-chip" data-filter="metal" onclick="toggleFilter(this)">⚙️ Metal</span>
+                                    <span class="filter-chip" data-filter="fairy" onclick="toggleFilter(this)">🧚 Hada</span>
+                                </div>
+                            </div>
+                            
+                            <button type="button" 
+                                    onclick="quickSearch()" 
+                                    class="modern-search-btn group"
+                                    title="Búsqueda rápida">       color: #f9fafb;
             border-color: #4b5563;
         }
 

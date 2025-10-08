@@ -203,14 +203,20 @@ async function handleSearch(query) {
     }
 }
 
-// Renderizar cartas
+// Renderizar cartas con animaciones
 function renderCards(cards) {
     if (!cardsContainer) return;
     
     cardsContainer.innerHTML = '';
     
-    cards.forEach(card => {
+    cards.forEach((card, index) => {
         const cardElement = createCardElement(card);
+        cardElement.classList.add('card-hover');
+        
+        // Añadir animación escalonada
+        cardElement.style.animationDelay = `${index * 0.1}s`;
+        cardElement.classList.add('bounce-in');
+        
         cardsContainer.appendChild(cardElement);
     });
     
@@ -294,10 +300,16 @@ function createCardElement(card) {
     return cardDiv;
 }
 
-// Mostrar secciones
+// Mostrar secciones con animaciones
 function showInitialSections() {
-    if (heroSection) heroSection.classList.remove('hidden');
-    if (howItWorksSection) howItWorksSection.classList.remove('hidden');
+    if (heroSection) {
+        heroSection.classList.remove('hidden');
+        heroSection.classList.add('fade-in');
+    }
+    if (howItWorksSection) {
+        howItWorksSection.classList.remove('hidden');
+        howItWorksSection.classList.add('slide-in-up');
+    }
     
     if (searchResultsSection) searchResultsSection.classList.add('hidden');
     if (myCardsSection) myCardsSection.classList.add('hidden');
@@ -475,15 +487,48 @@ function updateAuthUI() {
     if (myCardsNavLink) myCardsNavLink.style.display = isAuthenticated ? 'block' : 'none';
 }
 
-// Utilidades
+// Utilidades con loading skeletons
 function showLoadingSpinner() {
     if (loadingSpinner) loadingSpinner.style.display = 'block';
     if (noResultsMessage) noResultsMessage.style.display = 'none';
     if (errorMessage) errorMessage.style.display = 'none';
+    
+    // Mostrar skeleton loading
+    showSkeletonLoading();
 }
 
 function hideLoadingSpinner() {
     if (loadingSpinner) loadingSpinner.style.display = 'none';
+    
+    // Ocultar skeleton loading
+    hideSkeletonLoading();
+}
+
+// Mostrar skeleton loading
+function showSkeletonLoading() {
+    if (!cardsContainer) return;
+    
+    cardsContainer.innerHTML = '';
+    
+    // Crear 6 skeleton cards
+    for (let i = 0; i < 6; i++) {
+        const skeletonCard = document.createElement('div');
+        skeletonCard.className = 'skeleton-card';
+        skeletonCard.innerHTML = `
+            <div class="skeleton-image"></div>
+            <div class="skeleton-content">
+                <div class="skeleton-title"></div>
+                <div class="skeleton-text"></div>
+                <div class="skeleton-text short"></div>
+            </div>
+        `;
+        cardsContainer.appendChild(skeletonCard);
+    }
+}
+
+// Ocultar skeleton loading
+function hideSkeletonLoading() {
+    // Los skeletons se ocultan automáticamente cuando se renderizan las cartas reales
 }
 
 function showNoResults() {
