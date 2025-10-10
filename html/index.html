@@ -15297,8 +15297,57 @@
                             </a>
                         </li>
                         <li>
-                            <a href="#" class="text-gray-300 hover:text-orange-400 transition-colors text-sm">
-                                Términos y Condiciones
+                            <a href="#" class="te        console.log('🚀 Funciones globales cargadas');
+    </script>
+    
+    <!-- Fix simple para ocultar modal en secciones -->
+    <script>
+    setTimeout(() => {
+        const originalShowInboxSection = window.showInboxSection;
+        if (originalShowInboxSection) {
+            window.showInboxSection = function() {
+                document.getElementById('authModal')?.classList.remove('show');
+                return originalShowInboxSection();
+            };
+        }
+        
+        const originalShowMyCardsSection = window.showMyCardsSection;
+        if (originalShowMyCardsSection) {
+            window.showMyCardsSection = function() {
+                document.getElementById('authModal')?.classList.remove('show');
+                return originalShowMyCardsSection();
+            };
+        }
+        
+        const originalShowInterchangesSection = window.showInterchangesSection;
+        if (originalShowInterchangesSection) {
+            window.showInterchangesSection = function() {
+                document.getElementById('authModal')?.classList.remove('show');
+                return originalShowInterchangesSection();
+            };
+        }
+        
+        const originalShowHelpSection = window.showHelpSection;
+        if (originalShowHelpSection) {
+            window.showHelpSection = function() {
+                document.getElementById('authModal')?.classList.remove('show');
+                return originalShowHelpSection();
+            };
+        }
+        
+        const originalShowProfileSection = window.showProfileSection;
+        if (originalShowProfileSection) {
+            window.showProfileSection = function() {
+                document.getElementById('authModal')?.classList.remove('show');
+                return originalShowProfileSection();
+            };
+        }
+        
+        console.log('✅ Fix aplicado - Modal se ocultará en secciones');
+    }, 1000);
+    </script>
+</body>
+</html>          Términos y Condiciones
                         </li>
                         <li>
                             <a href="#" class="text-gray-300 hover:text-orange-400 transition-colors text-sm">
