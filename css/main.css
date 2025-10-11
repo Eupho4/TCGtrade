@@ -6,21 +6,32 @@
 }
 
 :root {
-    /* Colores principales */
-    --primary-color: #2a6f8b;
+    /* Colores principales - Paleta Pokémon TCG */
+    --primary-color: #2563eb;
+    --primary-dark: #1d4ed8;
     --secondary-color: #f0f9ff;
-    --accent-color: #ff6b35;
-    --text-color: #1a202c;
-    --text-light: #4a5568;
+    --accent-color: #f59e0b;
+    --accent-pink: #ec4899;
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --error-color: #ef4444;
+    --text-color: #1f2937;
+    --text-light: #6b7280;
+    --text-muted: #9ca3af;
     --bg-color: #ffffff;
-    --bg-light: #f7fafc;
-    --border-color: #e2e8f0;
+    --bg-light: #f8fafc;
+    --bg-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --border-color: #e5e7eb;
+    --border-light: #f3f4f6;
     
     /* Colores modo oscuro */
-    --dark-bg: #1a1a1a;
-    --dark-text: #ffffff;
-    --dark-bg-light: #2d3748;
-    --dark-border: #4a5568;
+    --dark-bg: #0f172a;
+    --dark-bg-light: #1e293b;
+    --dark-bg-lighter: #334155;
+    --dark-text: #f1f5f9;
+    --dark-text-light: #cbd5e1;
+    --dark-border: #475569;
+    --dark-gradient: linear-gradient(135deg, #1e293b 0%, #334155 100%);
     
     /* Sombras */
     --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
@@ -54,14 +65,16 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 1rem 2rem;
-    background-color: var(--primary-color);
+    background: var(--bg-gradient);
     color: white;
-    box-shadow: var(--shadow-md);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 1000;
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .header-left {
@@ -88,38 +101,73 @@ body {
 .logo {
     color: white;
     text-decoration: none;
-    font-size: 1.5rem;
-    font-weight: bold;
+    font-size: 1.8rem;
+    font-weight: 800;
+    letter-spacing: -0.5px;
     transition: var(--transition);
+    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(45deg, #fff, #f0f9ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .logo:hover {
-    color: var(--accent-color);
+    transform: scale(1.05);
+    filter: brightness(1.2);
 }
 
 .search-container {
     display: flex;
     align-items: center;
-    background-color: white;
-    border-radius: 25px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 50px;
     padding: 0.5rem 1rem;
-    min-width: 300px;
+    min-width: 350px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: var(--transition);
+}
+
+.search-container:focus-within {
+    transform: scale(1.02);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .search-input {
     border: none;
     outline: none;
     flex: 1;
-    padding: 0.5rem;
+    padding: 0.75rem 0.5rem;
     font-size: 1rem;
+    background: transparent;
+    color: var(--text-color);
+}
+
+.search-input::placeholder {
+    color: var(--text-muted);
 }
 
 .search-btn {
-    background: none;
+    background: var(--primary-color);
     border: none;
     cursor: pointer;
-    font-size: 1.2rem;
+    font-size: 1.1rem;
     padding: 0.5rem;
+    border-radius: 50%;
+    color: white;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.search-btn:hover {
+    background: var(--primary-dark);
+    transform: scale(1.1);
 }
 
 .header-right {
@@ -129,47 +177,67 @@ body {
 }
 
 .icon-btn {
-    background: none;
+    background: rgba(255, 255, 255, 0.1);
     border: none;
     color: white;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 4px;
+    padding: 0.75rem;
+    border-radius: 12px;
     transition: var(--transition);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .icon-btn:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 .theme-toggle {
-    background: none;
+    background: rgba(255, 255, 255, 0.1);
     border: none;
     color: white;
-    font-size: 1.2rem;
+    font-size: 1.3rem;
     cursor: pointer;
-    padding: 0.5rem;
-    border-radius: 4px;
+    padding: 0.75rem;
+    border-radius: 12px;
     transition: var(--transition);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .theme-toggle:hover {
-    background-color: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.2);
+    transform: translateY(-2px) rotate(15deg);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
 }
 
 /* Sidebar */
 .sidebar {
     position: fixed;
     top: 80px;
-    left: -250px;
-    width: 250px;
+    left: -280px;
+    width: 280px;
     height: calc(100vh - 80px);
-    background-color: var(--bg-color);
-    border-right: 1px solid var(--border-color);
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(248, 250, 252, 0.95) 100%);
+    backdrop-filter: blur(20px);
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
     transition: var(--transition);
     z-index: 999;
     overflow-y: auto;
+    box-shadow: 4px 0 20px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar.open {
@@ -178,21 +246,43 @@ body {
 
 .nav-menu {
     list-style: none;
-    padding: 1rem 0;
+    padding: 1.5rem 0;
 }
 
 .nav-item {
-    display: block;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
     padding: 1rem 1.5rem;
     color: var(--text-color);
     text-decoration: none;
     transition: var(--transition);
-    border-left: 3px solid transparent;
+    border-left: 4px solid transparent;
+    font-weight: 500;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-item::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.nav-item:hover::before {
+    left: 100%;
 }
 
 .nav-item:hover {
-    background-color: var(--bg-light);
+    background: linear-gradient(135deg, rgba(37, 99, 235, 0.05), rgba(59, 130, 246, 0.05));
     border-left-color: var(--primary-color);
+    transform: translateX(5px);
+    color: var(--primary-color);
 }
 
 /* Main Content */
